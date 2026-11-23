@@ -1,57 +1,51 @@
 # AGENTS.md
 
-seams is a portable documentation framework for coding agents and the humans steering them. This
-repository contains its normative rules, practical guide, research lineage, replaceable work
-adapters, and optional skills.
+seams is a set of conventions and agent skills for building software with coding agents. In this
+repository, the documents and skills are the product.
 
-## Authority and reading paths
+## Where things live
 
-**Vision expresses direction. Design records commitments. Work authorizes implementation. Code and
-tests establish reality.** For this documentation repository, the documents themselves are the
-deliverable; checked links, formatting, and structural tests establish artifact integrity.
+- **Canon:** [`docs/design/`](docs/design/README.md) holds seams' vision, principles, and
+  invariants. These files also define the framework for every project that uses seams. Only the
+  operator accepts changes to canon. Propose changes in a proposal or on a work item.
+- **Human docs:** [`docs/guide.md`](docs/guide.md) explains seams to operators.
+  [`docs/supporting-evidence.md`](docs/supporting-evidence.md) cites the source of each idea.
+- **Agent procedures:** [`skills/seams-*/`](skills/) hold everything agents follow. Human docs
+  explain, and skills instruct. Do not put agent procedures in the docs, or explanations for humans
+  in the skills.
+- **Memory:** `.agents/proposals/` holds proposals. A proposal authorizes nothing until its status
+  is accepted. `.agents/skills/` and `.claude/` hold writing tools for this repository, not part of
+  seams.
+- **Work:** tracked in kata. Run `kata quickstart --format contract` before changing the repository,
+  search for an existing item, and follow
+  [`skills/seams-track/references/kata.md`](skills/seams-track/references/kata.md). If kata reports
+  that the project is not registered, tell the operator. Never put credentials in `.kata.toml`, in
+  `.kata.local.toml`, or in issues.
 
-The [constitution](docs/constitution.md) owns the normative framework. The
-[framework guide](docs/framework.md) owns its practical application. The README is an overview, not
-a competing contract. Supporting evidence is explanatory; skills are optional workflows.
+## Rules for changing seams
 
-Work is tracked in **kata**, not Markdown work logs. Run `kata quickstart --format contract` before
-changing the repository, search for an existing item, and use
-[the kata adapter](docs/adapters/kata.md) for scope, handoffs, and evidence. `.kata.toml` binds this
-workspace; `.kata.local.toml` is ignored. Never store credentials in either the repository or
-issues.
-
-## Change boundaries
-
-- A user's request to revise the framework selects that documentation change; it does not select
-  implementation work in an adopting project.
-- Preserve the difference between operator selection, exploration evidence, enforceable design, and
-  current reality.
-- Work tracking must remain replaceable. kata and Markdown are adapters, not normative requirements.
-- Skills must not become a second source of truth, an autonomous router, or a required agent
-  pipeline. Load only the focused skill relevant to a task.
-- Keep examples generic unless they explain a concrete adapter. Do not leak host-project secrets,
-  local paths, or machine-specific settings into portable guidance.
-- Do not introduce a mandatory document hierarchy, a detailed backlog template, or design ceremony
-  for clear mechanical tasks.
-- Preserve evidence distinctions and transfer cautions in the supporting-evidence guide. Do not turn
-  cited research into claims that seams has been empirically validated.
+- Keep the canon, the guide, and the skills consistent. A change to one usually needs a matching
+  change in the others, in the same commit.
+- Write human docs in the operator's plain style (`.claude/skills/plain-writing`): everyday words,
+  complete sentences, no dashes, no slogans, and no overselling.
+- Keep examples generic. Do not leak paths, secrets, or settings from a host project or this
+  machine.
+- Keep work tracking replaceable. A tracker is a reference in `seams-track`, not a requirement.
+- Skill frontmatter allows only `name`, `description`, `license`, `compatibility`, `metadata`, and
+  `allowed-tools`. Mark who runs a skill with `metadata.invocation` (`operator` or `agent`), and say
+  in the description when only the operator should run it.
+- The skills refer to each other as siblings, e.g., `<skills>/seams-track/references/kata.md`. Keep
+  those paths valid when you rename or move a file.
+- Do not claim that seams has been validated by experiment. Keep the transfer cautions in the
+  supporting evidence.
 
 ## Verification
-
-Run before calling a documentation change complete:
 
 ```sh
 make check
 ```
 
-Requires [`uv`](https://docs.astral.sh/uv/), which supplies pinned Python tools through `uvx`. No
-Node/npm setup or repository-local validation script is needed. `make format` applies the formatting
-rules.
-
-This checks Markdown formatting with GFM tables and frontmatter, offline local links and anchors,
-conventional skill layout and frontmatter, and structural invariants. Inspect the actual diff and
-the relevant reading paths as well. Do not claim that these checks validate the framework's
-effectiveness in another project.
-
-Use the repository's existing kata record for progress and remaining questions. Do not create a
-parallel status document.
+`make check` needs [`uv`](https://docs.astral.sh/uv/). It checks Markdown formatting, local links
+and anchors, and the layout and frontmatter of each skill. `make format` applies the formatting
+rules. These checks don't show that seams works in another project, so also read the diff and walk
+the reading paths you changed.

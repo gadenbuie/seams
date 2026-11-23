@@ -1,91 +1,47 @@
 # seams
 
-**The documentation framework for coding agents and the humans steering them.**
+seams is a set of conventions and agent skills for building software with coding agents. You and an
+agent first agree on what to build. Agents then plan the work, carry it out, review it, and land it,
+and they bring you the questions that need your decision.
 
-seams separates direction, design commitments, selected work, exploration, rationale, and current reality. Those boundaries let people and coding agents stay where they do their best work, seeing what they need, in the detail the task demands.
+## What seams does
 
-- Vision expresses direction.
-- Design records commitments.
-- Work authorizes implementation.
-- Code and tests establish reality.
+A project that uses coding agents collects ideas, plans, notes, rules, and task records. Agents read
+all of it, and they can't tell which parts you still stand behind. seams gives each kind of
+statement a home and a clear limit on what it authorizes:
 
-The operator chooses outcomes and resolves consequential tradeoffs. Agents can explore, shape,
-implement, review, and repair within explicit boundaries. Documentation supports those activities;
-it does not replace judgment, tests, or review.
+- **Canon** in `docs/design/` holds the vision, principles, and invariants you have accepted. Only
+  you change it.
+- **Memory** in `.agents/` and the work tracker holds proposals, plans, notes, and work items.
+  Agents use it to continue each other's work, and it authorizes nothing on its own.
+- **Code and tests** are the only evidence of what exists.
 
-seams is a convention, not a mandatory folder hierarchy, Markdown work tracker, or autonomous agent
-pipeline. Work must be tracked somewhere accessible to its participants; the tracker is replaceable.
-Skills are optional workflows, not a second source of authority.
+Work moves from an idea, to a proposal you accept, to units of work a planner writes, to agents that
+carry out each unit. You confirm a short read-back of the plan instead of reading each unit. When
+work lands, you get something to try.
 
 ## Start here
 
-| I want to... | Start with |
-| --- | --- |
-| Understand the non-negotiable rules | [Constitution](docs/constitution.md) |
-| Adopt seams in a new or existing project | [Framework guide](docs/framework.md) · [`seam-adopt`](skills/seam-adopt/SKILL.md) |
-| Explore a feature or shape selected work | [`seam-shape`](skills/seam-shape/SKILL.md) |
-| Implement, resume, repair, or finish a task | [`seam-work`](skills/seam-work/SKILL.md) |
-| Audit or reconcile the documentation system | [`seam-review`](skills/seam-review/SKILL.md) |
-| Use kata as the work ledger | [`seam-track-kata`](skills/seam-track-kata/SKILL.md) |
-| Understand the research and intellectual lineage | [Supporting evidence](docs/supporting-evidence.md) |
+| I want to                                | Read                                                                                                                                |
+| :--------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------- |
+| Understand how seams works               | [The guide](docs/guide.md)                                                                                                          |
+| See the rules seams keeps                | [Vision](docs/design/vision.md), [principles](docs/design/principles.md), [invariants](docs/design/invariants.md)                   |
+| Set up seams in a project                | [The guide's setup section](docs/guide.md#setting-up-seams-in-a-project) and the [`seams-adopt`](skills/seams-adopt/SKILL.md) skill |
+| See which skills exist and who runs them | [The guide's skills section](docs/guide.md#the-skills)                                                                              |
+| Read what agents follow                  | [The skills](skills/)                                                                                                               |
+| Know where the ideas come from           | [Supporting evidence](docs/supporting-evidence.md)                                                                                  |
 
-The constitution and framework guide define the convention. The evidence guide explains its lineage.
-The skills provide focused procedures for particular requests; load only the one needed.
+## Installing the skills
 
-## The lifecycle
+Copy or link the whole `skills/` folder into your agent harness's skill directory. The skills refer
+to each other's files, so install them together.
 
-1. **Orient:** identify the actual request, the smallest sufficient reading set, and where work is
-   tracked.
-1. **Explore when necessary:** record evidence, options, tradeoffs, and unknowns without turning
-   them into commitments.
-1. **Select:** the operator chooses an outcome or change to implement.
-1. **Shape proportionately:** resolve consequential uncertainty and establish acceptance. Routine
-   mechanical changes and well-understood fixes need much less design.
-1. **Deliver bounded work:** implement, verify, review, and record discoveries and handoffs.
-1. **Reconcile:** update durable documents with the change and close the work record on evidence.
+## This repository
 
-Exploration can produce decisions to stop or reshape an idea. A project plan can preserve future
-possibilities without authorizing all of them. A design can be committed before implementation
-without claiming that code exists.
+seams uses its own conventions. Its canon is in [`docs/design/`](docs/design/README.md), its
+proposals are in `.agents/proposals/`, and its work is tracked in kata. The [`AGENTS.md`](AGENTS.md)
+file is the entry point for agents working on seams itself.
 
-## Repository map
-
-```text
-AGENTS.md                 Entry point for agents working on seams itself
-README.md                 Overview and reading paths
-docs/
-  constitution.md         Small normative core
-  framework.md            Artifacts, workflows, adoption, and templates
-  supporting-evidence.md  Research lineage and transfer cautions
-  adapters/
-    kata.md               kata work-ledger conventions
-    markdown.md           Optional Markdown work-record conventions
-skills/
-  seam-adopt/SKILL.md     Fresh adoption or documentation migration
-  seam-shape/SKILL.md     Exploration and proportionate design shaping
-  seam-work/SKILL.md      Implementation lifecycle and handoffs
-  seam-review/SKILL.md    Documentation-system review and reconciliation
-  seam-track-kata/SKILL.md Optional kata CLI adapter
-.kata.toml                This repository's secret-free kata workspace binding
-```
-
-The source work for this repository is tracked in **kata**. Run `kata quickstart --format contract`
-before changing it. No credentials belong in `.kata.toml`; local daemon configuration stays in the
-ignored `.kata.local.toml`.
-
-## Use the skills
-
-Each `skills/seam-*/SKILL.md` follows the conventional skill layout and can be copied or linked into
-a harness's skill directory. Installing a skill is an environment-specific operation, not part of
-adopting the documentation convention.
-
-Keep the skills with the `docs/` directory or adjust their relative links when distributing them. A
-skill must never override the host project's own safety rules, governing contracts, or selected
-work.
-
-## Scope
-
-seams does not claim that one set of filenames fits every project, that every task needs design, or
-that longer autonomous runs are inherently better. Its measure is whether a newcomer can tell what
-is possible, what is required, what is selected, and what exists—without asking the operator to
-decode the repository.
+seams hasn't been validated by experiment. Its ideas come from older fields, and the
+[supporting evidence](docs/supporting-evidence.md) says where each one comes from and where the
+comparison to agent-assisted coding stops. Use the parts that fit your project.
