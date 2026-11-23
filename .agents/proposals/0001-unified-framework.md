@@ -295,3 +295,17 @@ Skills:
 
 - bring work-shaping, orient-me, kata-plan, and route-work into seams
 - keep kata as a separate tracker adapter
+
+## Outcome
+
+On 2026-11-23, the operator selected all of the queued changes by direct request and asked for the
+docs and skills to be rewritten to implement this proposal. The implementation differs from the text
+above in these ways, and the canon in `docs/design/` is the current statement of each:
+
+- **Terms.** "Shaping plan" became "proposal". Stage 3 is called "plan", and stage 4 is called "do".
+  The constitution and the framework guide were replaced by `docs/design/` and `docs/guide.md`.
+- **Skills.** The skills are named `seams-adopt`, `seams-propose`, `seams-plan`, `seams-route`,
+  `seams-reconcile`, `seams-work`, `seams-shape`, `seams-orient`, and `seams-track`. kata-plan
+  became the tracker-neutral `seams-plan`, and the kata details moved to `seams-track`.
+- **Homes.** Canon holds vision, principles, and invariants. Accepted proposals record selections,
+  and work records live in the tracker, not in `.agents/`.
