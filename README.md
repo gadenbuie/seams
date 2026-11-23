@@ -2,12 +2,12 @@
 
 **The documentation framework for coding agents and the humans steering them.**
 
-seams separates direction, design commitments, selected work, exploration, rationale, and current
-reality. Those boundaries let people and coding agents work with the context they need instead of
-requiring the whole project in memory.
+seams separates direction, design commitments, selected work, exploration, rationale, and current reality. Those boundaries let people and coding agents stay where they do their best work, seeing what they need, in the detail the task demands.
 
-> **Vision expresses direction. Design records commitments. Work authorizes implementation. Code and
-> tests establish reality.**
+- Vision expresses direction.
+- Design records commitments.
+- Work authorizes implementation.
+- Code and tests establish reality.
 
 The operator chooses outcomes and resolves consequential tradeoffs. Agents can explore, shape,
 implement, review, and repair within explicit boundaries. Documentation supports those activities;
@@ -19,15 +19,15 @@ Skills are optional workflows, not a second source of authority.
 
 ## Start here
 
-| I want to…                                       | Start with                                                                        |
-| :----------------------------------------------- | :-------------------------------------------------------------------------------- |
-| Understand the non-negotiable rules              | [Constitution](docs/constitution.md)                                              |
-| Adopt seams in a new or existing project         | [Framework guide](docs/framework.md) · [`seam-adopt`](skills/seam-adopt/SKILL.md) |
-| Explore a feature or shape selected work         | [`seam-shape`](skills/seam-shape/SKILL.md)                                        |
-| Implement, resume, repair, or finish a task      | [`seam-work`](skills/seam-work/SKILL.md)                                          |
-| Audit or reconcile the documentation system      | [`seam-review`](skills/seam-review/SKILL.md)                                      |
-| Use kata as the work ledger                      | [`seam-track-kata`](skills/seam-track-kata/SKILL.md)                              |
-| Understand the research and intellectual lineage | [Supporting evidence](docs/supporting-evidence.md)                                |
+| I want to... | Start with |
+| --- | --- |
+| Understand the non-negotiable rules | [Constitution](docs/constitution.md) |
+| Adopt seams in a new or existing project | [Framework guide](docs/framework.md) · [`seam-adopt`](skills/seam-adopt/SKILL.md) |
+| Explore a feature or shape selected work | [`seam-shape`](skills/seam-shape/SKILL.md) |
+| Implement, resume, repair, or finish a task | [`seam-work`](skills/seam-work/SKILL.md) |
+| Audit or reconcile the documentation system | [`seam-review`](skills/seam-review/SKILL.md) |
+| Use kata as the work ledger | [`seam-track-kata`](skills/seam-track-kata/SKILL.md) |
+| Understand the research and intellectual lineage | [Supporting evidence](docs/supporting-evidence.md) |
 
 The constitution and framework guide define the convention. The evidence guide explains its lineage.
 The skills provide focused procedures for particular requests; load only the one needed.
