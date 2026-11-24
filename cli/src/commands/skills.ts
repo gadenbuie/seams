@@ -1,6 +1,6 @@
 /**
- * `seams skills`: inspect and install the skills bundled with the running
- * package.
+ * `seams skills`: inspect, install, and update the skills bundled with the
+ * running package.
  *
  * `skills list` names each bundled skill with its installation state in a
  * scope (installed, missing, modified, untracked, or not installed).
@@ -8,16 +8,16 @@
  * or returns their contents and paths in JSON, without installing anything.
  * `skills install` installs the bundled skills through the `skills` library,
  * preserving modified copies and never writing without an explicit agent
- * selection. Later units add the check and update subcommands as new entries
- * in the subcommand map below.
+ * selection. `skills check` classifies every installed copy (ok, modified,
+ * missing, untracked, outdated, or divergent) and exits 1 when anything is
+ * not ok. `skills update` refreshes the outdated and missing copies, leaving
+ * modified, untracked, and divergent copies for manual reconciliation.
  */
 import { parseArgs } from "node:util";
 import { listBundledSkills, readBundledSkill } from "../skills/bundled.ts";
-import {
-  UnsupportedAgentError,
-  installSkills,
-  installationStatuses,
-} from "../skills/install.ts";
+import { checkSkills, updateSkills } from "../skills/check.ts";
+import type { CheckEntry, UpdateTarget } from "../skills/check.ts";
+import { UnsupportedAgentError, installSkills, installationStatuses } from "../skills/install.ts";
 import type { AgentId, InstallMode, Scope } from "../skills/install.ts";
 import { jsonEnvelope, printJson, printText } from "../output.ts";
 import type { Command, CommandContext } from "./index.ts";
@@ -28,7 +28,7 @@ interface Subcommand {
   run(ctx: CommandContext, args: string[]): number | void | Promise<number | void>;
 }
 
-const USAGE = "Usage: seams skills <list | get | install> [options]";
+const USAGE = "Usage: seams skills <list | get | install | check | update> [options]";
 
 function usageError(message: string): number {
   const map = subcommandMap();
@@ -241,11 +241,160 @@ async function runInstall(ctx: CommandContext, args: string[]): Promise<number> 
   return counts.skipped > 0 || counts.failed > 0 ? 1 : 0;
 }
 
+const CHECK_OPTIONS = {
+  scope: { type: "string" },
+  agent: { type: "string", multiple: true },
+} as const;
+
+/** Text for one classified copy: `skill · agent: state path` plus both versions' paths when attention is needed. */
+function entryLine(entry: CheckEntry): string {
+  const versions = entry.state === "ok"
+    ? ""
+    : ` · installed: ${entry.path}${entry.bundledPath === undefined ? "" : ` · bundled: ${entry.bundledPath}`}`;
+  const note = entry.note === undefined ? "" : ` · ${entry.note}`;
+  return `  ${entry.skill} · ${entry.agent}: ${entry.state}${note}${versions}`;
+}
+
+async function runCheck(ctx: CommandContext, args: string[]): Promise<number> {
+  let values;
+  try {
+    ({ values } = parseArgs({ args, options: CHECK_OPTIONS, allowPositionals: false }));
+  } catch (error) {
+    return usageError(error instanceof Error ? error.message : String(error));
+  }
+  const scopeResult = parseScope(values.scope);
+  if (typeof scopeResult === "number") return scopeResult;
+  const scope = scopeResult;
+
+  let report;
+  try {
+    report = await checkSkills({
+      scope,
+      agents: values.agent === undefined ? undefined : (values.agent as AgentId[]),
+    });
+  } catch (error) {
+    if (error instanceof UnsupportedAgentError) return usageError(error.message);
+    process.stderr.write(`seams: ${error instanceof Error ? error.message : String(error)}\n`);
+    return 1;
+  }
+
+  if (ctx.json) {
+    printJson(
+      jsonEnvelope("skills check", {
+        scope: report.scope,
+        agents: report.agents,
+        source: report.source,
+        metaPath: report.metaPath,
+        entries: report.entries,
+      }),
+    );
+    return report.entries.every((entry) => entry.state === "ok") ? 0 : 1;
+  }
+
+  if (report.entries.length === 0) {
+    printText(`No seams skills are recorded or present in the ${report.scope} scope.`);
+    return 0;
+  }
+  for (const entry of report.entries) printText(entryLine(entry));
+  const counts = new Map<string, number>();
+  for (const entry of report.entries) counts.set(entry.state, (counts.get(entry.state) ?? 0) + 1);
+  const summary = [...counts.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([state, count]) => `${count} ${state}`)
+    .join(", ");
+  printText(`Checked ${report.entries.length} copies: ${summary}.`);
+  return counts.get("ok") === report.entries.length ? 0 : 1;
+}
+
+const UPDATE_OPTIONS = {
+  scope: { type: "string" },
+  agent: { type: "string", multiple: true },
+  "dry-run": { type: "boolean" },
+} as const;
+
+async function runUpdate(ctx: CommandContext, args: string[]): Promise<number> {
+  let values;
+  try {
+    ({ values } = parseArgs({ args, options: UPDATE_OPTIONS, allowPositionals: false }));
+  } catch (error) {
+    return usageError(error instanceof Error ? error.message : String(error));
+  }
+  const scopeResult = parseScope(values.scope);
+  if (typeof scopeResult === "number") return scopeResult;
+  const scope = scopeResult;
+  const dryRun = values["dry-run"] === true;
+
+  let report;
+  try {
+    report = await updateSkills({
+      scope,
+      agents: values.agent === undefined ? undefined : (values.agent as AgentId[]),
+      dryRun,
+    });
+  } catch (error) {
+    if (error instanceof UnsupportedAgentError) return usageError(error.message);
+    process.stderr.write(`seams: ${error instanceof Error ? error.message : String(error)}\n`);
+    return 1;
+  }
+
+  if (ctx.json) {
+    printJson(
+      jsonEnvelope("skills update", {
+        scope: report.scope,
+        agents: report.agents,
+        dryRun: report.dryRun,
+        source: report.source,
+        metaPath: report.metaPath,
+        warnings: report.warnings,
+        targets: report.targets,
+        kept: report.kept,
+        entries: report.entries,
+        metaUpdated: report.metaUpdated,
+      }),
+    );
+    if (report.dryRun) return 0;
+    const incomplete = report.targets.some((target) => target.action === "skipped" || target.action === "failed");
+    return incomplete || report.kept.length > 0 ? 1 : 0;
+  }
+
+  for (const target of report.targets) {
+    const detail = target.detail === undefined ? "" : ` (${target.detail})`;
+    const action = report.dryRun
+      ? `would update (${target.reason})`
+      : target.action === "updated"
+        ? `updated (${target.reason})`
+        : `${target.action} (${target.reason})${detail}`;
+    printText(`  ${target.skill} → ${target.agent}: ${action} ${target.path}`);
+  }
+  if (report.dryRun) {
+    if (report.targets.length === 0) printText("Nothing to update from the running package.");
+    printText("Dry run: nothing written.");
+    return 0;
+  }
+  if (report.kept.length > 0) {
+    printText("Left for manual reconciliation:");
+    for (const entry of report.kept) printText(entryLine(entry));
+  }
+  const counts = { updated: 0, skipped: 0, failed: 0 };
+  for (const target of report.targets) {
+    if (target.action === "updated") counts.updated += 1;
+    else if (target.action === "skipped") counts.skipped += 1;
+    else if (target.action === "failed") counts.failed += 1;
+  }
+  printText(
+    `Updated ${counts.updated}, skipped ${counts.skipped}, failed ${counts.failed}` +
+      `${report.kept.length > 0 ? `, kept ${report.kept.length} for manual reconciliation` : ""}.`,
+  );
+  return counts.skipped > 0 || counts.failed > 0 || report.kept.length > 0 ? 1 : 0;
+}
+
 function subcommandMap(): Record<string, Subcommand> {
   return {
     list: { summary: "list the bundled skills and their installation state", run: runList },
     get: { summary: "print a bundled skill and its references and assets", run: runGet },
     install: { summary: "install the bundled skills for agent(s)", run: runInstall },
+    check: { summary: "classify every installed skill copy against the running package", run: runCheck },
+    update: { summary: "refresh outdated and missing copies from the running package", run: runUpdate },
   };
 }
 
