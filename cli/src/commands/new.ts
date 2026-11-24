@@ -17,6 +17,7 @@ import { findRoot, loadProject, type Project } from "../config.ts";
 import { parseFrontmatter } from "../docs/frontmatter.ts";
 import { bundledSkillsDir } from "../skills/bundled.ts";
 import { jsonEnvelope, printJson, printText } from "../output.ts";
+import { parse as parseYaml } from "yaml";
 import type { Command, CommandContext } from "./index.ts";
 
 const TYPES = ["proposal", "plan", "overview"] as const;
@@ -71,24 +72,41 @@ function localDate(): string {
 }
 
 /**
- * Format a value as a single-line YAML scalar, quoting it only when the plain
- * form would not read back as one string. A JSON string is also a valid YAML
- * double-quoted scalar.
+ * Format a value as a single-line YAML scalar, quoting it unless the plain
+ * form reads back as exactly the same string. Numbers, booleans, and null
+ * spelled in plain form would change type, so they are quoted. A JSON string
+ * is also a valid YAML double-quoted scalar.
  */
 function yamlScalar(value: string): string {
-  if (/^[A-Za-z0-9][A-Za-z0-9 _./-]*$/.test(value) && !value.endsWith(" ")) {
-    return value;
-  }
-  return JSON.stringify(value);
+  const plain =
+    /^[A-Za-z0-9][A-Za-z0-9 _./-]*$/.test(value) &&
+    !value.endsWith(" ") &&
+    yamlStringRound(value);
+  return plain ? value : JSON.stringify(value);
 }
 
-/** The highest numeric `NNNN-` prefix among a home's files, so the next is 1 + it. */
+/** Whether YAML parses `value` back into exactly the same string. */
+function yamlStringRound(value: string): boolean {
+  try {
+    return parseYaml(value) === value;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The highest numeric `NNNN-` prefix among a home's files, so the next is 1 + it.
+ * Only the four-digit convention counts: a date-prefixed name such as
+ * `2026-11-24-auth.md` is not a sequence number.
+ */
+const NUMBERED_NAME = /^\d{4}-(?!\d{2}-)/;
+
 function nextNumber(dir: string): number {
   let max = 0;
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (!entry.isFile()) continue;
-    const match = /^(\d+)-/.exec(entry.name);
-    if (match) max = Math.max(max, Number(match[1]));
+    const match = NUMBERED_NAME.exec(entry.name);
+    if (match) max = Math.max(max, Number(match[0].slice(0, 4)));
   }
   return max + 1;
 }
@@ -100,7 +118,7 @@ function paddedNumber(number: number): string {
 /** Whether any file in `dir` already follows the `NNNN-` naming convention. */
 function usesNumbering(dir: string): boolean {
   return readdirSync(dir, { withFileTypes: true }).some(
-    (entry) => entry.isFile() && /^(\d+)-/.test(entry.name),
+    (entry) => entry.isFile() && NUMBERED_NAME.test(entry.name),
   );
 }
 
@@ -191,6 +209,22 @@ function refuseExisting(project: Project, file: string): void {
   throw new CreationError(`Refusing to overwrite an existing file: ${relativePath(project, file)}`);
 }
 
+/**
+ * Create a file that must not exist, so two runs can never overwrite the same
+ * file even when they pass the pre-check together. The pre-check above keeps
+ * the friendlier error for the common case.
+ */
+function writeNewFile(project: Project, file: string, content: string): void {
+  try {
+    writeFileSync(file, content, { flag: "wx" });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "EEXIST") {
+      refuseExisting(project, file);
+    }
+    throw error;
+  }
+}
+
 function readTemplate(type: Exclude<NewType, "overview">): string {
   return readFileSync(path.join(bundledSkillsDir(), ...TEMPLATE_PATHS[type]), "utf8");
 }
@@ -225,7 +259,7 @@ function create(
       message += "\nUse --force to create the proposal anyway.";
       throw new CreationError(message);
     }
-    writeFileSync(file, fillTemplate(readTemplate("proposal"), templateFields));
+    writeNewFile(project, file, fillTemplate(readTemplate("proposal"), templateFields));
     return { path: relativePath(project, file), number };
   }
 
@@ -237,7 +271,7 @@ function create(
     const fileName = number !== undefined ? `${paddedNumber(number)}-${slug}.md` : `${slug}.md`;
     const file = path.join(dir, fileName);
     refuseExisting(project, file);
-    writeFileSync(file, fillTemplate(readTemplate("plan"), templateFields));
+    writeNewFile(project, file, fillTemplate(readTemplate("plan"), templateFields));
     return { path: relativePath(project, file), number };
   }
 
@@ -245,7 +279,7 @@ function create(
   mkdirSync(dir, { recursive: true });
   const file = path.join(dir, `${slug}.md`);
   refuseExisting(project, file);
-  writeFileSync(file, overviewDocument(fields));
+  writeNewFile(project, file, overviewDocument(fields));
   const indexPath = path.join(dir, "index.md");
   if (options.updateIndex) {
     appendIndexLine(indexPath, slug);
@@ -292,6 +326,9 @@ function run(ctx: CommandContext): number {
     return usageError(
       `Invalid slug '${slug}'. Use lowercase letters and digits separated by single dashes.`,
     );
+  }
+  if (type === "overview" && slug === "index") {
+    return usageError("The slug 'index' is reserved for the overviews navigation index.");
   }
 
   const project = loadProject(findRoot(process.cwd()));

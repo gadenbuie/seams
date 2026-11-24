@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { describe, it } from "node:test";
 import { parseFrontmatter } from "../src/docs/frontmatter.ts";
@@ -27,16 +27,16 @@ function todayLocal(): string {
   return `${now.getFullYear()}-${month}-${day}`;
 }
 
-/** Every file under `dir`, with repo-relative paths and byte sizes, skipping `skip` subfolder names. */
-function snapshot(dir: string, skip: string[] = []): Map<string, number> {
-  const files = new Map<string, number>();
+/** Every file under `dir` (skipping `skip` subfolder names), keyed by repo-relative path, with full contents. */
+function snapshot(dir: string, skip: string[] = []): Map<string, string> {
+  const files = new Map<string, string>();
   const walk = (relative: string): void => {
     const absolute = path.join(dir, relative);
     for (const entry of readdirSync(absolute, { withFileTypes: true })) {
       if (entry.isDirectory() && skip.includes(entry.name)) continue;
       const child = relative === "" ? entry.name : path.join(relative, entry.name);
       if (entry.isDirectory()) walk(child);
-      else files.set(child.split(path.sep).join("/"), statSync(absolute).size);
+      else files.set(child.split(path.sep).join("/"), readFileSync(path.join(dir, child), "utf8"));
     }
   };
   walk("");
@@ -63,7 +63,7 @@ describe("seams new proposal", () => {
     assert.match(readFileSync(file, "utf8"), /^# Proposal: Try It$/m);
   });
 
-  it("accepts a custom title and description", () => {
+  it("accepts a custom title and description, quoted so they read back as strings", () => {
     const cwd = copyFixture("new-project");
     const result = run(
       [
@@ -79,6 +79,16 @@ describe("seams new proposal", () => {
     );
     assert.equal(data.title, "A strange title: with a colon");
     assert.equal(data.description, 'Says "when" to read it');
+
+    // Plain-looking YAML scalars that would change type are quoted too.
+    const typed = run(["new", "overview", "typed", "--title", "2026"], cwd);
+    assert.equal(typed.status, 0);
+    const overview = parseFrontmatter(
+      readFileSync(path.join(cwd, "docs/design/overviews/typed.md"), "utf8"),
+    );
+    assert.equal(overview.data.title, "2026");
+    assert.equal(typeof overview.data.title, "string");
+    assert.equal(overview.problems.length, 0);
   });
 
   it("stops when an open proposal shares more than half of the slug's words", () => {
@@ -182,6 +192,31 @@ describe("seams new plan", () => {
     assert.equal(result.status, 0);
     assert.match(result.stdout, /\.agents\/plans\/my-plan\.md/);
   });
+
+  it("does not mistake date-prefixed names for the NNNN- convention", () => {
+    const cwd = copyFixture("new-project");
+    for (const name of readdirSync(path.join(cwd, ".agents/plans"))) {
+      rmSync(path.join(cwd, ".agents/plans", name));
+    }
+    const plans = path.join(cwd, ".agents/plans");
+    writeFileSync(path.join(plans, "2026-11-24-auth.md"), "# A date-named plan\n");
+    const result = run(["new", "plan", "my-plan"], cwd);
+    assert.equal(result.status, 0);
+    assert.match(result.stdout, /\.agents\/plans\/my-plan\.md/);
+
+    // A date-prefixed file in the proposals home does not move the numbering
+    // either: with no NNNN- files, the next number is 1. (A bare `2026-notes.md`
+    // is indistinguishable from the NNNN- convention and does count.)
+    const custom = copyFixture("new-custom");
+    const proposals = path.join(custom, "docs/notes/proposals");
+    rmSync(proposals, { recursive: true, force: true });
+    mkdirSync(proposals, { recursive: true });
+    writeFileSync(path.join(proposals, "2026-11-24-notes.md"), "# notes\n");
+    const proposalResult = run(["new", "proposal", "first-one", "--json"], custom);
+    assert.equal(proposalResult.status, 0);
+    const json = JSON.parse(proposalResult.stdout) as NewJson;
+    assert.equal(json.number, 1);
+  });
 });
 
 describe("seams new overview", () => {
@@ -229,6 +264,7 @@ describe("seams new safety", () => {
       ["new", "proposal", "x-"],
       ["new", "proposal"],
       ["new", "widget", "x"],
+      ["new", "overview", "index"],
     ]) {
       const result = run(args, cwd);
       assert.equal(result.status, 2, `expected exit 2 for ${args.join(" ")}`);
@@ -238,7 +274,17 @@ describe("seams new safety", () => {
 
   it("leaves every canon file byte-identical", () => {
     const cwd = copyFixture("new-project");
-    const before = snapshot(path.join(cwd, "docs/design"), ["overviews"]);
+    const canon = path.join(cwd, "docs/design");
+    const before = snapshot(canon, ["overviews"]);
+
+    // The snapshot compares contents, not just names: a real rewrite must be
+    // caught, so prove the comparison notices one.
+    const vision = path.join(canon, "vision.md");
+    const original = readFileSync(vision, "utf8");
+    writeFileSync(vision, "# rewritten\n");
+    assert.notDeepEqual(snapshot(canon, ["overviews"]), before);
+    writeFileSync(vision, original);
+
     for (const args of [
       ["new", "proposal", "try-it"],
       ["new", "plan", "try-it"],
@@ -246,7 +292,7 @@ describe("seams new safety", () => {
     ]) {
       assert.equal(run(args, cwd).status, 0);
     }
-    assert.deepEqual(snapshot(path.join(cwd, "docs/design"), ["overviews"]), before);
+    assert.deepEqual(snapshot(canon, ["overviews"]), before);
   });
 
   it("creates documents in the homes a custom manifest names", () => {
