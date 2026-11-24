@@ -70,6 +70,15 @@ Use the established term itself when it makes an agent more likely to behave the
 The [supporting evidence](../supporting-evidence.md) cites the source of each idea.
 Avoid military doctrine as a source when a reasonable alternative exists.
 
+## Keep tools focused on information
+
+Tools help people and agents find, read, and maintain project information without taking over the project's way of working.
+A tool may report the source and authority of a statement, but it may not raise the statement's authority or treat retrieval as verification.
+
+Prefer small commands with explicit inputs and bounded output.
+An agent chooses what to look up and which documents to read.
+Tools handle deterministic checks and leave judgments about intent, meaning, and current behavior to the operator and agents.
+
 ## Maintain documentation with the work
 
 Documentation helps fresh agents and the operator understand the current system at a level that code can't provide on its own.
