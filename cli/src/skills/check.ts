@@ -205,23 +205,60 @@ async function classifySkills(options: CheckOptions): Promise<Classification> {
         bundledHash: bundledFacts?.hash,
         bundledPath: bundledFacts === undefined ? undefined : path.join(sourceDir, name),
       };
-      const content = lstatSafe(destination.content);
       // A copy-mode destination that is actually a symlink is not the copy
-      // the record describes; a symlink-mode agent additionally needs its
-      // link. Mirrors the `skills list` state.
+      // the record describes; the library replaces it with a real folder
+      // without touching the symlink's target. Mirrors the `skills list`
+      // state.
+      const content = lstatSafe(destination.content);
       if (content === undefined || (record.mode === "copy" && content.isSymbolicLink())) {
         entry.state = "missing";
         entries.push(entry);
         continue;
       }
-      if (destination.link !== undefined && !lstatSafe(destination.link)?.isSymbolicLink()) {
-        entry.state = "missing";
-        entry.path = destination.link;
+      // The content hash decides before the link state: a modified or
+      // divergent copy is never an update target, whatever the link looks
+      // like. Repairing a link would hand the library the shared folder,
+      // and the library rewrites it (seams#sn2t) — the edits would be lost
+      // while the same run listed the folder for manual reconciliation.
+      entry.installedHash = skillFolderHash(destination.content);
+      const contentState = classifyRecord(entry.installedHash, record, bundledFacts);
+      if (contentState === "modified" || contentState === "divergent") {
+        entry.state = contentState;
         entries.push(entry);
         continue;
       }
-      entry.installedHash = skillFolderHash(destination.content);
-      entry.state = classifyRecord(entry.installedHash, record, bundledFacts);
+      // A symlink-mode agent additionally needs its link. A missing link
+      // over an intact folder is repairable. A real folder at the link path
+      // is the agent's copy, not a link: it is kept when it differs from
+      // the record (the library would replace it with a symlink and lose
+      // the changes, as the install layer's classifyLink already knows),
+      // and is a lossless conversion target when it is byte-identical.
+      if (record.mode === "symlink" && destination.link !== undefined) {
+        const link = lstatSafe(destination.link);
+        if (link === undefined) {
+          entry.state = "missing";
+          entry.path = destination.link;
+          entries.push(entry);
+          continue;
+        }
+        if (!link.isSymbolicLink()) {
+          const linkHash = skillFolderHash(destination.link);
+          entry.installedHash = linkHash;
+          entry.path = destination.link;
+          const linkState = classifyRecord(linkHash, record, bundledFacts);
+          if (linkState === "modified" || linkState === "divergent") {
+            entry.state = linkState;
+            entries.push(entry);
+            continue;
+          }
+          // Byte-identical content in the wrong shape: the recorded symlink
+          // is missing and update converts the folder back into the link.
+          entry.state = "missing";
+          entries.push(entry);
+          continue;
+        }
+      }
+      entry.state = contentState;
       entries.push(entry);
     }
   }
@@ -230,15 +267,17 @@ async function classifySkills(options: CheckOptions): Promise<Classification> {
   // a path the metadata does not track. Tracked paths come from every
   // recorded agent, not just the selected ones, so filtering agents never
   // turns a tracked copy into a false untracked finding.
-  const trackedPaths = new Map<string, Set<string>>();
+  // Tracked real paths across every recorded skill and agent: a location
+  // seams' metadata covers never appears as untracked, whatever the
+  // SKILL.md frontmatter inside it claims its name is (the library's listing
+  // names skills by frontmatter, the directory scan by folder name).
+  const trackedRealPaths = new Set<string>();
   for (const [name, record] of Object.entries(meta?.skills ?? {})) {
     for (const agent of record.agents) {
       if (!isSupportedAgent(agent)) continue;
       const destination = await skillDestination(cwd, options.scope, record.mode, agent, name);
-      const paths = trackedPaths.get(name) ?? new Set<string>();
-      paths.add(realpathSafe(destination.content));
-      if (destination.link !== undefined) paths.add(realpathSafe(destination.link));
-      trackedPaths.set(name, paths);
+      trackedRealPaths.add(realpathSafe(destination.content));
+      if (destination.link !== undefined) trackedRealPaths.add(realpathSafe(destination.link));
     }
   }
 
@@ -252,7 +291,7 @@ async function classifySkills(options: CheckOptions): Promise<Classification> {
     const real = realpathSafe(at);
     const key = `${agent}\0${real}`;
     if (seenUntracked.has(key)) return;
-    if (trackedPaths.get(name)?.has(real)) return;
+    if (trackedRealPaths.has(real)) return;
     seenUntracked.add(key);
     const bundledFacts = bundled.get(name);
     entries.push({

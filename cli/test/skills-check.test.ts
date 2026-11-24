@@ -409,6 +409,149 @@ describe("skills update", () => {
     }
   });
 
+  it("never targets a modified shared folder, even when an agent's link is missing", async () => {
+    // Review regression (roborev 2576, finding 1): with the shared folder
+    // hand-edited and claude's link deleted, the link check must not turn
+    // the copy into a repair target — the library would rewrite the shared
+    // folder and lose the edits.
+    const linked = tempProject();
+    try {
+      await installSkills({
+        cwd: linked,
+        scope: "project",
+        mode: "symlink",
+        agents: ["claude-code", "pi"],
+        sourceDir: FIXTURE_V1,
+      });
+      const canonical = path.join(linked, ".agents", "skills", "seams-orient", "SKILL.md");
+      writeFileSync(canonical, readFileSync(canonical, "utf8") + "\n<!-- hand edit -->\n");
+      rmSync(path.join(linked, ".claude", "skills", "seams-orient"));
+      const before = readFileSync(canonical, "utf8");
+      const metaFile = path.join(linked, ".agents", "seams-skills.json");
+      const metaBefore = readFileSync(metaFile, "utf8");
+
+      const check = await checkSkills({ cwd: linked, scope: "project", sourceDir: FIXTURE_V2 });
+      assert.deepEqual(
+        check.entries.map((e) => [e.skill, e.agent, e.state]),
+        [
+          ["seams-orient", "claude-code", "divergent"],
+          ["seams-orient", "pi", "divergent"],
+          ["seams-work", "claude-code", "ok"],
+          ["seams-work", "pi", "ok"],
+        ],
+      );
+      const update = await updateSkills({ cwd: linked, scope: "project", sourceDir: FIXTURE_V2 });
+      assert.deepEqual(update.targets, []);
+      assert.equal(update.metaUpdated, false);
+      assert.equal(readFileSync(canonical, "utf8"), before, "the hand edit survives");
+      assert.equal(readFileSync(metaFile, "utf8"), metaBefore);
+      assert.ok(
+        !existsSync(path.join(linked, ".claude", "skills", "seams-orient")),
+        "the link stays missing",
+      );
+    } finally {
+      rmSync(linked, { recursive: true, force: true });
+    }
+  });
+
+  it("keeps a modified real folder at a symlink's link path", async () => {
+    // Review regression (roborev 2576, finding 2): a hand-copied folder
+    // with edits sitting where claude's symlink belongs must not be
+    // classified missing, or update would let the library replace it with
+    // a symlink and lose the changes.
+    const linked = tempProject();
+    try {
+      await installSkills({
+        cwd: linked,
+        scope: "project",
+        mode: "symlink",
+        agents: ["claude-code"],
+        sourceDir: FIXTURE_V1,
+      });
+      const link = path.join(linked, ".claude", "skills", "seams-orient");
+      rmSync(link);
+      cpSync(path.join(FIXTURE_V1, "seams-orient"), link, { recursive: true });
+      writeFileSync(
+        path.join(link, "SKILL.md"),
+        readFileSync(path.join(link, "SKILL.md"), "utf8") + "\n<!-- hand edit -->\n",
+      );
+      const before = readFileSync(path.join(link, "SKILL.md"), "utf8");
+      const metaFile = path.join(linked, ".agents", "seams-skills.json");
+      const metaBefore = readFileSync(metaFile, "utf8");
+
+      const check = await checkSkills({ cwd: linked, scope: "project", sourceDir: FIXTURE_V1 });
+      const claude = check.entries.find((e) => e.agent === "claude-code");
+      assert.equal(claude?.state, "modified");
+      assert.equal(claude?.path, link);
+      assert.equal(claude?.installedHash, skillFolderHash(link));
+
+      const update = await updateSkills({ cwd: linked, scope: "project", sourceDir: FIXTURE_V2 });
+      assert.deepEqual(update.targets, []);
+      assert.equal(update.metaUpdated, false);
+      assert.equal(readFileSync(path.join(link, "SKILL.md"), "utf8"), before);
+      assert.equal(readFileSync(metaFile, "utf8"), metaBefore);
+    } finally {
+      rmSync(linked, { recursive: true, force: true });
+    }
+  });
+
+  it("converts a byte-identical real folder at the link path back into the symlink", async () => {
+    const linked = tempProject();
+    try {
+      await installSkills({
+        cwd: linked,
+        scope: "project",
+        mode: "symlink",
+        agents: ["claude-code"],
+        sourceDir: FIXTURE_V1,
+      });
+      const link = path.join(linked, ".claude", "skills", "seams-orient");
+      rmSync(link);
+      cpSync(path.join(linked, ".agents", "skills", "seams-orient"), link, { recursive: true });
+
+      const check = await checkSkills({ cwd: linked, scope: "project", sourceDir: FIXTURE_V1 });
+      assert.equal(check.entries.find((e) => e.skill === "seams-orient")?.state, "missing");
+      assert.equal(check.entries.find((e) => e.skill === "seams-orient")?.path, link);
+
+      const update = await updateSkills({ cwd: linked, scope: "project", sourceDir: FIXTURE_V1 });
+      assert.deepEqual(
+        update.targets.map((t) => [t.skill, t.agent, t.reason, t.action]),
+        [["seams-orient", "claude-code", "missing", "updated"]],
+      );
+      assert.ok(lstatSync(link).isSymbolicLink(), "the folder became the symlink again");
+      assert.equal(
+        skillFolderHash(path.join(linked, ".agents", "skills", "seams-orient")),
+        skillFolderHash(path.join(FIXTURE_V1, "seams-orient")),
+      );
+    } finally {
+      rmSync(linked, { recursive: true, force: true });
+    }
+  });
+
+  it("never reports a tracked location as untracked, whatever its frontmatter claims", async () => {
+    // Review regression (roborev 2576, finding 3): the library's listing
+    // names skills by SKILL.md frontmatter, so a tracked copy with an
+    // edited frontmatter name must not show up as untracked too.
+    const project = tempProject();
+    try {
+      await installFixture(project, FIXTURE_V1);
+      const skill = path.join(project, ".agents", "skills", "seams-work", "SKILL.md");
+      writeFileSync(
+        skill,
+        readFileSync(skill, "utf8").replace("name: seams-work", "name: seams-renamed"),
+      );
+
+      const report = await checkSkills({ cwd: project, scope: "project", sourceDir: FIXTURE_V1 });
+      assert.deepEqual(
+        report.entries.filter((e) => e.state === "untracked"),
+        [],
+      );
+      assert.equal(report.entries.find((e) => e.skill === "seams-work")?.state, "modified");
+    } finally {
+      rmSync(project, { recursive: true, force: true });
+    }
+  });
+
   it("repairs a missing symlink without touching the healthy canonical copy", async () => {
     const linked = tempProject();
     try {
