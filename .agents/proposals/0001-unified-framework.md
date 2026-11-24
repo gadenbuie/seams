@@ -1,8 +1,12 @@
-# Proposal: seams as a unified framework for operators and coding agents
+---
+title: seams as a unified framework for operators and coding agents
+description: Read when tracing why seams exists in its current shape, or when revisiting its scope.
+status: accepted
+created: 2026-11-23
+source: a planning conversation between the operator and Claude on 2026-11-23
+---
 
-- **Status:** accepted on 2026-11-23
-- **Created:** 2026-11-23
-- **Source:** a planning conversation between the operator and Claude on 2026-11-23
+# Proposal: seams as a unified framework for operators and coding agents
 
 ## Summary
 

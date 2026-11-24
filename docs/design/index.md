@@ -1,3 +1,8 @@
+---
+title: seams design
+description: Read to find the canon files and the design overviews.
+---
+
 # seams design
 
 The `docs/design/` folder holds the canon for seams and the maintained overviews of its current design.

@@ -1,3 +1,8 @@
+---
+title: Vision
+description: Read when starting work on seams, to learn what it is for and what it does not try to do.
+---
+
 # Vision
 
 ## Purpose

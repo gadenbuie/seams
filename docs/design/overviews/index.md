@@ -1,3 +1,8 @@
+---
+title: Design overviews
+description: Read before writing or updating a design overview, and to understand the current design.
+---
+
 # Design overviews
 
 Design overviews explain how the current system fits together and why its difficult parts work that way.

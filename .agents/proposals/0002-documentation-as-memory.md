@@ -1,8 +1,12 @@
+---
+title: Documentation as part of project memory
+description: Read when working on design overviews, documentation maintenance, or how documentation joins a unit of work.
+status: accepted
+created: 2026-11-24
+---
+
 # Proposal: Documentation as part of project memory
 
-- **Status:** accepted
-- **Created:** 2026-11-24
-- **Accepted:** 2026-11-24
 - **Related:** [Canon, memory, and reality](../../docs/guide.md#canon-memory-and-reality),
   [invariant 1](../../docs/design/invariants.md#1-each-statement-lives-in-the-home-that-matches-its-type),
   and
