@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { cpSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
 import { copyFixture } from "./helpers.ts";
@@ -221,6 +223,37 @@ describe("seams impact", () => {
     // The staged Makefile and the untracked canon document both count as new.
     assert.ok(json.paths.includes("Makefile"));
     assert.ok(json.paths.includes("docs/design/canon.md"));
+  });
+
+  it("reports diff paths relative to a project root below the git root", () => {
+    const parent = mkdtempSync(path.join(tmpdir(), "seams-git-"));
+    const project = path.join(parent, "proj");
+    cpSync(path.resolve(import.meta.dirname, "fixtures", "impact-project"), project, {
+      recursive: true,
+    });
+    // A manifest pins the project root to proj/ even though the git root is
+    // the parent directory.
+    writeFileSync(
+      path.join(project, ".agents", "seams.json"),
+      JSON.stringify({ schemaVersion: 1, seamsVersion: "0.1.0" }) + "\n",
+    );
+    const git = (args: string[], cwd: string): void => {
+      const result = spawnSync(
+        "git",
+        ["-c", "user.email=t@example.com", "-c", "user.name=t", ...args],
+        { cwd, encoding: "utf8" },
+      );
+      assert.equal(result.status, 0, `git ${args.join(" ")} failed: ${result.stderr}`);
+    };
+    git(["init"], parent);
+    git(["add", "-A"], parent);
+    git(["commit", "-qm", "base"], parent);
+    spawnSync("sh", ["-c", 'printf "export const marker = \\"b2\\";\\n" > src/a/b.ts'], { cwd: project });
+
+    const { status, json } = impactJson(["--git-diff"], project);
+    assert.equal(status, 0);
+    assert.deepEqual(json.paths, ["src/a/b.ts"]);
+    assert.deepEqual(groupEntries(json, "Canon"), [["docs/design/canon.md", [9]]]);
   });
 
   it("fails when --git-diff runs outside a git repository", () => {

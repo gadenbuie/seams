@@ -87,12 +87,14 @@ function splitNul(output: string): string[] {
 /**
  * The changed paths `--git-diff` reports: the working tree's changes against
  * HEAD, with `--no-renames` so a renamed file appears by its old and new
- * names, plus untracked files. Paths are repo-relative with forward slashes.
+ * names, plus untracked files. `--relative` keeps the diff's paths relative
+ * to the project root when it sits below the git root, and leaves out changes
+ * elsewhere in the repository. Paths are repo-relative with forward slashes.
  */
 function gitPaths(project: Project): { paths?: string[]; error?: string } {
   const run = (args: string[]): SpawnSyncReturns<string> =>
     spawnSync("git", args, { cwd: project.root, encoding: "utf8" });
-  const diff = run(["diff", "--name-only", "--no-renames", "-z", "HEAD"]);
+  const diff = run(["diff", "--name-only", "--no-renames", "--relative", "-z", "HEAD"]);
   const stderr = (diff.stderr ?? "").trim();
   if (diff.error || diff.status !== 0) {
     if (/not a git repository/i.test(stderr)) {

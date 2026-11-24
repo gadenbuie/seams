@@ -21,7 +21,7 @@
  * them. It stays free of command-layer concerns (parsing, output, exit codes)
  * so the reconcile command can reuse it as the same lookup `impact` uses.
  */
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import type { Project } from "../config.ts";
 import { discoverDocuments, type DocumentMeta } from "./discover.ts";
@@ -73,53 +73,38 @@ const ANCHOR_SUFFIX = /^#[^\s]*/;
 /** A URL-like scheme (`https:`, `mailto:`) that can never be a repo path. */
 const SCHEME = /^[A-Za-z][A-Za-z0-9+.-]*:/;
 
-/** Deduplicate and tidy repo-relative inputs: `./a//b` becomes `a/b`. */
+/** Deduplicate and tidy repo-relative inputs: `./a//b/` becomes `a/b`. */
 function normalizeInputs(paths: string[]): string[] {
   const seen = new Set<string>();
   for (const given of paths) {
-    const normalized = path.posix.normalize(given);
+    let normalized = path.posix.normalize(given);
+    while (normalized.endsWith("/")) normalized = normalized.slice(0, -1);
     if (normalized.length === 0 || normalized === "." || normalized === "/") continue;
     seen.add(normalized);
   }
   return [...seen];
 }
 
-/** Collect every file under `dir`, as repo-relative paths with forward slashes. */
-function collectFiles(project: Project, dir: string, files: Set<string>): void {
-  const entries = readdirSync(dir, { withFileTypes: true }).sort((a, b) =>
-    a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
-  );
-  for (const entry of entries) {
-    const abs = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      collectFiles(project, abs, files);
-    } else if (entry.isFile()) {
-      files.add(path.relative(project.root, abs).split(path.sep).join("/"));
-    }
-  }
-}
-
 /**
- * Resolve the supplied paths against the project: files stay as they are, and
- * directories expand to every file they contain, so a reference to a file
- * inside a supplied directory matches. A path that does not exist stays a
- * literal file target, because references to a planned or deleted file are
- * exactly what an impact report looks for.
+ * Collect the supplied paths a document can name or link to. Directories are
+ * kept as prefixes rather than expanded file by file: the prefix checks match
+ * links and text mentions of anything inside them, including files that do
+ * not exist yet, and no walk has to descend into `node_modules`-scale trees.
+ * A path that does not exist stays a literal file target, because references
+ * to a planned or deleted file are exactly what an impact report looks for.
  */
 function expandTargets(project: Project, inputs: string[]): Targets {
   const targets: Targets = { files: new Set(), dirs: [] };
   for (const input of inputs) {
-    const abs = path.join(project.root, input);
     let stats: ReturnType<typeof statSync>;
     try {
-      stats = statSync(abs);
+      stats = statSync(path.join(project.root, input));
     } catch {
       targets.files.add(input);
       continue;
     }
     if (stats.isDirectory()) {
       targets.dirs.push(input);
-      collectFiles(project, abs, targets.files);
     } else {
       targets.files.add(input);
     }
@@ -156,9 +141,13 @@ function hitsTarget(targets: Targets, rel: string): boolean {
  * Whether the line mentions `target` as a whole path: the character before
  * must not extend its first segment, and what follows must end the path (a
  * `:line` or `#anchor` suffix may sit between). A directory mention may be
- * followed by `/` and more segments, since that names a path inside it.
+ * followed by `/` and more segments, since that names a path inside it. A
+ * one-segment directory name (`src`) is also an ordinary word, so it counts
+ * only when the `/` follows; a longer directory path is unlikely to appear
+ * as plain prose and counts as a bare mention too.
  */
 function pathMention(line: string, target: string, isDir: boolean): boolean {
+  const oneSegmentDir = isDir && !target.includes("/");
   let at = line.indexOf(target);
   while (at !== -1) {
     const before = at > 0 ? line[at - 1] : "";
@@ -176,10 +165,14 @@ function pathMention(line: string, target: string, isDir: boolean): boolean {
         suffixed = true;
       }
       const next = line[end] ?? "";
-      const continues =
-        next !== "" &&
-        (CONTINUES_PATH.test(next) || (next === "." && /[A-Za-z0-9]/.test(line[end + 1] ?? "")));
-      if (!continues || (isDir && next === "/")) return true;
+      if (oneSegmentDir) {
+        if (next === "/") return true;
+      } else {
+        const continues =
+          next !== "" &&
+          (CONTINUES_PATH.test(next) || (next === "." && /[A-Za-z0-9]/.test(line[end + 1] ?? "")));
+        if (!continues || (isDir && next === "/")) return true;
+      }
     }
     at = line.indexOf(target, at + 1);
   }

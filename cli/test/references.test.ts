@@ -65,6 +65,14 @@ describe("findReferences", () => {
     assert.equal(byPath.get(".agents/plans/plan-done.md")?.type, "plan");
   });
 
+  it("treats a trailing slash like a bare directory name", () => {
+    const cwd = copyFixture("impact-project");
+    const project = loadProject(findRoot(cwd));
+    const slashed = findReferences(project, ["src/"]);
+    const bare = findReferences(project, ["src"]);
+    assert.deepEqual(slashed.documents, bare.documents);
+  });
+
   it("matches whole path segments only", () => {
     const cwd = copyFixture("impact-project");
     const project = loadProject(findRoot(cwd));
@@ -91,7 +99,8 @@ describe("findReferences", () => {
 
     // Every reference to a file under src/, plus the text mention of the
     // decoy file src/xa/b.ts. The link in the overview resolves inside the
-    // directory, so it matches too.
+    // directory, so it matches too, as does the draft's link to a file that
+    // does not exist yet.
     assert.deepEqual(linesOf(result, "docs/design/canon.md"), [
       [9, "text"],
       [11, "text"],
@@ -100,19 +109,19 @@ describe("findReferences", () => {
       [7, "link"],
       [9, "text"],
     ]);
+    assert.ok(linesOf(result, ".agents/proposals/0002-draft.md").some(([line]) => line === 11));
   });
 
-  it("matches a link whose target resolves inside a supplied directory", () => {
+  it("does not count a bare one-segment directory name in prose", () => {
     const cwd = copyFixture("impact-project");
     const project = loadProject(findRoot(cwd));
+    // The canon line that says "src alone" in prose is not a path mention,
+    // while the src/... mentions on the same document's earlier lines are.
     const result = findReferences(project, ["src"]);
-    const links = result.documents
-      .find((doc) => doc.path === "docs/design/overviews/system.md")
-      ?.lines.filter((line) => line.kind === "link");
-    assert.deepEqual(
-      links?.map((line) => line.line),
-      [7],
-    );
+    assert.deepEqual(linesOf(result, "docs/design/canon.md"), [
+      [9, "text"],
+      [11, "text"],
+    ]);
   });
 
   it("finds a file by its link and by its plain name", () => {

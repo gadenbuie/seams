@@ -7,3 +7,5 @@ created: 2025-01-03
 # Draft proposal
 
 A draft that names src/a/b.ts in passing.
+
+A planned [helper](../../src/missing.ts) lands next.
