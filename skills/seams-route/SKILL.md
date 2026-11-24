@@ -210,6 +210,9 @@ An answer tied to the implementation lands with the implementation.
    Run one round, and a second round only for fixes to high, critical, or blocking findings.
    Do not chase a clean final review.
 
+1. When the tracker is a Markdown plan document, set its frontmatter `status` to `done` once every unit has landed.
+   Set it to `abandoned` instead when the operator dropped the work or the plan was replaced, and say why in the plan body.
+   The status values and who moves them are in `seams-plan`.
 1. Record the outcome on the root item: what landed, what was deferred, open decisions, the integration branch, and its head commit.
    Leave the root item's working signal truthful for the operator.
 
