@@ -314,6 +314,24 @@ describe("seams skills install", () => {
     assert.deepEqual(readdirSync(env.project).sort(), []);
   });
 
+  it("a second symlink install is unchanged for claude-code and a universal agent", () => {
+    const env = makeEnv();
+    const once = (args: string[]) => runJson(env, ["--json", "skills", "install", ...args]);
+    once(["--symlink", "--agent", "claude-code", "--skill", "seams-orient"]);
+    const again = once(["--symlink", "--agent", "claude-code", "--skill", "seams-orient"]);
+    assert.deepEqual(
+      again.targets.map((t: { agent: string; action: string }) => [t.agent, t.action]),
+      [["claude-code", "unchanged"]],
+    );
+
+    once(["--symlink", "--agent", "pi", "--skill", "seams-orient"]);
+    const piAgain = once(["--symlink", "--agent", "pi", "--skill", "seams-orient"]);
+    assert.deepEqual(
+      piAgain.targets.map((t: { agent: string; action: string }) => [t.agent, t.action]),
+      [["pi", "unchanged"]],
+    );
+  });
+
   it("never hands a modified copy at the link path to a symlink install", () => {
     // A hand-copied skill sits where claude-code's symlink would go, with
     // edits the bundled copy does not have. A symlink-mode install must

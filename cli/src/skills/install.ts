@@ -251,21 +251,25 @@ function versionOf(source: SkillSource, name: string): string | undefined {
 type SkillSource = Awaited<ReturnType<SkillsLibrary["resolveSource"]>>;
 
 /**
- * In symlink mode, classify what sits at the agent's link path. A real
- * folder there (a copy-mode install, or a hand-copied skill) holds content:
- * when it differs from the bundled copy it must never reach the library,
- * which would replace it with a symlink and lose the changes.
+ * In symlink mode, classify what sits at the agent's link path. Returns null
+ * when no link work is needed (the agent is universal, or the link path is
+ * already a symlink); the caller combines that with the content state. A
+ * real folder there (a copy-mode install, or a hand-copied skill) holds
+ * content: when it differs from the bundled copy it must never reach the
+ * library, which would replace it with a symlink and lose the changes. A
+ * byte-identical real folder is converted to a symlink; a missing link is
+ * created.
  */
 function classifyLink(
   destination: SkillDestination,
   bundledHash: string,
-): { action: "install" | "skipped (modified)"; hash?: string } {
-  if (destination.link === undefined) return { action: "install" };
+): { action: "install" | "skipped (modified)"; hash?: string } | null {
+  if (destination.link === undefined) return null;
   const link = lstatSafe(destination.link);
-  if (link === undefined || link.isSymbolicLink()) return { action: "install" };
+  if (link === undefined) return { action: "install" };
+  if (link.isSymbolicLink()) return null;
   const hash = skillFolderHash(destination.link);
   if (hash !== bundledHash) return { action: "skipped (modified)", hash };
-  // A byte-identical real folder: the library converts it to a symlink.
   return { action: "install" };
 }
 
@@ -276,18 +280,23 @@ function classifyExisting(
   bundledHash: string,
 ): { action: "install" | "unchanged" | "skipped (modified)"; hash?: string } {
   const existing = lstatSafe(destination.content);
-  if (existing === undefined) return classifyLink(destination, bundledHash);
-  // A symlinked copy in copy mode is not the copy the caller asked for;
-  // install so the library replaces it with a real folder.
-  if (mode === "copy" && existing.isSymbolicLink()) return { action: "install" };
+  if (mode === "copy") {
+    if (existing === undefined) return { action: "install" };
+    // A symlinked copy in copy mode is not the copy the caller asked for;
+    // install so the library replaces it with a real folder.
+    if (existing.isSymbolicLink()) return { action: "install" };
+    const hash = skillFolderHash(destination.content);
+    if (hash !== bundledHash) return { action: "skipped (modified)", hash };
+    return { action: "unchanged", hash };
+  }
+  // Symlink mode: every agent's content is the canonical folder, and a
+  // non-universal agent additionally needs its link. No link work needed
+  // means unchanged when the content matches, install when it is missing.
+  const linkResult = classifyLink(destination, bundledHash);
+  if (existing === undefined) return linkResult ?? { action: "install" };
   const hash = skillFolderHash(destination.content);
   if (hash !== bundledHash) return { action: "skipped (modified)", hash };
-  if (mode === "symlink") {
-    // Content matches; a non-universal agent also needs its link, and a real
-    // folder at the link path may hold changes even when content matches.
-    return classifyLink(destination, bundledHash);
-  }
-  return { action: "unchanged", hash };
+  return linkResult ?? { action: "unchanged", hash };
 }
 
 /** Add `agent` to a skill's record, creating or updating it. Returns whether anything changed. */
