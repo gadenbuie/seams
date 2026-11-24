@@ -3,8 +3,11 @@
  *
  * Scanning works on the document body, after frontmatter, and skips fenced
  * code blocks: a reader follows links and headings where they are written,
- * and a checker must not report a link that Markdown renders as code.
+ * and a checker must not report a link that Markdown renders as code. Link
+ * extraction also skips inline code spans; heading and `<skills>/` path
+ * scanning reads the raw lines, because their text is real even in code font.
  */
+import path from "node:path";
 import { parseFrontmatter } from "./frontmatter.ts";
 
 /** One inline Markdown link found in a document body. */
@@ -34,13 +37,37 @@ export interface LinkTarget {
   anchor: string;
 }
 
-/** True when `line` opens or closes a fenced code block. */
-function fenceToggle(state: { fenced: boolean }, line: string): boolean {
-  if (/^\s{0,3}(~~~|```)/.test(line)) {
-    state.fenced = !state.fenced;
+/** A fenced code block in progress: its opening fence, e.g. ` ``` `. */
+interface FenceState {
+  marker: string | null;
+}
+
+const OPEN_FENCE = /^\s{0,3}(`{3,}|~{3,})/;
+const CLOSE_FENCE = /^\s{0,3}(`{3,}|~{3,})\s*$/;
+
+/**
+ * Track fenced code blocks through one document: a block opens with a run
+ * of three or more backticks or tildes and closes only on the same character
+ * in a run at least as long, so a shorter run or the other character stays
+ * inside the block, the way CommonMark reads it.
+ */
+class FenceScanner {
+  private readonly state: FenceState = { marker: null };
+
+  /** True when `line` belongs to fenced code and is not document text. */
+  fencedLine(line: string): boolean {
+    if (this.state.marker === null) {
+      const open = OPEN_FENCE.exec(line);
+      if (open === null) return false;
+      this.state.marker = open[1];
+      return true; // The opening fence line itself is not document text.
+    }
+    const close = CLOSE_FENCE.exec(line);
+    if (close !== null && close[1].startsWith(this.state.marker)) {
+      this.state.marker = null; // The closing fence line ends the block.
+    }
     return true;
   }
-  return false;
 }
 
 /** Walk every body line outside fenced code blocks, with its file line number. */
@@ -48,11 +75,10 @@ export function unfencedLines(
   body: DocumentBody,
   visit: (line: string, lineNo: number) => void,
 ): void {
-  const state = { fenced: false };
+  const scanner = new FenceScanner();
   for (let i = 0; i < body.lines.length; i++) {
     const line = body.lines[i];
-    if (fenceToggle(state, line)) continue;
-    if (state.fenced) continue;
+    if (scanner.fencedLine(line)) continue;
     visit(line, body.startLine + i);
   }
 }
@@ -73,14 +99,19 @@ export function documentBody(text: string): DocumentBody {
 // which no document in these homes needs.
 const INLINE_LINK = /\[[^\]]*\]\(\s*(?:<([^>]*)>|([^)\s]+))\s*\)/g;
 
+// An inline code span, backtick wrapped. Its content renders as code, so a
+// link written inside one is not a link.
+const CODE_SPAN = /`+[^`]*`+/g;
+
 /**
- * Every inline link in the body, outside fenced code blocks. A link inside
- * a fence renders as code and is not a link, so it is not reported.
+ * Every inline link in the body, outside fenced code blocks and inline code
+ * spans. A link that renders as code is not a link, so it is not reported.
  */
 export function extractInlineLinks(body: DocumentBody): MarkdownLink[] {
   const links: MarkdownLink[] = [];
   unfencedLines(body, (line, lineNo) => {
-    for (const match of line.matchAll(INLINE_LINK)) {
+    const text = line.replace(CODE_SPAN, "");
+    for (const match of text.matchAll(INLINE_LINK)) {
       const target = (match[1] ?? match[2] ?? "").trim();
       if (target.length === 0) continue;
       links.push({ target, line: lineNo });
@@ -89,12 +120,24 @@ export function extractInlineLinks(body: DocumentBody): MarkdownLink[] {
   return links;
 }
 
+/** Any URL scheme (`https:`, `mailto:`, `tel:`, ...) or a protocol-relative `//host`. */
+const EXTERNAL = /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i;
+
 /** The anchor slugs a target string splits into, ignoring external links. */
 export function splitLinkTarget(target: string): LinkTarget | null {
-  if (/^(https?:|mailto:)/i.test(target)) return null;
+  if (EXTERNAL.test(target)) return null;
   const hashIndex = target.indexOf("#");
   if (hashIndex === -1) return { path: target, anchor: "" };
   return { path: target.slice(0, hashIndex), anchor: target.slice(hashIndex + 1) };
+}
+
+/**
+ * Resolve a local link target path: relative to the linking file, or to the
+ * project root when it starts with `/`, the way a site renders it.
+ */
+export function resolveLinkPath(root: string, fromFile: string, targetPath: string): string {
+  if (targetPath.startsWith("/")) return path.join(root, targetPath);
+  return path.resolve(path.dirname(fromFile), targetPath);
 }
 
 /**

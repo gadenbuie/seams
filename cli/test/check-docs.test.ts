@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { rmSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { describe, it } from "node:test";
@@ -8,6 +8,7 @@ import {
   documentBody,
   extractInlineLinks,
   headingAnchors,
+  resolveLinkPath,
   splitLinkTarget,
 } from "../src/docs/markdown.ts";
 import { copyFixture } from "./helpers.ts";
@@ -99,17 +100,38 @@ describe("seams check links, anchors, and skills", () => {
         "error",
         "skills/seams-helper/SKILL.md",
         8,
-        "sibling-skill path '<skills>/seams-helper/references/absent.md>' does not exist",
+        "sibling-skill path '<skills>/seams-helper/references/absent.md' does not exist",
       ],
       [
         "skill-refs",
         "error",
         "skills/seams-helper/references/helper.md",
         3,
-        "sibling-skill path '<skills>/seams-helper/references/nowhere.md>' does not exist",
+        "sibling-skill path '<skills>/seams-helper/references/nowhere.md' does not exist",
       ],
     ]);
     assert.equal(json.errors, rows.length);
+  });
+
+  it("reports unreadable skill frontmatter as a parse problem, not a missing name", () => {
+    const cwd = copyFixture("check-docs-bad");
+    mkdirSync(path.join(cwd, "skills", "seams-broken"), { recursive: true });
+    writeFileSync(
+      path.join(cwd, "skills", "seams-broken", "SKILL.md"),
+      "---\nname: seams-broken\n",
+    );
+    const { json } = runCheck(cwd);
+    const broken = json.findings.filter(
+      (finding) => finding.path === "skills/seams-broken/SKILL.md",
+    );
+    assert.deepEqual(
+      broken.map((finding) => [finding.id, finding.severity, finding.line]),
+      [["skill-refs", "error", 1]],
+    );
+    assert.match(
+      broken[0].message,
+      /frontmatter cannot be read: unterminated frontmatter/,
+    );
   });
 
   it("reports a missing index file when it has documents to cover", () => {
@@ -163,6 +185,26 @@ describe("markdown body scanning", () => {
     ]);
   });
 
+  it("keeps a fenced block open through a different or shorter fence line", () => {
+    const body = documentBody(
+      "```\n~~~\n[inside](missing.md)\n```\n[after](target.md)\n",
+    );
+    assert.equal(headingAnchors(body).size, 0);
+    assert.deepEqual(extractInlineLinks(body), [
+      { target: "target.md", line: 5 },
+    ]);
+  });
+
+  it("ignores links inside inline code spans", () => {
+    const body = documentBody(
+      "`[broken](missing.md)` but [fine](target.md) and [`README.md`](README.md)\n",
+    );
+    assert.deepEqual(extractInlineLinks(body), [
+      { target: "target.md", line: 1 },
+      { target: "README.md", line: 1 },
+    ]);
+  });
+
   it("keeps line numbers that account for frontmatter", () => {
     const body = documentBody("---\ntitle: Doc\n---\n\n[link](target.md)\n");
     assert.deepEqual(extractInlineLinks(body), [{ target: "target.md", line: 5 }]);
@@ -177,10 +219,23 @@ describe("markdown body scanning", () => {
     ]);
     assert.equal(splitLinkTarget("https://example.com/"), null);
     assert.equal(splitLinkTarget("mailto:x@y.z"), null);
+    assert.equal(splitLinkTarget("tel:+1-555-0100"), null);
+    assert.equal(splitLinkTarget("//example.com/doc"), null);
     assert.deepEqual(splitLinkTarget("guide.md#the-skills"), {
       path: "guide.md",
       anchor: "the-skills",
     });
     assert.deepEqual(splitLinkTarget("#top"), { path: "", anchor: "top" });
+  });
+
+  it("resolves root-relative links against the project root", () => {
+    assert.deepEqual(
+      resolveLinkPath("/proj", "/proj/docs/design/index.md", "vision.md"),
+      "/proj/docs/design/vision.md",
+    );
+    assert.deepEqual(
+      resolveLinkPath("/proj", "/proj/README.md", "/docs/design/vision.md"),
+      "/proj/docs/design/vision.md",
+    );
   });
 });

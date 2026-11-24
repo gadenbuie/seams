@@ -15,6 +15,7 @@ import {
   documentBody,
   extractInlineLinks,
   headingAnchors,
+  resolveLinkPath,
   splitLinkTarget,
 } from "../docs/markdown.ts";
 import { walkMarkdownFiles } from "../docs/discover.ts";
@@ -71,7 +72,7 @@ function checkFile(project: Project, file: string, anchors: AnchorIndex): Findin
     if (target.path.length === 0) {
       resolved = file; // A same-file anchor link.
     } else {
-      resolved = path.resolve(path.dirname(file), target.path);
+      resolved = resolveLinkPath(project.root, file, target.path);
       if (!existsSync(resolved)) {
         findings.push({
           id: "links",

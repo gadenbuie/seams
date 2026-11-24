@@ -10,19 +10,19 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import type { Project } from "../config.ts";
-import { documentBody, extractInlineLinks, splitLinkTarget } from "../docs/markdown.ts";
+import { documentBody, extractInlineLinks, resolveLinkPath, splitLinkTarget } from "../docs/markdown.ts";
 import { topLevelMarkdownFiles, walkMarkdownFiles } from "../docs/discover.ts";
 import type { Check, Finding } from "./types.ts";
 
 /** Every local path an index file links, resolved relative to the index. */
-function linkedPaths(indexFile: string): Set<string> {
+function linkedPaths(project: Project, indexFile: string): Set<string> {
   const linked = new Set<string>();
   const body = documentBody(readFileSync(indexFile, "utf8"));
   for (const link of extractInlineLinks(body)) {
     const target = splitLinkTarget(link.target);
     if (target === null) continue; // External links are not this check's concern.
     if (target.path.length === 0) continue;
-    linked.add(path.resolve(path.dirname(indexFile), target.path));
+    linked.add(resolveLinkPath(project.root, indexFile, target.path));
   }
   return linked;
 }
@@ -67,7 +67,7 @@ function checkIndex(
     return findings;
   }
 
-  const linked = linkedPaths(indexFile);
+  const linked = linkedPaths(project, indexFile);
   for (const doc of documents) {
     if (!linked.has(doc)) {
       findings.push(

@@ -45,7 +45,16 @@ function checkName(
   const { data, problems } = parseFrontmatter(text);
   const repoPath = path.relative(project.root, skillFile).split(path.sep).join("/");
 
-  if (problems.length > 0 || data.name === undefined) {
+  if (problems.length > 0) {
+    return [
+      finding(
+        repoPath,
+        `skill '${skillName}' frontmatter cannot be read: ${problems[0]}`,
+        1,
+      ),
+    ];
+  }
+  if (data.name === undefined) {
     return [finding(repoPath, `skill '${skillName}' frontmatter is missing 'name'`, 1)];
   }
   if (data.name !== skillName) {
@@ -77,7 +86,7 @@ function checkSiblingPaths(
         findings.push(
           finding(
             repoPath,
-            `sibling-skill path '<skills>/${relative}>' does not exist`,
+            `sibling-skill path '<skills>/${relative}' does not exist`,
             lineNo,
           ),
         );
