@@ -91,7 +91,7 @@ function isMarkdown(name: string): boolean {
 }
 
 /** Markdown files directly inside `dir`, in stable name order. */
-function topLevelFiles(dir: string): string[] {
+export function topLevelMarkdownFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true })
     .filter((entry) => entry.isFile() && isMarkdown(entry.name))
     .map((entry) => path.join(dir, entry.name))
@@ -99,14 +99,14 @@ function topLevelFiles(dir: string): string[] {
 }
 
 /** Markdown files inside `dir` and its subfolders, depth first. */
-function walkFiles(dir: string): string[] {
+export function walkMarkdownFiles(dir: string): string[] {
   const files: string[] = [];
   const entries = readdirSync(dir, { withFileTypes: true }).sort((a, b) =>
     a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
   );
   for (const entry of entries) {
     if (entry.isDirectory()) {
-      files.push(...walkFiles(path.join(dir, entry.name)));
+      files.push(...walkMarkdownFiles(path.join(dir, entry.name)));
     } else if (entry.isFile() && isMarkdown(entry.name)) {
       files.push(path.join(dir, entry.name));
     }
@@ -216,7 +216,7 @@ export function discoverDocuments(project: Project): DiscoveryResult {
       continue;
     }
 
-    const files = home.recursive ? walkFiles(dir) : topLevelFiles(dir);
+    const files = home.recursive ? walkMarkdownFiles(dir) : topLevelMarkdownFiles(dir);
     for (const file of files) {
       if (home.skipIndex && path.basename(file) === "index.md") continue;
       documents.push(readDocument(project, file, home.type));

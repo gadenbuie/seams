@@ -23,6 +23,9 @@ Aim for principles that answer whole kinds of questions, not a list of one-off d
 - Proposals live in `.agents/proposals/`, unless the project's `AGENTS.md` names another folder.
 - Name each one `NNNN-<kebab-cased-slug>.md`, where `NNNN` is the next unused number, e.g., `0004-offline-sync.md`.
 - Start from `assets/proposal.md`.
+  When the seams CLI is installed, `seams new proposal <slug>` creates the numbered draft from the bundled template, fills the frontmatter `title`, `description`, `status: draft`, and `created`, and stops instead of overwriting an existing file.
+  Without the CLI, copy `assets/proposal.md` and pick the next unused number yourself.
+  Either way, the frontmatter `status` is the proposal's one status source.
 - Canon lives in the named files `docs/design/vision.md`, `principles.md`, `invariants.md`, and an optional `invariants/` folder, unless `AGENTS.md` says otherwise.
   Design overviews in `docs/design/overviews/` are memory, not canon.
 
@@ -81,13 +84,17 @@ Then send the proposal to the operator for review, using whatever review method 
 The operator decides the status.
 Never set it yourself on your own judgment.
 
-- **Accepted:** set `Status: accepted on <date>`.
+The frontmatter `status` field is the proposal's one status source.
+Set the status there, and record the decision date and any reason in the body, e.g., a line under the title reading `Accepted on 2026-11-23` or the reason a proposal was rejected.
+Never write a body line that only restates the frontmatter status, such as `Status: accepted`; the body line carries the date and any reason.
+
+- **Accepted:** set `status: accepted` in the frontmatter, and note the date in the body.
   Apply the canon changes exactly as written in the proposal, and show the operator the diff.
   The proposal becomes history.
-- **Rejected:** set `Status: rejected on <date>`, with the reason.
+- **Rejected:** set `status: rejected` in the frontmatter, and record the date and the reason in the body.
   If the reason applies beyond this proposal, propose it as a principle.
-- **Deferred:** set `Status: deferred on <date>`, with what would bring it back.
-- **Withdrawn:** set `Status: withdrawn on <date>`, with why it no longer applies.
+- **Deferred:** set `status: deferred` in the frontmatter, and record the date and what would bring it back in the body.
+- **Withdrawn:** set `status: withdrawn` in the frontmatter, and record the date and why it no longer applies in the body.
 
 After acceptance, the next step is `/seams-plan <proposal path>`.
 A small proposal whose work is a single clear change can go straight to `seams-work`.

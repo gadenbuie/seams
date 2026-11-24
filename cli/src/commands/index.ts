@@ -8,6 +8,7 @@ import { readCommand } from "./read.ts";
 import { findCommand } from "./find.ts";
 import { newCommand } from "./new.ts";
 import { impactCommand } from "./impact.ts";
+import { checkCommand } from "./check.ts";
 import { initCommand } from "./init.ts";
 import { installCommand } from "./install.ts";
 import { skillsCommand } from "./skills.ts";
@@ -32,6 +33,7 @@ export const commands: Record<string, Command> = {
   find: findCommand,
   new: newCommand,
   impact: impactCommand,
+  check: checkCommand,
   init: initCommand,
   install: installCommand,
   skills: skillsCommand,
