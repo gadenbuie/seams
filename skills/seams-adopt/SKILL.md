@@ -54,8 +54,6 @@ AGENTS.md            where things live, which tracker to use, how to run checks
 <tracker>            work items: kata, GitHub issues, Markdown, or another tracker
 ```
 
-## The layout
-
 The named root files and optional `invariants/` folder are canon.
 Everything under `overviews/` is memory.
 The index files provide navigation and don't make independent rules.

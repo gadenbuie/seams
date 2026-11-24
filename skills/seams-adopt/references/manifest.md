@@ -60,7 +60,8 @@ After the homes are chosen, recorded, and cut over, give the existing documents 
   Plans use `draft`, `active`, `done`, `abandoned`.
   Proposals use `draft`, `accepted`, `rejected`, `deferred`, `withdrawn`.
   Set each status from the document's real state, and don't turn old plans into active work.
-- Remove metadata that the body now duplicates, e.g. a status line or a created date that frontmatter carries.
+- Remove what the frontmatter now duplicates, e.g. a `Created:` line or the bare status value in a body status line.
+  Keep what the frontmatter can't hold: the decision date and any reason a body status line carries, e.g. `accepted on 2026-11-23` or why a proposal was rejected or withdrawn.
   Keep the rest of the body unchanged.
 
 Don't edit canon prose while migrating frontmatter.
