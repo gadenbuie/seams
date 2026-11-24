@@ -8,6 +8,8 @@ import { readCommand } from "./read.ts";
 import { findCommand } from "./find.ts";
 import { newCommand } from "./new.ts";
 import { impactCommand } from "./impact.ts";
+import { initCommand } from "./init.ts";
+import { installCommand } from "./install.ts";
 import { skillsCommand } from "./skills.ts";
 
 export interface CommandContext {
@@ -30,5 +32,7 @@ export const commands: Record<string, Command> = {
   find: findCommand,
   new: newCommand,
   impact: impactCommand,
+  init: initCommand,
+  install: installCommand,
   skills: skillsCommand,
 };
