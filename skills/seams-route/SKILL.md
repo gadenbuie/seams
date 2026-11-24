@@ -178,6 +178,7 @@ Spot-check that the head commit exists on the branch.
   If the question is reversible and inside the unit's scope, decide it yourself and record the decision on the unit, using a `high` subagent for analysis if needed.
   Take anything that changes what gets built to the operator, framed as a decision with options and a recommendation (`seams-orient`).
   If the answer changes the selected scope or direction, pause the affected items and return to `seams-propose`.
+  When the operator drops the work and the tracker is a Markdown plan document, set its frontmatter `status` to `abandoned` and say why in the plan body.
   After acceptance, the planner updates the affected units.
   After the operator answers, ask whether canon could have answered the question.
   If it could have, list the principle or invariant you would add in your final report.
@@ -210,9 +211,9 @@ An answer tied to the implementation lands with the implementation.
    Run one round, and a second round only for fixes to high, critical, or blocking findings.
    Do not chase a clean final review.
 
-1. When the tracker is a Markdown plan document, set its frontmatter `status` to `done` once every unit has landed.
-   Set it to `abandoned` instead when the operator dropped the work or the plan was replaced, and say why in the plan body.
+1. When the tracker is a Markdown plan document, set its frontmatter `status` to `done` once every unit has landed on the integration branch. `done` there means the units landed on the integration branch, not that the work reached the target branch.
    The status values and who moves them are in `seams-plan`.
+
 1. Record the outcome on the root item: what landed, what was deferred, open decisions, the integration branch, and its head commit.
    Leave the root item's working signal truthful for the operator.
 
