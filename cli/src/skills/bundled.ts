@@ -4,9 +4,9 @@
  * The repository's `skills/` directory is the hand-edited source of truth. The
  * package copies it into `skills/` at build and pack time
  * (scripts/bundle-skills.mjs), and the packaged tarball ships that copy. When
- * the bundled copy is present next to the package root it is used; otherwise
- * the CLI falls back to the repository's own `skills/` directory, so the
- * command also works when run straight from a source checkout.
+ * the CLI runs from a built package it reads that bundled copy; when it runs
+ * from a source checkout it reads the repository's own `skills/` directory, so
+ * hand edits show up without a rebuild.
  */
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
@@ -37,11 +37,14 @@ export interface BundledSkill {
 
 /** The directory holding the skills bundled with the running package. */
 export function bundledSkillsDir(): string {
-  const bundled = path.join(packageRoot(), "skills");
-  if (existsSync(bundled)) return bundled;
-  // Run from source without a bundle step: use the repository's own
-  // hand-edited skills directory.
-  return path.resolve(packageRoot(), "..", "skills");
+  // When running from source, the repository's `skills/` directory is the
+  // hand-edited source of truth and is always current; a `cli/skills` copy
+  // left by an earlier build would be stale. When running from the built
+  // package, `src/` does not exist and only the bundled copy ships.
+  if (existsSync(path.join(packageRoot(), "src"))) {
+    return path.resolve(packageRoot(), "..", "skills");
+  }
+  return path.join(packageRoot(), "skills");
 }
 
 /** Names of the skill folders under `dir` that hold a SKILL.md, in order. */

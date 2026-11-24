@@ -10,6 +10,7 @@ import path from "node:path";
 import { after, describe, it } from "node:test";
 import { contentHash, listBundledSkills, readBundledSkill } from "../src/skills/bundled.ts";
 import { bundledSkillsDir } from "../src/skills/bundled.ts";
+import { packageRoot } from "../src/config.ts";
 
 const CLI = path.resolve(import.meta.dirname, "..", "src", "cli.ts");
 const SCRIPT = path.resolve(import.meta.dirname, "..", "scripts", "bundle-skills.mjs");
@@ -38,6 +39,16 @@ describe("bundled skills directory", () => {
     for (const name of SKILL_NAMES) {
       assert.ok(existsSync(path.join(dir, name, "SKILL.md")), `${name}/SKILL.md`);
     }
+  });
+
+  it("reads the repository skills when running from source, even after a build", () => {
+    // A source checkout runs from src/ (src/config.ts, src/cli.ts). There the
+    // repository's skills directory is the source of truth; the gitignored
+    // cli/skills copy left by an earlier build would be stale.
+    assert.equal(
+      bundledSkillsDir(),
+      path.resolve(packageRoot(), "..", "skills"),
+    );
   });
 });
 
