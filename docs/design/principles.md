@@ -1,3 +1,8 @@
+---
+title: Principles
+description: Read when deciding between options, so decisions follow the operator's standing preferences.
+---
+
 # Principles
 
 Principles record the operator's standing preferences for decisions along the path from an idea to implementation.

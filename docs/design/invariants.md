@@ -1,3 +1,8 @@
+---
+title: Invariants
+description: Read before planning or reviewing work, for the rules every project using seams keeps.
+---
+
 # Invariants
 
 An invariant is a rule that must hold.
