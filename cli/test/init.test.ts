@@ -21,6 +21,7 @@ import {
   readFileSync,
   realpathSync,
   rmSync,
+  writeFileSync,
 } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import path from "node:path";
@@ -306,6 +307,32 @@ describe("seams init (agent mode)", () => {
     assert.match(result.stdout, /Dry run: nothing written\./);
     assert.match(result.stdout, /seams-adopt/);
     assert.deepEqual(readdirSync(env.project).sort(), []);
+  });
+
+  it("dry-run instructions say what would be installed, not that it is installed", () => {
+    const env = makeEnv();
+    markers(env, { pi: true });
+    const report = runJson(env, ["--json", "init", "--agent", "--dry-run"]);
+
+    assert.match(report.instructions, /Dry run: nothing was written; the seams skills would be installed for: pi\./);
+    assert.ok(!report.instructions.includes("The seams skills are installed for"),
+      "a dry run must not claim the skills are installed");
+  });
+
+  it("instructions note skipped or failed targets instead of claiming success", () => {
+    const env = makeEnv();
+    markers(env, { pi: true });
+    runJson(env, ["--json", "skills", "install", "--agent", "pi", "--skill", "seams-orient"]);
+    const installed = path.join(env.project, ".agents", "skills", "seams-orient", "SKILL.md");
+    const original = readFileSync(installed, "utf8");
+    writeFileSync(installed, original + "\n<!-- hand edit -->\n");
+
+    const result = run(env, ["init", "--agent"]);
+    assert.equal(result.status, 1, "a modified copy is a finding");
+    assert.match(result.stdout, /The seams skills are installed for: pi\./);
+    assert.match(result.stdout, /target\(s\) were skipped or failed; run `seams skills check` to inspect them\./);
+    // The hand edit survives.
+    assert.ok(readFileSync(installed, "utf8").includes("hand edit"));
   });
 
   it("JSON output gives the actions and the printed instruction text", () => {

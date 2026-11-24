@@ -100,6 +100,35 @@ export function formatBundledSkill(
 }
 
 /**
+ * The first line of the agent-mode instructions: what actually happened.
+ * A dry run wrote nothing, so it must not claim the skills are installed,
+ * and a run with skipped or failed targets must not hide them.
+ */
+function installStatusLine(report: InstallReport): string {
+  if (report.dryRun) {
+    return report.agents.length > 0
+      ? `Dry run: nothing was written; the seams skills would be installed for: ${report.agents.join(", ")}.`
+      : "Dry run: nothing was written; no supported agent harness was detected.";
+  }
+  if (report.agents.length === 0) {
+    return (
+      "No supported agent harness was detected, so no skills were installed. " +
+      "Install them with `seams install --agent <claude-code | codex | pi>` when a harness is available."
+    );
+  }
+  const problems = report.targets.filter(
+    (target) =>
+      target.action === "skipped" ||
+      target.action === "skipped (modified)" ||
+      target.action === "failed",
+  );
+  const status = `The seams skills are installed for: ${report.agents.join(", ")}.`;
+  return problems.length > 0
+    ? `${status}\n${problems.length} target(s) were skipped or failed; run \`seams skills check\` to inspect them.`
+    : status;
+}
+
+/**
  * The instruction text printed to the running agent in agent mode: the
  * seams-adopt handoff with the skill's full text inlined, the same content
  * as `seams skills get seams-adopt`.
@@ -109,14 +138,9 @@ export function agentInstructions(report: InstallReport): string {
   if (skill === undefined) {
     throw new Error("The seams-adopt skill is not bundled with this package.");
   }
-  const intro =
-    report.agents.length > 0
-      ? `The seams skills are installed for: ${report.agents.join(", ")}.`
-      : "No supported agent harness was detected, so no skills were installed. " +
-        "Install them with `seams install --agent <claude-code | codex | pi>` when a harness is available.";
   return (
     [
-      intro,
+      installStatusLine(report),
       "",
       "The `seams-adopt` skill now guides adoption of seams.",
       "If your harness has not loaded the newly installed skills yet, the skill's full text follows inline,",
