@@ -139,31 +139,6 @@ function pathProblem(key: PathKey, value: unknown, root: string): string | undef
   return undefined;
 }
 
-function schemaIssues(manifest: unknown): string[] {
-  const validate = new Ajv2020({ allErrors: true, strict: false }).compile(
-    JSON.parse(readFileSync(schemaFilePath(), "utf8")),
-  );
-  if (validate(manifest)) return [];
-  return (validate.errors ?? []).map((error) => {
-    const where = error.instancePath ? `at '${error.instancePath}'` : "at the top level";
-    if (error.keyword === "additionalProperties") {
-      const params = (error.params ?? {}) as Record<string, unknown>;
-      const key = params.additionalProperty ?? params.additionalProperties;
-      return `${where}: unknown key '${key}'`;
-    }
-    // Path-shape problems are reported once, by pathProblem, in plainer words:
-    // the schema's minLength and relativePath pattern reject exactly the shapes
-    // pathProblem restates.
-    if (
-      (error.keyword === "pattern" || error.keyword === "minLength") &&
-      error.instancePath.startsWith("/paths/")
-    ) {
-      return undefined;
-    }
-    return `${where} ${error.message ?? "is invalid"}`;
-  }).filter((issue): issue is string => issue !== undefined);
-}
-
 /**
  * Load a project's documentation homes from `root`.
  *
@@ -191,24 +166,63 @@ export function loadProject(root: string): Project {
     ]);
   }
 
-  const issues = schemaIssues(parsed);
-  const paths =
-    parsed !== null && typeof parsed === "object"
-      ? ((parsed as ProjectManifest).paths ?? {})
-      : {};
-  for (const key of PATH_KEYS) {
-    const value = paths[key];
-    if (value === undefined) continue;
-    const problem = pathProblem(key, value, resolvedRoot);
-    if (problem) issues.push(problem);
-  }
+  const issues = manifestIssues(parsed, resolvedRoot);
   if (issues.length > 0) throw new ManifestError(issues);
 
-  const relative = { ...conventionalPaths(resolvedRoot), ...paths };
+  const relative = {
+    ...conventionalPaths(resolvedRoot),
+    ...((parsed as ProjectManifest).paths ?? {}),
+  };
   return {
     root: resolvedRoot,
     paths: resolvePaths(resolvedRoot, relative),
     source: "manifest",
     manifest: parsed as ProjectManifest,
   };
+}
+
+/** Validate `manifest` against the bundled schema, in plain words. */
+function schemaIssues(manifest: unknown): string[] {
+  const validate = new Ajv2020({ allErrors: true, strict: false }).compile(
+    JSON.parse(readFileSync(schemaFilePath(), "utf8")),
+  );
+  if (validate(manifest)) return [];
+  return (validate.errors ?? []).map((error) => {
+    const where = error.instancePath ? `at '${error.instancePath}'` : "at the top level";
+    if (error.keyword === "additionalProperties") {
+      const params = (error.params ?? {}) as Record<string, unknown>;
+      const key = params.additionalProperty ?? params.additionalProperties;
+      return `${where}: unknown key '${key}'`;
+    }
+    // Path-shape problems are reported once, by pathProblem, in plainer words:
+    // the schema's minLength and relativePath pattern reject exactly the shapes
+    // pathProblem restates.
+    if (
+      (error.keyword === "pattern" || error.keyword === "minLength") &&
+      error.instancePath.startsWith("/paths/")
+    ) {
+      return undefined;
+    }
+    return `${where} ${error.message ?? "is invalid"}`;
+  }).filter((issue): issue is string => issue !== undefined);
+}
+
+/**
+ * Every problem the bundled schema and the path rules find in `manifest`:
+ * schema issues in plain words, then the path-shape problems `pathProblem`
+ * restates. Shared by `loadProject` and the `manifest` check.
+ */
+export function manifestIssues(manifest: unknown, root: string): string[] {
+  const issues = schemaIssues(manifest);
+  const paths =
+    manifest !== null && typeof manifest === "object"
+      ? ((manifest as ProjectManifest).paths ?? {})
+      : {};
+  for (const key of PATH_KEYS) {
+    const value = paths[key];
+    if (value === undefined) continue;
+    const problem = pathProblem(key, value, root);
+    if (problem) issues.push(problem);
+  }
+  return issues;
 }
