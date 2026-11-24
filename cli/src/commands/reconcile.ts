@@ -421,8 +421,15 @@ function run(ctx: CommandContext): number {
   }
 
   // The reference lookup runs over every changed path, old and new names
-  // alike, the same lookup `impact` performs.
-  const targetPaths = [...new Set([...changes.committed, ...changes.uncommitted].map((file) => file.path))];
+  // alike (the old name of a rename is where stale references hide), the
+  // same lookup `impact` performs.
+  const targetPaths = [
+    ...new Set(
+      [...changes.committed, ...changes.uncommitted].flatMap((file) =>
+        file.origPath === undefined ? [file.path] : [file.path, file.origPath],
+      ),
+    ),
+  ];
   const references = findReferences(project, targetPaths);
   const warnings = [...new Set(references.warnings)];
   for (const warning of warnings) {

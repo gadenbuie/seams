@@ -195,6 +195,32 @@ describe("seams reconcile", () => {
     }
   });
 
+  it("looks up both names of a committed rename", () => {
+    const cwd = gitRepo();
+    const git = (args: string[]): void => {
+      const result = spawnSync(
+        "git",
+        ["-c", "user.email=t@example.com", "-c", "user.name=t", ...args],
+        { cwd, encoding: "utf8" },
+      );
+      assert.equal(result.status, 0, `git ${args.join(" ")} failed: ${result.stderr}`);
+    };
+    git(["mv", "Makefile", "makefile.mk"]);
+    git(["commit", "-m", "rename makefile"]);
+    const { json } = reconcileJson(["--since", "HEAD~1"], cwd);
+    assert.deepEqual(
+      json.changedFiles.committed.items.map((file) => [file.status, file.path, file.origPath]),
+      [["R100", "makefile.mk", "Makefile"]],
+    );
+    // The canon document still links the old name, which is exactly the
+    // evidence a rename reconciliation needs.
+    const canon = json.references.groups
+      .find((group) => group.label === "Canon")
+      ?.entries.find((entry) => entry.path === "docs/design/canon.md");
+    assert.ok(canon, "expected canon.md among the referencing documents");
+    assert.deepEqual(canon.lines.map((line) => line.line), [7]);
+  });
+
   it("references are grouped by authority like impact", () => {
     const cwd = gitRepo();
     const { json } = reconcileJson(["--since", "HEAD~1"], cwd);
