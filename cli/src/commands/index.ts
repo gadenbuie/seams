@@ -3,6 +3,7 @@
  * and adds one entry here.
  */
 import { schemaCommand } from "./schema.ts";
+import { listCommand } from "./list.ts";
 
 export interface CommandContext {
   /** The caller passed the global `--json` flag. */
@@ -19,4 +20,5 @@ export interface Command {
 
 export const commands: Record<string, Command> = {
   schema: schemaCommand,
+  list: listCommand,
 };
