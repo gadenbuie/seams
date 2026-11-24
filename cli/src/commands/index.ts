@@ -7,6 +7,7 @@ import { listCommand } from "./list.ts";
 import { readCommand } from "./read.ts";
 import { findCommand } from "./find.ts";
 import { newCommand } from "./new.ts";
+import { impactCommand } from "./impact.ts";
 import { skillsCommand } from "./skills.ts";
 
 export interface CommandContext {
@@ -28,5 +29,6 @@ export const commands: Record<string, Command> = {
   read: readCommand,
   find: findCommand,
   new: newCommand,
+  impact: impactCommand,
   skills: skillsCommand,
 };
