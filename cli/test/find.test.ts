@@ -191,6 +191,45 @@ describe("seams find", () => {
     assert.match(result.excerpt, /Which documents decide/);
   });
 
+  it("anchors a fallback result at a heading and line read accepts", () => {
+    const cwd = copyFixture("find-project");
+    // The frontmatter title differs from the document's H1; the fallback
+    // reports the H1 a `read --section` can select, not the title.
+    const titled = findJson(["fallback anchor"], cwd).json;
+    assert.deepEqual(
+      titled.results.map((result) => [result.path, result.heading, result.line]),
+      [["docs/design/labels.md", "Different heading", 5]],
+    );
+    // A frontmatter-only document has no headings; the line is clamped to the
+    // document's last line, which `read --lines` accepts.
+    const bare = findJson(["blurbkey"], cwd).json;
+    assert.deepEqual(
+      bare.results.map((result) => [result.path, result.heading, result.line]),
+      [["docs/design/blurb.md", null, 4]],
+    );
+    const check = run(
+      ["read", "docs/design/blurb.md", "--lines", "4-4"],
+      cwd,
+    );
+    assert.equal(check.status, 0, check.stderr);
+  });
+
+  it("keeps a four-backtick fence holding an inner fence whole", () => {
+    const cwd = copyFixture("find-project");
+    // "# Fake" sits inside a ````markdown fence whose inner ``` block must not
+    // end it: the match belongs to the enclosing "Examples" section.
+    const { json } = findJson(["fake"], cwd);
+    assert.deepEqual(
+      json.results.map((result) => [result.path, result.heading, result.line]),
+      [["docs/design/examples.md", "Examples", 9]],
+    );
+    const after = findJson(["sample ends"], cwd).json;
+    assert.deepEqual(
+      after.results.map((result) => [result.path, result.heading, result.line]),
+      [["docs/design/examples.md", "Examples", 12]],
+    );
+  });
+
   it("caps results by limit and by bytes and reports what was omitted", () => {
     const cwd = copyFixture("find-project");
     const limited = findJson(["authority", "--limit", "2"], cwd);
@@ -199,12 +238,18 @@ describe("seams find", () => {
     assert.equal(limited.json.truncated, true);
     assert.equal(limited.json.omitted, 4);
 
-    // A byte cap below one excerpt emits nothing and says so.
+    // A byte cap below one excerpt emits nothing and says so. With nothing
+    // excluded, the text output must not claim there were no matches.
     const capped = findJson(["authority", "--max-bytes", "1"], cwd);
     assert.equal(capped.status, 0);
     assert.deepEqual(capped.json.results, []);
     assert.equal(capped.json.truncated, true);
     assert.equal(capped.json.omitted, 6);
+
+    const cappedText = run(["find", "authority", "--include-all", "--max-bytes", "1"], cwd);
+    assert.equal(cappedText.status, 0);
+    assert.ok(!cappedText.stdout.includes("No matches"), cappedText.stdout);
+    assert.ok(cappedText.stdout.includes("Showing 0 of 8 results."), cappedText.stdout);
 
     const roomy = findJson(["authority", "--max-bytes", "100000"], cwd);
     assert.equal(roomy.json.truncated, false);

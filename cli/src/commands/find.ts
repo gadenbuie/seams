@@ -3,23 +3,24 @@
  * documents, with bounded output.
  *
  * A document matches when every query word appears in the same section. A
- * section is the text from one heading to the next, found by a simple line
- * scan that ignores fenced code, so a fence never starts a section; the lines
- * inside a fence still count as body text of the section they sit in. Titles
+ * section is the text from one heading to the next, with the same heading and
+ * fence parsing `read outline` uses, so every heading and line anchor a result
+ * reports is one `read --lines` or `read --section` can use. The lines inside
+ * a fence still count as body text of the section they sit in. Titles
  * and descriptions are searchable too: they rank a document's results first,
  * and a document whose sections do not match but whose title or description
  * does still yields one result, so a title-only query finds the document.
  *
- * Output is bounded: results are capped by --limit and --max-bytes, results
- * hidden by default status exclusions are counted separately, and both text
- * and JSON output say when anything was left out.
+ * Output is bounded: results are capped by --limit and by the sum of excerpt
+ * bytes (--max-bytes), results hidden by default status exclusions are counted
+ * separately, and both text and JSON output say when anything was left out.
  */
 import { readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import path from "node:path";
 import { findRoot, loadProject, type Project } from "../config.ts";
 import { discoverDocuments, type DocType, type DocumentMeta } from "../docs/discover.ts";
-import { parseFrontmatter } from "../docs/frontmatter.ts";
+import { outline, type DocLine, type Heading } from "../docs/outline.ts";
 import { jsonEnvelope, printJson, printText } from "../output.ts";
 import type { Command, CommandContext } from "./index.ts";
 
@@ -123,41 +124,46 @@ function scanLine(
 }
 
 /**
- * Scan a document's body and return its sections in document order.
+ * Split a scanned document into flat sections: the text from one heading to
+ * the next, using the outline the read commands parse with.
  *
- * The scan starts after the frontmatter block and skips headings inside
- * fenced code, following the same simple fence rule discovery uses: a line
- * starting with ``` or ~~~ toggles the fence state. Fenced lines are still
- * scanned as body text of the section they sit in. Line numbers are 1-indexed
- * over the whole file, so they match a later `read --lines` selection.
+ * The text before the first heading is a headingless section; an empty one
+ * matches nothing and is dropped later. Every heading, at any level, starts a
+ * new section, and the heading line itself belongs to its section, so a word
+ * in a heading makes that section match.
  */
-function scanSections(text: string, words: string[]): Section[] {
-  const { bodyStartLine } = parseFrontmatter(text);
-  const sections: Section[] = [newSection(null)];
-  let current = sections[0];
-  let fenced = false;
-  let line = 0;
-  let offset = 0;
-
-  for (const chunk of text.split(/(?<=\r?\n)/)) {
-    line++;
-    const content = chunk.replace(/\r?\n$/, "");
-    const lineStart = offset;
-    offset += chunk.length;
-    if (line < bodyStartLine) continue; // still inside the frontmatter block
-    if (/^\s*(```|~~~)/.test(content)) fenced = !fenced;
-    if (!fenced) {
-      const heading = /^ {0,3}#{1,6}\s+(.*)$/.exec(content);
-      if (heading !== null) {
-        const headingText = heading[1].trim();
-        current = newSection(headingText);
-        current.headingWords = headingWords(headingText, words);
-        sections.push(current);
-      }
-    }
-    scanLine(current, content, line, lineStart, words);
+function scanSections(
+  lines: DocLine[],
+  bodyStartLine: number,
+  headings: Heading[],
+  words: string[],
+): Section[] {
+  const sections: Section[] = [];
+  const edges = [...headings.map((heading) => heading.start), lines.length + 1];
+  if (bodyStartLine <= edges[0] - 1) {
+    sections.push(buildSection(lines, bodyStartLine, edges[0] - 1, null, words));
+  }
+  for (let i = 0; i < headings.length; i++) {
+    sections.push(buildSection(lines, edges[i], edges[i + 1] - 1, headings[i].title, words));
   }
   return sections;
+}
+
+/** Search the lines of one section and return what the query words did there. */
+function buildSection(
+  lines: DocLine[],
+  from: number,
+  to: number,
+  heading: string | null,
+  words: string[],
+): Section {
+  const section = newSection(heading);
+  if (heading !== null) section.headingWords = headingWords(heading, words);
+  for (let line = from; line <= to; line++) {
+    const docLine = lines[line - 1];
+    scanLine(section, docLine.text, line, docLine.start, words);
+  }
+  return section;
 }
 
 /** Collapse internal whitespace so one excerpt stays on one text line. */
@@ -191,6 +197,7 @@ function documentCandidates(
 ): Candidate[] {
   const file = path.join(project.root, doc.path);
   const text = readFileSync(file, "utf8");
+  const { headings, lines, bodyStartLine } = outline(text);
 
   const lowerTitle = doc.title.toLowerCase();
   const titleMatch = words.every((word) => lowerTitle.includes(word));
@@ -199,7 +206,7 @@ function documentCandidates(
     lowerDescription !== null && words.every((word) => lowerDescription.includes(word));
 
   const candidates: Candidate[] = [];
-  for (const section of scanSections(text, words)) {
+  for (const section of scanSections(lines, bodyStartLine, headings, words)) {
     if (section.words.size !== words.length || section.first === null) continue;
     const excerpt = excerptAround(text, section.first.offset);
     candidates.push({
@@ -218,7 +225,10 @@ function documentCandidates(
 
   if (candidates.length === 0 && (titleMatch || descriptionMatch)) {
     // The document matches only through its frontmatter. Point at its first
-    // body line and quote the matched metadata, so the caller can still read on.
+    // body line, clamped to the document's last line, and name the heading a
+    // deeper read can select there: the document's first real heading when it
+    // has one. The excerpt quotes the matched metadata itself.
+    const line = Math.max(1, Math.min(bodyStartLine, lines.length));
     const excerpt = squashWhitespace(
       descriptionMatch && doc.description !== null
         ? `${doc.title} — ${doc.description}`
@@ -226,8 +236,8 @@ function documentCandidates(
     );
     candidates.push({
       path: doc.path,
-      heading: doc.title,
-      line: parseFrontmatter(text).bodyStartLine,
+      heading: headings.length > 0 ? headings[0].title : null,
+      line,
       excerpt,
       authority: doc.authority,
       occurrences: 0,
@@ -404,7 +414,7 @@ function run(ctx: CommandContext): number {
     return 0;
   }
 
-  if (emitted.length === 0 && excluded === 0) {
+  if (emitted.length === 0 && candidates.length === 0 && excluded === 0) {
     printText(`No matches for '${query}'.`);
   }
   for (const result of emitted) {
