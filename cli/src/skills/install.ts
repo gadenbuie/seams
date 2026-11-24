@@ -19,6 +19,9 @@
  *   changes nothing.
  * - Whole-call library errors (unknown agent id, unknown skill, missing
  *   source) throw before any write; per-target failures do not stop the run.
+ *   A selected skill whose record has a different install mode stops the
+ *   run the same way: the metadata records one mode per skill, and mixing
+ *   modes would corrupt the record and misreport installation state.
  * - Seams metadata is written only after the library resolves, so an
  *   interrupted write never looks like a successful install: `skills check`
  *   reports the copy as `modified` or `missing` and `skills update` repairs
@@ -72,6 +75,30 @@ export class UnknownSkillError extends Error {
     super(`Unknown skill: ${unknown.join(", ")}\nValid names: ${valid.join(", ")}`);
     this.name = "UnknownSkillError";
     this.valid = valid;
+  }
+}
+
+/**
+ * A selected skill is already recorded with a different install mode. The
+ * metadata records one mode per skill, so an install that mixes modes would
+ * corrupt the record and misreport installation state. Stopped before any
+ * write.
+ */
+export class ModeMismatchError extends Error {
+  readonly skills: { name: string; recorded: InstallMode; requested: InstallMode }[];
+  constructor(skills: { name: string; recorded: InstallMode; requested: InstallMode }[]) {
+    super(
+      "A selected skill is recorded with a different install mode:\n" +
+        skills
+          .map(
+            (s) =>
+              `  ${s.name}: recorded ${s.recorded}, requested ${s.requested}`,
+          )
+          .join("\n") +
+        "\nRe-run with the recorded mode, or remove the installed skill first.",
+    );
+    this.name = "ModeMismatchError";
+    this.skills = skills;
   }
 }
 
@@ -223,6 +250,25 @@ function versionOf(source: SkillSource, name: string): string | undefined {
 
 type SkillSource = Awaited<ReturnType<SkillsLibrary["resolveSource"]>>;
 
+/**
+ * In symlink mode, classify what sits at the agent's link path. A real
+ * folder there (a copy-mode install, or a hand-copied skill) holds content:
+ * when it differs from the bundled copy it must never reach the library,
+ * which would replace it with a symlink and lose the changes.
+ */
+function classifyLink(
+  destination: SkillDestination,
+  bundledHash: string,
+): { action: "install" | "skipped (modified)"; hash?: string } {
+  if (destination.link === undefined) return { action: "install" };
+  const link = lstatSafe(destination.link);
+  if (link === undefined || link.isSymbolicLink()) return { action: "install" };
+  const hash = skillFolderHash(destination.link);
+  if (hash !== bundledHash) return { action: "skipped (modified)", hash };
+  // A byte-identical real folder: the library converts it to a symlink.
+  return { action: "install" };
+}
+
 /** How an existing destination compares with the bundled copy. */
 function classifyExisting(
   destination: SkillDestination,
@@ -230,15 +276,16 @@ function classifyExisting(
   bundledHash: string,
 ): { action: "install" | "unchanged" | "skipped (modified)"; hash?: string } {
   const existing = lstatSafe(destination.content);
-  if (existing === undefined) return { action: "install" };
+  if (existing === undefined) return classifyLink(destination, bundledHash);
   // A symlinked copy in copy mode is not the copy the caller asked for;
   // install so the library replaces it with a real folder.
   if (mode === "copy" && existing.isSymbolicLink()) return { action: "install" };
   const hash = skillFolderHash(destination.content);
   if (hash !== bundledHash) return { action: "skipped (modified)", hash };
-  // Content matches; in symlink mode a non-universal agent also needs its link.
-  if (destination.link !== undefined && !lstatSafe(destination.link)?.isSymbolicLink()) {
-    return { action: "install" };
+  if (mode === "symlink") {
+    // Content matches; a non-universal agent also needs its link, and a real
+    // folder at the link path may hold changes even when content matches.
+    return classifyLink(destination, bundledHash);
   }
   return { action: "unchanged", hash };
 }
@@ -325,6 +372,24 @@ export async function installSkills(options: InstallOptions): Promise<InstallRep
     });
   }
 
+  // The record for this scope, reused for the metadata update. Read before
+  // preflight so a mode conflict stops the run before any write.
+  const meta =
+    readSkillsMeta(cwd, options.scope) ?? {
+      schemaVersion: 1 as const,
+      package: PACKAGE_NAME,
+      packageVersion: packageVersion(),
+      scope: options.scope,
+      skills: {},
+    };
+  const mismatched = selected.flatMap((name) => {
+    const recorded = meta.skills[name]?.mode;
+    return recorded !== undefined && recorded !== options.mode
+      ? [{ name, recorded, requested: options.mode }]
+      : [];
+  });
+  if (mismatched.length > 0) throw new ModeMismatchError(mismatched);
+
   // Preflight: classify every (skill, agent) destination and collect, per
   // agent, the skills the library may write. Planned installs start as
   // provisional `install` targets and are updated with the library's actual
@@ -364,14 +429,6 @@ export async function installSkills(options: InstallOptions): Promise<InstallRep
   };
   if (report.dryRun || agents.length === 0) return report;
 
-  const meta =
-    readSkillsMeta(cwd, options.scope) ?? {
-      schemaVersion: 1 as const,
-      package: PACKAGE_NAME,
-      packageVersion: packageVersion(),
-      scope: options.scope,
-      skills: {},
-    };
   const now = new Date().toISOString();
   let metaDirty = false;
 

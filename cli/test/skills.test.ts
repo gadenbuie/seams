@@ -28,8 +28,8 @@ const SKILL_NAMES = [
   "seams-work",
 ];
 
-function run(args: string[]) {
-  return spawnSync(process.execPath, [CLI, ...args], { encoding: "utf8" });
+function run(args: string[], options: { cwd?: string } = {}) {
+  return spawnSync(process.execPath, [CLI, ...args], { encoding: "utf8", ...options });
 }
 
 describe("bundled skills directory", () => {
@@ -122,8 +122,15 @@ describe("readBundledSkill", () => {
 });
 
 describe("seams skills list", () => {
+  // List reports installation state relative to the process's working
+  // directory, so these tests run in a fresh temporary directory to stay
+  // independent of where the suite is run (a checkout's own .agents/skills
+  // would make every skill read as untracked).
+  const dir = mkdtempSync(path.join(tmpdir(), "seams-list-"));
+  after(() => rmSync(dir, { recursive: true, force: true }));
+
   it("returns all nine skills with descriptions and installation state in JSON", () => {
-    const result = run(["--json", "skills", "list"]);
+    const result = run(["--json", "skills", "list"], { cwd: dir });
     assert.equal(result.status, 0);
     const envelope = JSON.parse(result.stdout);
     assert.equal(envelope.schemaVersion, 1);
@@ -140,7 +147,7 @@ describe("seams skills list", () => {
   });
 
   it("prints each skill name, description, and installation state in text", () => {
-    const result = run(["skills", "list"]);
+    const result = run(["skills", "list"], { cwd: dir });
     assert.equal(result.status, 0);
     for (const name of SKILL_NAMES) {
       assert.match(result.stdout, new RegExp(`\\b${name} \\u00b7 `));

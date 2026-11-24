@@ -314,6 +314,50 @@ describe("seams skills install", () => {
     assert.deepEqual(readdirSync(env.project).sort(), []);
   });
 
+  it("never hands a modified copy at the link path to a symlink install", () => {
+    // A hand-copied skill sits where claude-code's symlink would go, with
+    // edits the bundled copy does not have. A symlink-mode install must
+    // report it skipped (modified) instead of letting the library replace
+    // the folder with a symlink and lose the changes.
+    const env = makeEnv();
+    const linkPath = path.join(env.project, ".claude", "skills", "seams-orient");
+    mkdirSync(path.dirname(linkPath), { recursive: true });
+    cpSync(path.join(bundledSkillsDir(), "seams-orient"), linkPath, { recursive: true });
+    const edited = readFileSync(path.join(linkPath, "SKILL.md"), "utf8");
+    writeFileSync(path.join(linkPath, "SKILL.md"), edited + "\n<!-- hand edit -->\n");
+
+    const result = run(env, [
+      "--json", "skills", "install", "--symlink", "--agent", "claude-code", "--skill", "seams-orient",
+    ]);
+    assert.equal(result.status, 1, "a modified copy is a finding");
+    const report = JSON.parse(result.stdout);
+    assert.deepEqual(
+      report.targets.map((t: { action: string }) => t.action),
+      ["skipped (modified)"],
+    );
+    assert.ok(readFileSync(path.join(linkPath, "SKILL.md"), "utf8").includes("hand edit"));
+    // No canonical copy was created either: the run stopped before writing.
+    assert.ok(!existsSync(path.join(env.project, ".agents", "skills", "seams-orient")));
+  });
+
+  it("stops before any write when a skill's recorded mode differs", () => {
+    const env = makeEnv();
+    runJson(env, ["--json", "skills", "install", "--symlink", "--agent", "claude-code", "--skill", "seams-orient"]);
+    const before = readdirSync(path.join(env.project, ".agents", "skills", "seams-orient")).sort();
+
+    const result = run(env, ["skills", "install", "--agent", "claude-code", "--skill", "seams-orient"]);
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /recorded symlink, requested copy/);
+    assert.match(result.stderr, /seams-orient/);
+    // Nothing changed: same files, same metadata.
+    assert.deepEqual(
+      readdirSync(path.join(env.project, ".agents", "skills", "seams-orient")).sort(),
+      before,
+    );
+    const meta = JSON.parse(readFileSync(path.join(env.project, ".agents", "seams-skills.json"), "utf8"));
+    assert.equal(meta.skills["seams-orient"].mode, "symlink");
+  });
+
   it("exits 2 for usage errors", () => {
     const env = makeEnv();
     assert.equal(run(env, ["skills", "install", "--scope", "bogus"]).status, 2);
