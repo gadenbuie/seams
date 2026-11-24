@@ -122,28 +122,30 @@ describe("readBundledSkill", () => {
 });
 
 describe("seams skills list", () => {
-  it("returns all nine skills with descriptions in JSON", () => {
+  it("returns all nine skills with descriptions and installation state in JSON", () => {
     const result = run(["--json", "skills", "list"]);
     assert.equal(result.status, 0);
     const envelope = JSON.parse(result.stdout);
     assert.equal(envelope.schemaVersion, 1);
     assert.equal(envelope.command, "skills list");
+    assert.equal(envelope.scope, "project");
     assert.deepEqual(
       envelope.skills.map((skill: { name: string }) => skill.name),
       SKILL_NAMES,
     );
     for (const skill of envelope.skills) {
       assert.ok(skill.description.length > 0);
-      assert.equal(skill.installed, null);
+      assert.equal(typeof skill.installation.state, "string");
     }
   });
 
-  it("prints each skill name and description in text", () => {
+  it("prints each skill name, description, and installation state in text", () => {
     const result = run(["skills", "list"]);
     assert.equal(result.status, 0);
     for (const name of SKILL_NAMES) {
       assert.match(result.stdout, new RegExp(`\\b${name} \\u00b7 `));
     }
+    assert.match(result.stdout, /· not installed\n/);
   });
 });
 
@@ -199,12 +201,13 @@ describe("seams skills dispatcher", () => {
     assert.match(result.stderr, /Missing subcommand/);
     assert.match(result.stderr, /list/);
     assert.match(result.stderr, /get/);
+    assert.match(result.stderr, /install/);
   });
 
   it("exits 2 for an unknown subcommand", () => {
-    const result = run(["skills", "install"]);
+    const result = run(["skills", "explode"]);
     assert.equal(result.status, 2);
-    assert.match(result.stderr, /Unknown subcommand: install/);
+    assert.match(result.stderr, /Unknown subcommand: explode/);
   });
 });
 
