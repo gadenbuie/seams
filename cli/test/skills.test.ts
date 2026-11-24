@@ -28,8 +28,8 @@ const SKILL_NAMES = [
   "seams-work",
 ];
 
-function run(args: string[]) {
-  return spawnSync(process.execPath, [CLI, ...args], { encoding: "utf8" });
+function run(args: string[], options: { cwd?: string } = {}) {
+  return spawnSync(process.execPath, [CLI, ...args], { encoding: "utf8", ...options });
 }
 
 describe("bundled skills directory", () => {
@@ -122,28 +122,37 @@ describe("readBundledSkill", () => {
 });
 
 describe("seams skills list", () => {
-  it("returns all nine skills with descriptions in JSON", () => {
-    const result = run(["--json", "skills", "list"]);
+  // List reports installation state relative to the process's working
+  // directory, so these tests run in a fresh temporary directory to stay
+  // independent of where the suite is run (a checkout's own .agents/skills
+  // would make every skill read as untracked).
+  const dir = mkdtempSync(path.join(tmpdir(), "seams-list-"));
+  after(() => rmSync(dir, { recursive: true, force: true }));
+
+  it("returns all nine skills with descriptions and installation state in JSON", () => {
+    const result = run(["--json", "skills", "list"], { cwd: dir });
     assert.equal(result.status, 0);
     const envelope = JSON.parse(result.stdout);
     assert.equal(envelope.schemaVersion, 1);
     assert.equal(envelope.command, "skills list");
+    assert.equal(envelope.scope, "project");
     assert.deepEqual(
       envelope.skills.map((skill: { name: string }) => skill.name),
       SKILL_NAMES,
     );
     for (const skill of envelope.skills) {
       assert.ok(skill.description.length > 0);
-      assert.equal(skill.installed, null);
+      assert.equal(typeof skill.installation.state, "string");
     }
   });
 
-  it("prints each skill name and description in text", () => {
-    const result = run(["skills", "list"]);
+  it("prints each skill name, description, and installation state in text", () => {
+    const result = run(["skills", "list"], { cwd: dir });
     assert.equal(result.status, 0);
     for (const name of SKILL_NAMES) {
       assert.match(result.stdout, new RegExp(`\\b${name} \\u00b7 `));
     }
+    assert.match(result.stdout, /· not installed\n/);
   });
 });
 
@@ -199,12 +208,13 @@ describe("seams skills dispatcher", () => {
     assert.match(result.stderr, /Missing subcommand/);
     assert.match(result.stderr, /list/);
     assert.match(result.stderr, /get/);
+    assert.match(result.stderr, /install/);
   });
 
   it("exits 2 for an unknown subcommand", () => {
-    const result = run(["skills", "install"]);
+    const result = run(["skills", "explode"]);
     assert.equal(result.status, 2);
-    assert.match(result.stderr, /Unknown subcommand: install/);
+    assert.match(result.stderr, /Unknown subcommand: explode/);
   });
 });
 
