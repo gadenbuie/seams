@@ -11,10 +11,10 @@ and how to apply it. When a principle and an invariant disagree, the invariant w
 Every convention in seams should fit how operators and agents actually work, and it should account
 for the mistakes each party tends to make.
 
-| Party    | Strengths                                                       | Limits                                                                                                                               |
-| :------- | :-------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------- |
-| Operator | Intent, judgment, and knowing what the project is for           | Can read only a limited amount in one sitting. Can't cheaply check a detailed plan. Learns most by using the software.               |
-| Agent    | Reads everything, writes detail quickly, and follows procedures | Can't tell which text the operator stands behind. Builds a half-formed plan as written. Keeps no memory between sessions or workers. |
+| Party    | Strengths                                                       | Limits                                                                                                                                             |
+| :------- | :-------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Operator | Intent, judgment, and knowing what the project is for           | Can read only a limited amount in one sitting. Can't cheaply check a detailed plan. Learns most by using the software.                             |
+| Agent    | Reads everything, writes detail quickly, and follows procedures | Can't tell which text the operator stands behind. Builds software from a half-formed plan as written. Keeps no memory between sessions or workers. |
 
 When you add or change a convention, name the limit it accounts for. If a convention helps one party
 by adding work for the other, look for a version that helps both. For example, a read-back saves the
@@ -22,10 +22,10 @@ operator from reading a detailed plan, and it costs the planner one short summar
 
 ## Give each reader only what its task needs
 
-Each reader should receive the smallest set of statements its role and task need. More context isn't
-better context. An implementer doesn't need unselected ideas, and a reviewer shouldn't read the
-implementer's notes, because the notes would weaken an independent review. Point to files instead of
-copying them, so each fact keeps one home.
+Each reader should receive the smallest set of statements its role and task need. An implementer
+doesn't need unselected ideas, and a reviewer shouldn't read the implementer's notes, because the
+notes would weaken an independent review. Point to files instead of copying them, so each fact keeps
+one home.
 
 ## Settle consequential decisions before the work, and leave the rest
 
@@ -67,11 +67,11 @@ same kind of problem keeps coming back, change the design so the whole kind of p
 
 ## Build on established ideas
 
-seams applies older ideas to agent-assisted coding, and it avoids reinventing them. Use plain words,
-and name the established term next to them so readers can find the source. Use the established term
-itself when it gives agents a stronger signal, i.e., when the term makes an agent more likely to
-behave the way the operator wants. The [supporting evidence](../supporting-evidence.md) cites the
-source of each idea. Avoid military doctrine as a source when a reasonable alternative exists.
+seams applies older ideas to agent-assisted coding, and it avoids reinventing them. Use plain words
+alongside the established term so readers can find the source. Use the established term itself when
+it makes an agent more likely to behave the way the operator wants. The
+[supporting evidence](../supporting-evidence.md) cites the source of each idea. Avoid military
+doctrine as a source when a reasonable alternative exists.
 
 ## Maintain documentation with the work
 

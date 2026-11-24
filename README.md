@@ -52,13 +52,12 @@ and work items carry the plan into implementation. Agents update design overview
 documentation as the system changes. Only you can accept changes to canon.
 
 Especially in greenfield work, information flows from **proposals to plans to design overviews**.
-The proposal holds the selected direction, and the plan organizes execution. As implementation makes
-the design real, agents move the lasting explanation into an overview. The proposal and plan remain
-history, while the overview describes the current system. Not every unit needs an overview.
+The proposal holds the selected direction, and the plan organizes execution. As agents implement the
+design, they move the lasting explanation into an overview. The proposal and plan remain history,
+while the overview describes the current system. Not every unit needs an overview.
 
-Markdown files and tracker records carry information between stages and fresh agent sessions. In
-this sense, seams is a **router** for project information. Agents read the records from earlier
-stages instead of relying on another agent's session memory.
+Markdown files and tracker records carry information between stages and fresh agent sessions. Agents
+read the records from earlier stages instead of relying on another agent's session memory.
 
 The skills tell agents how to record decisions, ask you questions, continue work in a fresh session,
 and report what you can try. Agents do the planning, implementation, and review. You make the

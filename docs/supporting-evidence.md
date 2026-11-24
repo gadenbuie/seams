@@ -46,13 +46,13 @@ receives the statements its role needs. seams doesn't aim for conformance with t
 
 **Documents shaped by reader need.** [Diátaxis](https://diataxis.fr/start-here/) separates
 tutorials, how-to guides, reference, and explanation, because each serves a different reader need.
-seams uses a similar split: the guide explains, canon is reference, and the skills are procedures
+seams uses a similar split. The guide explains, canon is reference, and the skills are procedures
 for agents. The seams types are about authority, not genre, so a canon file can contain a sentence
 of explanation.
 
 **Coverage checklists.** [arc42](https://arc42.org/overview/) lists architecture concerns that are
 easy to forget, e.g., system context, building blocks, runtime behavior, cross-cutting concepts,
-deployment, and quality requirements, and asks writers to fill only the sections that help their
+deployment, and quality requirements. It asks writers to fill only the sections that help their
 readers. seams uses these content ideas in design overviews, without adopting arc42's formal section
 names. Binding rules belong in canon or tests. Making all twelve sections mandatory would add the
 kind of empty structure seams tries to avoid.
@@ -78,9 +78,9 @@ context and consequences. The [ADR project](https://adr.github.io/) collects the
 (2024) found that ADRs helped with documentation culture, knowledge transfer, and prioritization,
 and that where the records were stored strongly affected how useful people found them. seams keeps
 the goal of recording reasons and drops the separate record. Reasons that apply widely become
-principles, and the history of a single decision stays in its proposal. The reason is that a growing
-list of decisions has to be turned into lessons by someone, and in an agent project that someone is
-the operator. Dropping the separate record is a synthesis, and no source above tested it.
+principles, and the history of a single decision stays in its proposal. Someone has to turn a
+growing list of decisions into lessons, and in an agent project that person is the operator.
+Dropping the separate record is a synthesis, and no source above tested it.
 
 **Writing the documents after the fact.** Parnas and Clements, in
 [A Rational Design Process: How and Why to Fake It](https://users.ece.utexas.edu/~perry/education/SE-Intro/fakeit.pdf)
@@ -88,8 +88,8 @@ the operator. Dropping the separate record is a synthesis, and no source above t
 produce the documents a clean process would have produced. seams applies this to canon and design
 overviews. Canon describes the accepted present, and an overview describes the current system. The
 path that led there stays in proposals and work items. Especially in greenfield work, lasting
-explanations move from proposals to plans to overviews as implementation makes them true. This flow
-doesn't permit claiming that something exists when it doesn't.
+explanations move from proposals to plans to overviews as agents implement the design. This flow
+doesn't permit claims that something exists when it doesn't.
 
 **Current-state overviews.** Alex Kladov's
 [ARCHITECTURE.md essay](https://matklad.github.io/2021/02/06/ARCHITECTURE.md.html) (2021) describes
@@ -206,10 +206,10 @@ application's core from the interfaces that drive it, so users, tests, and scrip
 equally. Cockburn's book *Crystal Clear* (2004) describes a walking skeleton, i.e., a tiny
 implementation that connects the main parts of a system end to end. Eric Raymond's
 [Rule of Separation](http://www.catb.org/esr/writings/taoup/html/ch01s06.html) in *The Art of Unix
-Programming* (2003) gives the same advice for Unix tools: separate interfaces from engines. seams
-combines these into a sequencing rule. Land a small core interface the operator can use, e.g., a
-command line tool, and build other interfaces on top of it later. Landing the core first is a
-synthesis, and the sources above describe structure more than order.
+Programming* (2003) tells Unix tool writers to separate interfaces from engines. seams combines
+these into a sequencing rule. Land a small core interface the operator can use, e.g., a command line
+tool, and build other interfaces on top of it later. Landing the core first is a synthesis, and the
+sources above describe structure more than order.
 
 **Quality scenarios.** The SEI's
 [Architecture Tradeoff Analysis Method](https://sei.cmu.edu/library/architecture-tradeoff-analysis-method-collection/)
@@ -225,7 +225,7 @@ seams agents coordinate only through files, commits, and the tracker.
 [Organization Design: An Information Processing View](https://doi.org/10.1287/inte.4.3.28) (1974)
 argues that uncertain tasks need more information processing, and that predictable work can be
 handled by rules while exceptions go up a hierarchy. seams keeps canon short and gives exceptions a
-defined path: an agent records a question on the work item, and the planner or the operator answers
+defined path. An agent records a question on the work item, and the planner or the operator answers
 it.
 
 **Dependencies.** Malone and Crowston's
@@ -253,10 +253,11 @@ and write text, so the comparison is about the mechanism of coordination, not ab
 
 **Stateless requests.** Roy Fielding's
 [dissertation](https://ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm) (2000) defines
-REST's stateless constraint: each request carries everything needed to understand it, and the server
-keeps no session state between requests. Fielding names the costs, i.e., repeated data and less
-server control. seams asks the same of a work item: a fresh agent must be able to act on it without
-the conversation that created it, and the cost is that work items carry more text.
+REST's stateless constraint. Under this constraint, each request carries everything needed to
+understand it, and the server keeps no session state between requests. Fielding names the costs,
+i.e., repeated data and less server control. seams asks the same of a work item. A fresh agent must
+be able to act on it without the conversation that created it, and the cost is that work items carry
+more text.
 
 **Distributed cognition and boundary objects.** Edwin Hutchins's
 [Distributed Cognition](https://arl.human.cornell.edu/linked%20docs/Hutchins_Distributed_Cognition.pdf)
@@ -287,8 +288,8 @@ machine alone. The resilience engineering tradition, e.g.,
 studies how such systems cope with surprises. Klein, Woods, Bradshaw, Hoffman, and Feltovich's
 [Ten Challenges for Making Automation a "Team Player"](https://doi.org/10.1109/MIS.2004.74) (2004)
 argues that people and automation working together need to be predictable to each other, need to be
-able to direct each other, and need to keep common ground. In seams, canon is the common ground, the
-read-back makes the agents' plan predictable to the operator, and questions on work items let the
+able to direct each other, and need to keep common ground. In seams, canon is the common ground, and
+the read-back makes the agents' plan predictable to the operator. Questions on work items let the
 operator direct the work. seams expects imperfect work from agents, so it relies on small units,
 review, and revert, not on agents being right.
 
@@ -362,11 +363,11 @@ The convention and the two OpenAI pages are practitioner sources.
 
 **Context files in studies.** Gloaguen, Mündler, Mueller, Raychev, and Vechev's
 [Evaluating AGENTS.md](https://arxiv.org/abs/2602.11988) (an ICLR 2026 workshop paper) found that
-context files didn't generally improve task success, for generated or developer-written files, and
-that they raised inference cost. Khatri's
+generated and developer-written context files didn't generally improve task success and that they
+raised inference cost. Khatri's
 [Do Context Files Help Coding Agents?](https://arxiv.org/abs/2607.27250) (2026) compared two agents
-on 17 tasks and found no measurable difference in correctness, bounding the effect at about 10 to 15
-percentage points, and it traced most failures to implementation skill rather than missing
+on 17 tasks and found no measurable difference in correctness. The study bounded the effect at about
+10 to 15 percentage points and traced most failures to implementation skill rather than missing
 knowledge. Chatlatanagulchai and colleagues' [Agent READMEs](https://dl.acm.org/doi/10.1145/3840295)
 (ACM TOSEM, 2026) studied 2,303 context files from 1,925 repositories and found them hard to read
 and focused on testing and implementation details. seams takes from these studies that always-on
@@ -399,8 +400,7 @@ They are anecdotes.
 
 ## 11. What seams adds
 
-The ingredients are old. seams combines them for one setting, an operator working with coding
-agents:
+seams combines older ideas for one setting, an operator working with coding agents:
 
 - Each statement has a type and a home, and its weight depends on the question and reader. A
   separate rule limits which statements authorize work.
@@ -409,7 +409,7 @@ agents:
 - Design overviews and user documentation are maintained with the work, verified against reality,
   and used by the operator during review.
 - The operator's effort goes into proposals and canon, and agents plan and carry out the work.
-- The planner translates in both directions, with a read-back going up and units going down.
+- The planner gives the operator a read-back and gives implementers units of work.
 - Agents coordinate only through artifacts, so any agent can continue any other agent's work.
 - Questions that reach the operator are used to improve canon.
 - Work lands in small parts that the operator can try.

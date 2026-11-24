@@ -29,9 +29,9 @@ Only the operator can judge whether that design is what they want.
 
 ## How overviews fit into seams
 
-Overviews sit between the accepted direction in canon and the execution history in proposals, plans,
-and work items. They explain the current system to maintainers, while user documentation explains
-how to use the software and code, tests, and runtime evidence establish reality. The
+Canon records the accepted direction, and proposals, plans, and work items record the execution
+history. Overviews explain the current system to maintainers, while user documentation explains how
+to use the software. Code, tests, and runtime evidence establish reality. The
 [guide](../../guide.md#canon-memory-and-reality) explains the wider information model, including why
 memory has many homes and needs deliberate maintenance.
 
@@ -74,10 +74,9 @@ There is no required template. Design overviews borrow content ideas from archit
 such as system context, building blocks, runtime flows, and cross-cutting concepts, without adopting
 formal section names. Choose only the sections that help the intended reader.
 
-Rules, contracts, and status need one owning home. Explanations are different. An overview may
-repeat enough context to show how parts relate and to make the document understandable on its own.
-Link to the owning document for the full rule or contract instead of forcing every explanation into
-isolated fragments.
+Rules, contracts, and status each need one owning home. An overview may repeat enough context to
+show how parts relate and to make the document understandable on its own. Link to the owning
+document for the full rule or contract instead of forcing every explanation into isolated fragments.
 
 ## A flat collection with descriptive names supports discovery
 
@@ -131,21 +130,21 @@ flowchart LR
     D -. "Claims verified against" .-> C
 ```
 
-The proposal holds the selected direction. The plan organizes the work. As implementation makes the
-design real, agents move the lasting explanation into the owning overview. The proposal and plan
-remain history; the overview changes in place to describe the present.
+The proposal holds the selected direction. The plan organizes the work. As agents implement the
+design, they move the lasting explanation into the owning overview. The proposal and plan remain
+history; the overview changes in place to describe the present.
 
 Do not copy a plan wholesale into an overview. Keep only what a maintainer needs after the work is
-done. Documentation for a new feature can take shape after its behavior becomes stable, but it must
-be complete before that work closes.
+done. Agents can draft documentation for a new feature after its behavior becomes stable, but they
+must complete it before that work closes.
 
 Existing behavior needs the same care. A change updates the documents that already describe the
 affected behavior or structure in the same body of work. A small direct change does not need a
 proposal merely to maintain its documentation. If work reveals that an overview is stale or
 incomplete, correct the overview rather than leaving the only correction in a plan or work item.
 
-Write the current explanation instead of appending a narrative of the latest change. Fold lasting
-rationale and active exceptions into the relevant section. Keep temporary hypotheses, execution
+Write the current explanation instead of appending a narrative of the latest change. Add lasting
+rationale and active exceptions to the relevant section. Keep temporary hypotheses, execution
 checklists, progress, and hand-offs in working records.
 
 ## Review checks both grounding and intent

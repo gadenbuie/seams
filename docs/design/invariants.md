@@ -17,7 +17,7 @@ aren't statements in this sense, but the list includes them because they establi
 - Vision
   - **Location:** `docs/design/vision.md`
   - **Weight and context:** Strong for product intent. It defines the system's overall shape, which
-    features fit, and criteria for assessing their value and priorities. It guides shaping and
+    features fit, and criteria for judging their value and priority. It guides shaping and
     assessment.
 - Principle
   - **Location:** `docs/design/principles.md`
@@ -101,9 +101,9 @@ silently, the unit goes back to planning.
 
 ## 7. An agent records an unanswered consequential question and stops
 
-An agent that meets a consequential question first checks canon. If canon doesn't answer the
-question, the agent records it on the work item and stops the part of the work that depends on the
-answer. The agent doesn't choose an answer silently.
+When an agent encounters a consequential question, it first checks canon. If canon doesn't answer
+the question, the agent records it on the work item and stops the part of the work that depends on
+the answer. The agent doesn't choose an answer silently.
 
 ## 8. Agents coordinate only through artifacts that any agent can read
 

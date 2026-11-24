@@ -34,16 +34,16 @@ that answers every question. Canon carries the most weight for intent and constr
 proposal and its work items carry more weight for an implementer working within the selected scope.
 Code, tests, and runtime evidence carry the most weight for what exists.
 
-A vision defines the system's overall shape, which features fit, and the criteria for assessing
-their value and priorities. It writes down judgment you would otherwise have to supply each time an
-agent assesses a feature. Principles record your standing preferences for decisions along the path
-from idea to implementation, such as structure, tools, errors, compatibility, and feature breadth or
+A vision defines the system's overall shape, which features fit, and the criteria for judging their
+value and priority. It writes down judgment you would otherwise have to supply each time an agent
+assesses a feature. Principles record your standing preferences for decisions along the path from
+idea to implementation, such as structure, tools, errors, compatibility, and feature breadth or
 depth. Invariants bind every stage.
 
-Authority also controls permission to act, but that is a separate question. An accepted proposal
-authorizes the work it describes. A note or a draft authorizes nothing. A detailed plan in
-`.agents/plans/` doesn't become binding because it is well written, and an old proposal doesn't
-become active because an agent finds it useful. Only you can accept a proposal or a change to canon.
+Permission to act is a separate question from authority. An accepted proposal authorizes the work it
+describes. A note or a draft authorizes nothing. A detailed plan in `.agents/plans/` doesn't become
+binding because it is well written, and an old proposal doesn't become active because an agent finds
+it useful. Only you can accept a proposal or a change to canon.
 
 ### Grounding says what the code supports
 
@@ -77,21 +77,21 @@ treat a statement before reading it.
 | Memory  | `.agents/`, the tracker, `docs/design/overviews/`, and user documentation | Working records and maintained explanations that agents use to continue work and understand the system. |
 | Reality | The repository and running system                                         | The code, tests, and runtime evidence that show what exists.                                            |
 
-Memory doesn't have one clean shape, owner, or location. A project remembers through proposals,
-plans, work items, design overviews, user documentation, and other records. seams can't put all
-memory in one place. It can help you recognize those places, assess their value, and nudge agents to
-maintain them as the system evolves.
+Memory has no single form, owner, or location. A project's memory includes proposals, plans, work
+items, design overviews, user documentation, and other records. seams can't put all memory in one
+place. It can help you find the records, assess their value, and direct agents to maintain them as
+the system evolves.
 
-Maintaining memory takes intention and effort. Without that work, it becomes muddy, unclear, or
-confusing. Memory never becomes canon just because it persists, is detailed, or is recent.
-Documentation and summaries can describe the current system, but only code, tests, and runtime
-evidence establish what exists.
+Maintaining memory takes deliberate effort. Without maintenance, it becomes unclear or confusing.
+Memory never becomes canon just because it persists, is detailed, or is recent. Documentation and
+summaries can describe the current system, but only code, tests, and runtime evidence establish what
+exists.
 
 Especially in greenfield work, information flows from **proposals to plans to design overviews**.
-The proposal holds the selected direction, and the plan organizes execution. As implementation makes
-the design real, agents move the lasting explanation into the owning design overview. The proposal
-and plan remain history, while the overview describes the current system. Not every proposal or unit
-needs an overview.
+The proposal holds the selected direction, and the plan organizes execution. As agents implement the
+design, they move the lasting explanation into the owning design overview. The proposal and plan
+remain history, while the overview describes the current system. Not every proposal or unit needs an
+overview.
 
 Drift is a change in the project's direction that you never accepted. It happens when memory starts
 to act like canon. For example, an agent reads a detailed draft plan and builds it, because nothing
@@ -176,7 +176,7 @@ flowchart LR
 A small, clear change doesn't need stages 2 and 3. A direct request from you, e.g., "rename this
 function" or "fix this failing test", authorizes that change, and an agent handles it with
 `seams-work`. The work still gets a record in the tracker, and the agent asks you directly if it
-meets a question canon doesn't answer. You still review the result.
+encounters a question canon doesn't answer. You still review the result.
 
 ### Stage 2: Propose
 
@@ -188,12 +188,13 @@ Every proposal ends with one of these statuses:
   move into canon, and the proposal becomes history.
 - **Rejected** means you decided against it. If the reason applies beyond this proposal, it becomes
   a principle.
-- **Deferred** means not now. The proposal stays in memory and authorizes nothing.
+- **Deferred** means you have decided not to do the work now. The proposal stays in memory and
+  authorizes nothing.
 - **Withdrawn** means the proposal is no longer relevant.
 
 The later stages can run without you only if the proposal and canon answer the questions agents will
-meet. Principles do most of this work, because a principle can answer a question nobody thought of
-when it was written.
+encounter. Principles do most of this work, because a principle can answer a question nobody thought
+of when it was written.
 
 ### Stage 3: Plan
 
@@ -216,9 +217,9 @@ little has been built yet.
 
 ### Stage 4: Do
 
-A router sends each ready unit to an agent of a suitable size, each in its own branch and worktree.
-Each unit is reviewed independently and landed one at a time. The tracker holds the state of every
-unit, so a fresh router can resume a run that another router started.
+A router chooses an agent of a suitable size for each ready unit. Each agent works in its own branch
+and worktree. Each unit is reviewed independently and landed one at a time. The tracker holds the
+state of every unit, so a fresh router can resume a run that another router started.
 
 Questions and corrections often arise during implementation. The agent records them on the work
 item, and the answer becomes part of the work rather than disappearing into a conversation.
@@ -229,9 +230,9 @@ accept the change. An answer within the existing scope stays on the work item, a
 continues.
 
 Agents maintain the user documentation and design overviews affected by each unit in the same body
-of work. A new feature's documentation can take shape after its behavior becomes stable, but it is
-complete before the work closes. A change to existing behavior or structure updates the documents
-that already describe it.
+of work. Agents can draft a new feature's documentation after its behavior becomes stable, but they
+must complete it before the work closes. A change to existing behavior or structure updates the
+documents that already describe it.
 
 A design overview explains how the current system fits together and why difficult parts work that
 way. It gives a maintainer exact references to the supporting code and tests. It doesn't contain
@@ -261,10 +262,10 @@ like this", and not only a summary to read. You decide when to merge the result.
 
 ## Questions during the work
 
-An agent that meets a consequential question first checks canon. If canon answers it, the agent
-follows canon. If not, the agent records the question on the work item and stops the affected part
-of the work. The planner or the router picks the question up and either answers it from canon or
-passes it to you as a decision you can make, with the options and a recommendation.
+When an agent encounters a consequential question, it first checks canon. If canon answers the
+question, the agent follows canon. If not, the agent records the question on the work item and stops
+the affected part of the work. The planner or the router picks the question up and either answers it
+from canon or passes it to you as a decision you can make, with the options and a recommendation.
 
 Some questions have to reach you, because nobody can foresee every problem. For example, a change
 can break an unrelated test, or the code can turn out to rely on an assumption nobody wrote down.
