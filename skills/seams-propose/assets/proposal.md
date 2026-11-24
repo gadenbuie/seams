@@ -1,7 +1,13 @@
+---
+title: <title>
+description: <when to read this proposal, e.g., the topic it would change>
+status: draft
+created: <yyyy-mm-dd>
+source: <where the proposal came from, or delete this line>
+---
+
 # Proposal: <title>
 
-- **Status:** draft
-- **Created:** <yyyy-mm-dd>
 - **Related:** \<links to related proposals, work items, or canon sections>
 
 ## Summary

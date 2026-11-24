@@ -116,6 +116,7 @@ Record the confirmed read-back on the root item, where implementers and the rout
 
 Create the units with the commands in the tracker's reference.
 Write bodies from `assets/templates.md`.
+When the tracker is a Markdown plan document, start the document from `assets/plan.md`.
 
 ### Size
 
