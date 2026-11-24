@@ -79,8 +79,8 @@ treat a statement before reading it.
 
 Memory doesn't have one clean shape, owner, or location. A project remembers through proposals,
 plans, work items, design overviews, user documentation, and other records. seams can't put all
-memory in one place. It can help you recognize those places, assess their value, and maintain the
-useful ones as the system evolves.
+memory in one place. It can help you recognize those places, assess their value, and nudge agents to
+maintain them as the system evolves.
 
 Maintaining memory takes intention and effort. Without that work, it becomes muddy, unclear, or
 confusing. Memory never becomes canon just because it persists, is detailed, or is recent.
