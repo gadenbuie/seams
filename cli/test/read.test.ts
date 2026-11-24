@@ -193,6 +193,40 @@ describe("seams read", () => {
     assert.equal(json.text, "# Title\r\nBody.\r\n");
   });
 
+  it("exits 1 and lists every match when a bare name exists in several homes", () => {
+    const cwd = copyFixture("read-project");
+    const result = run(["read", "index.md"], cwd);
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /matches 2 documents/);
+    assert.match(result.stderr, /  docs\/design\/index\.md/);
+    assert.match(result.stderr, /  docs\/design\/overviews\/index\.md/);
+  });
+
+  it("labels a navigation index untyped, never as its home's type", () => {
+    const cwd = copyFixture("read-project");
+    const json = JSON.parse(run(["read", "--json", "docs/design/index.md"], cwd).stdout);
+    assert.equal(json.authority, null);
+    const text = run(["read", "docs/design/index.md"], cwd);
+    assert.ok(text.stdout.startsWith("docs/design/index.md · untyped · lines 1-7\n"));
+  });
+
+  it("reads an empty document as one empty line the range stays usable for", () => {
+    const cwd = copyFixture("read-project");
+    const whole = run(["read", "docs/design/empty.md"], cwd);
+    assert.equal(whole.status, 0);
+    assert.ok(whole.stdout.startsWith("docs/design/empty.md · canon · lines 1-1\n"));
+
+    const selection = run(["read", "docs/design/empty.md", "--lines", "1-1"], cwd);
+    assert.equal(selection.status, 0);
+    const json = JSON.parse(run(["read", "--json", "docs/design/empty.md", "--lines", "1-1"], cwd).stdout);
+    assert.deepEqual(json.range, [1, 1]);
+    assert.equal(json.text, "");
+
+    const beyond = run(["read", "docs/design/empty.md", "--lines", "1-2"], cwd);
+    assert.equal(beyond.status, 2);
+    assert.match(beyond.stderr, /the document is empty/);
+  });
+
   it("reads a file literally named outline when it is the only positional", () => {
     const cwd = copyFixture("read-project");
     const bare = run(["read", "outline"], cwd);

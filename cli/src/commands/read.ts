@@ -4,6 +4,8 @@
  * their line ranges and byte sizes.
  *
  * A document is a repo-relative path, or a path inside any configured home.
+ * A repo-relative path that exists is the document; a bare name that then
+ * matches several homes is ambiguous, and the command exits 1 listing them.
  * A resolution that leaves the repository root, directly or through a symlink,
  * is rejected. Every output carries the document's path, its authority label,
  * and the exact line range returned, so a later read can target the same
@@ -41,16 +43,36 @@ function runtimeError(message: string): number {
   return 1;
 }
 
+/** The document's repo-relative path with forward slashes. */
+function repoRelative(root: string, file: string): string {
+  return path.relative(root, file).split(path.sep).join("/");
+}
+
 /**
  * Resolve a document argument: a repo-relative path, or a path inside any
- * configured home, in that order. Resolutions that leave the repository root,
- * including through a symlink, throw.
+ * configured home. Resolutions that leave the repository root, including
+ * through a symlink, throw. A bare name that matches several homes resolves
+ * to all of them, so the caller can report the ambiguity.
  */
-export function resolveDocument(project: Project, input: string): string {
+export function resolveDocuments(project: Project, input: string): string[] {
   const root = realpathSync(project.root);
   const outside = (candidate: string): boolean => {
     const rel = path.relative(root, candidate);
     return rel.startsWith("..") || path.isAbsolute(rel);
+  };
+
+  /** The candidate's real path when it is a readable file, else null. */
+  const asFile = (candidate: string): string | null => {
+    let real: string;
+    try {
+      real = realpathSync(candidate);
+    } catch {
+      return null; // this candidate does not exist; the next may
+    }
+    if (outside(real)) {
+      throw new Error(`'${input}' resolves outside the repository root.`);
+    }
+    return statSync(real).isFile() ? real : null;
   };
 
   const direct = path.resolve(project.root, input);
@@ -59,28 +81,27 @@ export function resolveDocument(project: Project, input: string): string {
     throw new Error(`'${input}' resolves outside the repository root.`);
   }
 
-  const candidates = [
-    direct,
-    ...PATH_KEYS.map((key) => path.resolve(project.paths[key], input)),
-  ];
-  for (const candidate of candidates) {
-    let real: string;
-    try {
-      real = realpathSync(candidate);
-    } catch {
-      continue; // this candidate does not exist; the next may
-    }
-    if (outside(real)) {
-      throw new Error(`'${input}' resolves outside the repository root.`);
-    }
-    if (statSync(real).isFile()) return real;
+  // A repo-relative path that exists is the document, unambiguously.
+  const directReal = asFile(direct);
+  if (directReal !== null) return [directReal];
+
+  const matches: string[] = [];
+  for (const key of PATH_KEYS) {
+    const real = asFile(path.resolve(project.paths[key], input));
+    if (real !== null && !matches.includes(real)) matches.push(real);
   }
-  throw new Error(`Document not found: ${input}`);
+  if (matches.length === 0) {
+    throw new Error(`Document not found: ${input}`);
+  }
+  return matches;
 }
 
-/** The document's type from the home that contains it, or null outside every home. */
+/**
+ * The document's type from the home that contains it, or null outside every
+ * home. A navigation index never takes its home's type: it is navigation, not
+ * canon, so it is untyped exactly as discovery skips it from catalogs.
+ */
 function typeOf(project: Project, file: string): DocType | null {
-  const root = realpathSync(project.root);
   let best: { type: DocType; length: number } | null = null;
   for (const key of PATH_KEYS) {
     let home: string;
@@ -91,6 +112,12 @@ function typeOf(project: Project, file: string): DocType | null {
     }
     const rel = path.relative(home, file);
     if (rel.startsWith("..") || path.isAbsolute(rel)) continue;
+    if (
+      (key === "design" || key === "overviews") &&
+      path.basename(file) === "index.md"
+    ) {
+      continue;
+    }
     // The overviews home nests inside the design home, so the longest
     // containing prefix wins.
     if (best === null || home.length > best.length) {
@@ -207,19 +234,28 @@ function run(ctx: CommandContext): number {
   }
 
   const project = loadProject(findRoot(process.cwd()));
-  let file: string;
+  let files: string[];
   try {
-    file = resolveDocument(project, document);
+    files = resolveDocuments(project, document);
   } catch (error) {
     return runtimeError(error instanceof Error ? error.message : String(error));
   }
+  if (files.length > 1) {
+    const root = realpathSync(project.root);
+    process.stderr.write(
+      [
+        `The name '${document}' matches ${files.length} documents:`,
+        ...files.map((file) => `  ${repoRelative(root, file)}`),
+        "",
+      ].join("\n"),
+    );
+    return 1;
+  }
+  const file = files[0];
 
   const text = readFileSync(file, "utf8");
   const { headings, lines } = outline(text);
-  const docPath = path
-    .relative(realpathSync(project.root), file)
-    .split(path.sep)
-    .join("/");
+  const docPath = repoRelative(realpathSync(project.root), file);
   const authority = authorityOfDoc(project, file, text);
 
   if (isOutline) {
@@ -256,15 +292,20 @@ function run(ctx: CommandContext): number {
     }
     const a = Number(match[1]);
     const b = Number(match[2]);
-    if (a < 1 || a > b || b > lines.length) {
+    // An empty document is readable as one empty line, so the range a whole
+    // read prints stays usable as a later --lines selection.
+    if (a < 1 || a > b || b > Math.max(lines.length, 1)) {
       return usageError(
-        `--lines ${a}-${b} is out of range: the document has ${lines.length} lines.`,
+        `--lines ${a}-${b} is out of range: ${
+          lines.length === 0 ? "the document is empty" : `the document has ${lines.length} lines`
+        }.`,
       );
     }
-    return printSelection(ctx, docPath, authority, [a, b], sliceLines(text, lines, a, b));
+    const content = lines.length === 0 ? "" : sliceLines(text, lines, a, b);
+    return printSelection(ctx, docPath, authority, [a, b], content);
   }
 
-  // The whole file, with a range that stays valid for an empty document.
+  // The whole file, again as one empty line when the document is empty.
   return printSelection(
     ctx,
     docPath,
