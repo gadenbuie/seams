@@ -1,7 +1,7 @@
 # Plan templates
 
-Replace `<...>` and drop lines that do not apply. Use the tracker's own fields for parent, blockers,
-tier, and labels where it has them, and keep the body for what the fields cannot hold.
+Replace `<...>` and drop lines that do not apply.
+Use the tracker's own fields for parent, blockers, tier, and labels where it has them, and keep the body for what the fields cannot hold.
 
 ## Leaf
 
@@ -62,12 +62,14 @@ Once, after every child has landed:
 - <e.g., review and verify the whole unit's diff against <target branch>; run <full checks>>
 ```
 
-The two sections fit an epic body too. Include them only when needed.
+The two sections fit an epic body too.
+Include them only when needed.
 
 ## Planning leaf (rolling waves)
 
-For very large or complicated work only. Blocked by the wave it follows. Tier `medium` unless the
-repository says otherwise.
+For very large or complicated work only.
+Blocked by the wave it follows.
+Tier `medium` unless the repository says otherwise.
 
 ```markdown
 Planning only; do not implement or land code. After <previous wave ref> lands, reconcile
@@ -84,7 +86,8 @@ and a short outline. Leave the implementation undispatched.
 
 ## Read-back
 
-Write it in the operator's terms. Keep it short enough to check in a few minutes.
+Write it in the operator's terms.
+Keep it short enough to check in a few minutes.
 
 ```markdown
 Read-back for <proposal title>

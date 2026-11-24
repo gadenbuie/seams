@@ -1,38 +1,37 @@
 # Maintain documentation
 
-Use this procedure for user documentation and design overviews. Find the project's documentation
-homes, assess their value, and maintain the parts affected by the work. Follow the project's writing
-rules, and use `seams-orient` when writing for operator review.
+Use this procedure for user documentation and design overviews.
+Find the project's documentation homes, assess their value, and maintain the parts affected by the work.
+Follow the project's writing rules, and use `seams-orient` when writing for operator review.
 
-Documentation guides readers to code and tests. It never proves current behavior and never becomes
-canon by persisting.
+Documentation guides readers to code and tests.
+It never proves current behavior and never becomes canon by persisting.
 
 ## Discover and read
 
-1. Read `AGENTS.md` for the project's documentation homes. Start with the design index and the index
-   for design overviews, then read only documents whose descriptions match the task.
-1. Read the user documentation and design overviews affected by the unit. Reading an index is
-   preparation, not a substitute for reading the relevant document.
-1. Follow the document's code references and tests when current behavior matters. Treat the code,
-   tests, and runtime evidence as reality.
-1. Report important contradictions between documentation and reality instead of silently choosing
-   one. Keep the correction with the work.
+1. Read `AGENTS.md` for the project's documentation homes.
+   Start with the design index and the index for design overviews, then read only documents whose descriptions match the task.
+1. Read the user documentation and design overviews affected by the unit.
+   Reading an index is preparation, not a substitute for reading the relevant document.
+1. Follow the document's code references and tests when current behavior matters.
+   Treat the code, tests, and runtime evidence as reality.
+1. Report important contradictions between documentation and reality instead of silently choosing one.
+   Keep the correction with the work.
 
 ## Create a design overview
 
-Create an overview when a system or subsystem has connections, constraints, or reasoning that a
-reader can't recover cheaply from code and user documentation. Don't create one for every file,
-feature, proposal, or unit of work.
+Create an overview when a system or subsystem has connections, constraints, or reasoning that a reader can't recover cheaply from code and user documentation.
+Don't create one for every file, feature, proposal, or unit of work.
 
-Keep the collection flat. Use a descriptive filename for a system or subsystem overview. Most
-concepts and flows belong in the subsystem overview that owns them. Use a standalone
-`concept_<topic-slug>.md` or `flow_<flow-slug>.md` only when the explanation crosses subsystem
-boundaries or several overviews need to link to it. These prefixes identify special cases; they
-aren't required document types.
+Keep the collection flat.
+Use a descriptive filename for a system or subsystem overview.
+Most concepts and flows belong in the subsystem overview that owns them.
+Use a standalone `concept_<topic-slug>.md` or `flow_<flow-slug>.md` only when the explanation crosses subsystem boundaries or several overviews need to link to it.
+These prefixes identify special cases; they aren't required document types.
 
-State the document's audience and scope directly. Say what it explains, what it leaves to code,
-tests, user documentation, or work records, and which code or tests support its main claims. Don't
-open with narration about the document itself.
+State the document's audience and scope directly.
+Say what it explains, what it leaves to code, tests, user documentation, or work records, and which code or tests support its main claims.
+Don't open with narration about the document itself.
 
 Include only what helps a maintainer understand the current design:
 
@@ -40,55 +39,54 @@ Include only what helps a maintainer understand the current design:
 - a short context or codemap in the index when it helps readers choose a document;
 - exact file and symbol references that agents can verify;
 - standing cautions and constraints that are easy to miss;
-- a past decision or rejected alternative only when it explains the current design, with a link to
-  the proposal or canon that holds the decision;
+- a past decision or rejected alternative only when it explains the current design, with a link to the proposal or canon that holds the decision;
 - deployment or terminology only when readers need it.
 
-Keep interface details in code, quality requirements in canon or tests, and volatile risks, debt
-estimates, task status, and implementation history in work records. Don't create a decision log.
+Keep interface details in code, quality requirements in canon or tests, and volatile risks, debt estimates, task status, and implementation history in work records.
+Don't create a decision log.
 
 ## Maintain during work
 
-1. Identify the documentation affected by the unit before changing behavior. Include its update in
-   the same body of work.
-1. Draft documentation for a new feature after its behavior becomes stable, but finish it before the
-   work closes. Update existing documentation as the behavior or structure it describes changes.
-1. Fold lasting contracts, rationale, and active exceptions into the owning document. Update the
-   current explanation instead of appending a narrative of the latest change.
-1. Update a stale or incomplete document when the work reveals the problem. Don't leave the only
-   correction in a plan or work item.
-1. Give each rule, contract, and status one owning home. Let design overviews repeat enough context
-   to explain connections, with links to the owning documents. Keep task status, temporary
-   hypotheses, execution checklists, and implementation history in the tracker or working records.
-1. Verify claims against the named code and tests. Correct or remove claims that can't be supported.
+1. Identify the documentation affected by the unit before changing behavior.
+   Include its update in the same body of work.
+1. Draft documentation for a new feature after its behavior becomes stable, but finish it before the work closes.
+   Update existing documentation as the behavior or structure it describes changes.
+1. Fold lasting contracts, rationale, and active exceptions into the owning document.
+   Update the current explanation instead of appending a narrative of the latest change.
+1. Update a stale or incomplete document when the work reveals the problem.
+   Don't leave the only correction in a plan or work item.
+1. Give each rule, contract, and status one owning home.
+   Let design overviews repeat enough context to explain connections, with links to the owning documents.
+   Keep task status, temporary hypotheses, execution checklists, and implementation history in the tracker or working records.
+1. Verify claims against the named code and tests.
+   Correct or remove claims that can't be supported.
 
 ### Greenfield flow
 
-In greenfield work, information usually flows from **proposal to plan to design overview**. The
-proposal holds the selected direction, and the plan organizes execution. As implementation makes the
-design real, move the lasting explanation into the owning overview. The proposal and plan remain
-history; the overview describes the current system.
+In greenfield work, information usually flows from **proposal to plan to design overview**.
+The proposal holds the selected direction, and the plan organizes execution.
+As implementation makes the design real, move the lasting explanation into the owning overview.
+The proposal and plan remain history; the overview describes the current system.
 
-Don't copy a plan wholesale into an overview. Include only what a maintainer needs after the work is
-done, and create an overview only when it meets the creation test above.
+Don't copy a plan wholesale into an overview.
+Include only what a maintainer needs after the work is done, and create an overview only when it meets the creation test above.
 
 ## Review
 
-- Show documentation changes alongside the implementation. Call out new cautions, unexpected
-  complexity, and places where the implementation departed from the previous description.
-- Verify documentation claims, code references, and links before asking the operator to rely on
-  them.
-- Ask the operator to read the relevant documentation and try the software. Use corrections to
-  improve the documentation, implementation, or canon as appropriate. Only the operator accepts
-  canon changes.
+- Show documentation changes alongside the implementation.
+  Call out new cautions, unexpected complexity, and places where the implementation departed from the previous description.
+- Verify documentation claims, code references, and links before asking the operator to rely on them.
+- Ask the operator to read the relevant documentation and try the software.
+  Use corrections to improve the documentation, implementation, or canon as appropriate.
+  Only the operator accepts canon changes.
 
 ## Reconcile and limit growth
 
-- Check for stale, duplicated, contradictory, and unused documents. Verify current-state claims
-  against code and tests.
-- Check whether finished proposals and plans contain lasting explanations that belong in an owning
-  overview. Move accepted explanations without moving task status or execution history.
-- Mark superseded material as historical and keep it outside normal navigation. Don't let old plans
-  compete with maintained overviews.
-- Add navigation tooling only when the collection is too large for a simple index. Don't require a
-  catalog script or a large frontmatter schema.
+- Check for stale, duplicated, contradictory, and unused documents.
+  Verify current-state claims against code and tests.
+- Check whether finished proposals and plans contain lasting explanations that belong in an owning overview.
+  Move accepted explanations without moving task status or execution history.
+- Mark superseded material as historical and keep it outside normal navigation.
+  Don't let old plans compete with maintained overviews.
+- Add navigation tooling only when the collection is too large for a simple index.
+  Don't require a catalog script or a large frontmatter schema.

@@ -8,12 +8,11 @@ roborev job wait --job <id>
 roborev job show --job <id>
 ```
 
-`job wait` exits 1 both when the review fails (it has findings) and when the job itself fails;
-`job show` tells them apart. A job that failed is `blocked`: say so in your report. Triage the
-findings as `triage.md` says. A follow-up review covers only the fixing commits:
-`roborev review --since <last reviewed head>`.
+`job wait` exits 1 both when the review fails (it has findings) and when the job itself fails; `job show` tells them apart.
+A job that failed is `blocked`: say so in your report.
+Triage the findings as `triage.md` says.
+A follow-up review covers only the fixing commits: `roborev review --since <last reviewed head>`.
 
-Include changed documentation in the unit review. Check the implementer's `Documentation:` report
-against `<skills>/seams-work/references/documentation.md`. If documentation claims need independent
-verification beyond the roborev findings, ask a fresh reviewer to follow `reviewer.md` for those
-documents before reporting the unit done.
+Include changed documentation in the unit review.
+Check the implementer's `Documentation:` report against `<skills>/seams-work/references/documentation.md`.
+If documentation claims need independent verification beyond the roborev findings, ask a fresh reviewer to follow `reviewer.md` for those documents before reporting the unit done.

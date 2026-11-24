@@ -1,22 +1,21 @@
 # seams
 
-seams is a set of conventions and agent skills for building software with coding agents. You put the
-conventions in your repository and install the skills in your agent harness. You and your agents
-then invoke the skills when you discuss a feature, plan work, implement it, or review it.
+seams is a set of conventions and agent skills for building software with coding agents.
+You put the conventions in your repository and install the skills in your agent harness.
+You and your agents then invoke the skills when you discuss a feature, plan work, implement it, or review it.
 
-seams isn't an application, an agent harness, or a work tracker. No seams service runs in the
-background, and no skill acts until you or an agent invokes it. You keep using your preferred coding
-agent, tracker, and review tools.
+seams isn't an application, an agent harness, or a work tracker.
+No seams service runs in the background, and no skill acts until you or an agent invokes it.
+You keep using your preferred coding agent, tracker, and review tools.
 
 ## Why use seams
 
 A project that uses coding agents collects ideas, plans, notes, rules, task records, and summaries.
-An agent can read an abandoned plan and an accepted rule without knowing which one should guide its
-work. You can find the mistake only after the agent has built the wrong thing.
+An agent can read an abandoned plan and an accepted rule without knowing which one should guide its work.
+You can find the mistake only after the agent has built the wrong thing.
 
-seams gives each kind of information a home and says what an agent may do with it. The conventions
-also keep your decisions separate from the agent's working notes and from evidence about what the
-code actually does.
+seams gives each kind of information a home and says what an agent may do with it.
+The conventions also keep your decisions separate from the agent's working notes and from evidence about what the code actually does.
 
 | Information                                     | Where it lives                                  | What an agent may do with it                                                              |
 | :---------------------------------------------- | :---------------------------------------------- | :---------------------------------------------------------------------------------------- |
@@ -25,17 +24,16 @@ code actually does.
 | Proposals, plans, notes, and work items         | `.agents/` and your tracker                     | Use them for the work they describe. A proposal authorizes work only after you accept it. |
 | Code, tests, and the running system             | Your repository and running services            | Use them as evidence of what exists.                                                      |
 
-The names **canon**, **memory**, and **reality** refer to these three kinds of information. They
-aren't names of software components, and a project can use different file paths when its agent
-instructions name those paths. Memory has no single shape or home, and keeping it clear takes
-deliberate maintenance.
+The names **canon**, **memory**, and **reality** refer to these three kinds of information.
+They aren't names of software components, and a project can use different file paths when its agent instructions name those paths.
+Memory has no single shape or home, and keeping it clear takes deliberate maintenance.
 
 ## What using seams looks like
 
-You start by discussing an idea with an agent. For work that needs discussion, you run
-`/seams-propose` and decide what the proposal means. You then run `/seams-plan` to turn the accepted
-proposal into tracked units of work, and `/seams-route` to send those units to agents. Small, clear
-changes can go straight to an agent without a proposal or a detailed plan.
+You start by discussing an idea with an agent.
+For work that needs discussion, you run `/seams-propose` and decide what the proposal means.
+You then run `/seams-plan` to turn the accepted proposal into tracked units of work, and `/seams-route` to send those units to agents.
+Small, clear changes can go straight to an agent without a proposal or a detailed plan.
 
 ```mermaid
 flowchart LR
@@ -47,26 +45,27 @@ flowchart LR
     E -->|"Corrections or a new direction"| A
 ```
 
-Each stage leaves information for the next stage. A proposal carries your decisions into planning,
-and work items carry the plan into implementation. Agents update design overviews and user
-documentation as the system changes. Only you can accept changes to canon.
+Each stage leaves information for the next stage.
+A proposal carries your decisions into planning, and work items carry the plan into implementation.
+Agents update design overviews and user documentation as the system changes.
+Only you can accept changes to canon.
 
 Especially in greenfield work, information flows from **proposals to plans to design overviews**.
-The proposal holds the selected direction, and the plan organizes execution. As agents implement the
-design, they move the lasting explanation into an overview. The proposal and plan remain history,
-while the overview describes the current system. Not every unit needs an overview.
+The proposal holds the selected direction, and the plan organizes execution.
+As agents implement the design, they move the lasting explanation into an overview.
+The proposal and plan remain history, while the overview describes the current system.
+Not every unit needs an overview.
 
-Markdown files and tracker records carry information between stages and fresh agent sessions. Agents
-read the records from earlier stages instead of relying on another agent's session memory.
+Markdown files and tracker records carry information between stages and fresh agent sessions.
+Agents read the records from earlier stages instead of relying on another agent's session memory.
 
-The skills tell agents how to record decisions, ask you questions, continue work in a fresh session,
-and report what you can try. Agents do the planning, implementation, and review. You make the
-product decisions, accept changes to the project's rules, and judge whether the finished work
-matches what you wanted.
+The skills tell agents how to record decisions, ask you questions, continue work in a fresh session, and report what you can try.
+Agents do the planning, implementation, and review.
+You make the product decisions, accept changes to the project's rules, and judge whether the finished work matches what you wanted.
 
-You don't need every convention or skill on the first day. A new project can start with a short
-`AGENTS.md`, a few lines of vision, and a tracker. The [guide](docs/guide.md) explains the stages,
-the information types, and the skills in more detail.
+You don't need every convention or skill on the first day.
+A new project can start with a short `AGENTS.md`, a few lines of vision, and a tracker.
+The [guide](docs/guide.md) explains the stages, the information types, and the skills in more detail.
 
 ## Start here
 
@@ -81,17 +80,16 @@ the information types, and the skills in more detail.
 
 ## Install the skills and adopt the conventions
 
-Installing the skills and adopting the conventions are separate steps. Copy or link the whole
-`skills/` folder into your agent harness's skill directory, because the skills refer to each other's
-files. Then run `/seams-adopt` in your project to set up the conventions. The skill reads your
-existing files and asks before moving or rewriting them.
+Installing the skills and adopting the conventions are separate steps.
+Copy or link the whole `skills/` folder into your agent harness's skill directory, because the skills refer to each other's files.
+Then run `/seams-adopt` in your project to set up the conventions.
+The skill reads your existing files and asks before moving or rewriting them.
 
 ## Work on seams itself
 
-The canon for seams lives in [`docs/design/`](docs/design/index.md), its proposals live in
-`.agents/proposals/`, and its work is tracked in kata. The [`AGENTS.md`](AGENTS.md) file is the
-entry point for agents working on seams itself.
+The canon for seams lives in [`docs/design/`](docs/design/index.md), its proposals live in `.agents/proposals/`, and its work is tracked in kata.
+The [`AGENTS.md`](AGENTS.md) file is the entry point for agents working on seams itself.
 
-seams hasn't been validated by experiment. Its ideas come from older fields, and the
-[supporting evidence](docs/supporting-evidence.md) says where each one comes from and where the
-comparison to agent-assisted coding stops. Use the parts that fit your project.
+seams hasn't been validated by experiment.
+Its ideas come from older fields, and the [supporting evidence](docs/supporting-evidence.md) says where each one comes from and where the comparison to agent-assisted coding stops.
+Use the parts that fit your project.

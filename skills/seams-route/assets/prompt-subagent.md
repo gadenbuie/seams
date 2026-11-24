@@ -1,8 +1,9 @@
 # Subagent prompt template
 
-Point the subagent at files. Do not paste their contents or restate their rules. Use absolute paths:
-`<skill>` is this skill's directory, and `<skills>` is the directory that holds all the seams
-skills. Fill in only the values the role uses, and add notes only for what is specific to this task.
+Point the subagent at files.
+Do not paste their contents or restate their rules.
+Use absolute paths: `<skill>` is this skill's directory, and `<skills>` is the directory that holds all the seams skills.
+Fill in only the values the role uses, and add notes only for what is specific to this task.
 
 ```markdown
 You are the <implementer | fixer | reviewer | lander> for task <ref>: <title>.
