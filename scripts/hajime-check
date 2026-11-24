@@ -1,0 +1,3 @@
+#!/bin/sh
+# The project check hajime runs before landing. Runs with stdin closed.
+exec make check < /dev/null
