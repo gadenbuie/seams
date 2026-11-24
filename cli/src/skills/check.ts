@@ -20,6 +20,14 @@
  * - `outdated`: installed == recorded, but the running package bundles a
  *   different hash.
  * - `divergent`: modified and outdated.
+ * A recorded destination is classified through an explicit table
+ * (DESTINATION_TABLE): every reachable combination of what sits at the
+ * content path and at the link path, and how each hashes against the
+ * record, maps to one basis; the running bundle then turns that basis into
+ * `ok`, `outdated`, `modified`, `divergent`, or `missing`. Whatever sits at
+ * either path is a table row, never a crash: a regular file there hashes
+ * as a `different` copy and is kept for manual reconciliation, because a
+ * repair would delete it.
  *
  * Update replaces only `outdated` and `missing` copies: those destinations
  * are exactly the ones that are absent or still byte-identical to what seams
@@ -46,8 +54,9 @@ import {
   versionOf,
 } from "./install.ts";
 import type { AgentId, InstallMode, Scope } from "./install.ts";
+import type { SkillDestination } from "./install.ts";
 import { packageVersion, readSkillsMeta, seamsSkillsMetaPath, writeSkillsMeta } from "./meta.ts";
-import type { SkillRecord, SkillsMeta } from "./meta.ts";
+import type { SkillsMeta } from "./meta.ts";
 
 type SkillsLibrary = Awaited<ReturnType<typeof library>>;
 type SkillSource = Awaited<ReturnType<SkillsLibrary["resolveSource"]>>;
@@ -113,25 +122,164 @@ interface Classification {
   entries: CheckEntry[];
 }
 
-/**
- * The classification of a skill's own record: `missing` when the destination
- * is absent, `modified` when the installed copy differs from the record,
- * `outdated` when it matches the record but not the bundle, `divergent` when
- * both, `ok` otherwise. A skill the running package no longer bundles is
- * classified against the record alone: `missing`, `modified`, or `ok`.
- */
-function classifyRecord(
-  installedHash: string,
-  record: SkillRecord,
-  bundled: { hash: string } | undefined,
-): CheckState {
-  if (installedHash !== record.hash) {
-    return bundled !== undefined && bundled.hash !== record.hash
-      ? "divergent"
-      : "modified";
+/** What `lstat` says sits at one of a recorded destination's paths. */
+export type PathKind = "absent" | "file" | "symlink" | "directory";
+
+/** The link path's kind; `none` when the destination has no link path. */
+export type LinkKind = PathKind | "none";
+
+/** How a path's contents compare with the record; `n/a` for nothing hashable. */
+export type HashRelation = "n/a" | "equal" | "different";
+
+/** What one table row classifies a recorded destination as, before the bundle. */
+export interface DestinationRow {
+  /**
+   * `missing`: the recorded destination is absent or the wrong shape, and
+   * update may repair it. `equal`: the copy matches the record — `outdated`
+   * when the running package bundles a newer hash, `ok` otherwise. Both are
+   * repair targets, and repairing is lossless: `missing` rows hold nothing
+   * seams recorded, `equal` rows hold exactly what seams last wrote.
+   * `different`: the copy is not what the record describes — `divergent`
+   * against a newer bundle, `modified` otherwise — and update never passes
+   * it to the library.
+   */
+  basis: "missing" | "equal" | "different";
+}
+
+/** lstat one of a destination's paths into a table kind. */
+function pathKind(target: string): PathKind {
+  const stats = lstatSafe(target);
+  if (stats === undefined) return "absent";
+  if (stats.isDirectory()) return "directory";
+  if (stats.isSymbolicLink()) return "symlink";
+  // Anything else that is not a folder (a regular file, a fifo, a device)
+  // blocks the destination the way a regular file does.
+  return "file";
+}
+
+/** The hash of the folder at `target` and how it compares with `recorded`. */
+function folderFacts(target: string, recorded: string): { relation: HashRelation; hash?: string } {
+  try {
+    const hash = skillFolderHash(target);
+    return { relation: hash === recorded ? "equal" : "different", hash };
+  } catch {
+    // Nothing readable sits at the path (a broken symlink, a folder the
+    // process cannot read): never equal, so never a repair target.
+    return { relation: "different" };
   }
-  if (bundled !== undefined && bundled.hash !== record.hash) return "outdated";
-  return "ok";
+}
+
+/** How the content path of a `mode` destination compares with `recorded`. */
+function contentFacts(
+  kind: PathKind,
+  mode: InstallMode,
+  content: string,
+  recorded: string,
+): { relation: HashRelation; hash?: string } {
+  // In copy mode a symlink is never the recorded copy and is never hashed:
+  // the table's (symlink, none, n/a) row makes the destination missing, and
+  // the library replaces the link without touching its target. In symlink
+  // mode the canonical path is hashed through a symlink; an unreadable one
+  // (broken, or pointing at a file) hashes as different and is kept.
+  if (kind === "directory" || (kind === "symlink" && mode === "symlink")) {
+    return folderFacts(content, recorded);
+  }
+  return { relation: "n/a" };
+}
+
+/**
+ * The classification table for one recorded (skill, agent) destination:
+ * every reachable combination of what sits at the content path, what sits
+ * at the link path, and how each hashes against the record, keyed as
+ * `<content kind>|<link kind>|<content relation>|<link relation>` and mapped
+ * to the basis update's repair/skip selection runs on. The matrix test in
+ * test/skills-check-matrix.test.ts walks every row against a real project.
+ */
+export const DESTINATION_TABLE: Record<string, DestinationRow> = {
+  // Destinations with no link path of their own: copy mode, and universal
+  // agents in symlink mode, whose content path is the canonical folder.
+  "absent|none|n/a|n/a": { basis: "missing" },
+  "file|none|n/a|n/a": { basis: "different" },
+  // Copy mode: a symlink at the content path is never the recorded copy
+  // (relation n/a), so repair replaces it with a real folder. Symlink mode
+  // never reaches this key: the symlink is hashed through, so its relation
+  // is equal or different.
+  "symlink|none|n/a|n/a": { basis: "missing" },
+  "symlink|none|equal|n/a": { basis: "equal" },
+  "symlink|none|different|n/a": { basis: "different" },
+  "directory|none|equal|n/a": { basis: "equal" },
+  "directory|none|different|n/a": { basis: "different" },
+
+  // Symlink mode, non-universal agent: the content path decides first, so a
+  // content problem outranks whatever sits at the link path. Content absent:
+  // nothing seams recorded is left, except a hand copy at the link path.
+  "absent|absent|n/a|n/a": { basis: "missing" },
+  "absent|file|n/a|n/a": { basis: "different" },
+  "absent|symlink|n/a|n/a": { basis: "missing" },
+  // A real folder at the link path: kept when it differs from the record,
+  // a lossless conversion (repair recreates the content it always shadowed)
+  // when it is byte-identical.
+  "absent|directory|n/a|equal": { basis: "missing" },
+  "absent|directory|n/a|different": { basis: "different" },
+  // Content is a regular file: repairing would delete it, so it is kept.
+  "file|absent|n/a|n/a": { basis: "different" },
+  "file|file|n/a|n/a": { basis: "different" },
+  "file|symlink|n/a|n/a": { basis: "different" },
+  "file|directory|n/a|equal": { basis: "different" },
+  "file|directory|n/a|different": { basis: "different" },
+  // Content is a symlink (hashed through; broken hashes as different):
+  "symlink|absent|equal|n/a": { basis: "missing" },
+  "symlink|absent|different|n/a": { basis: "different" },
+  "symlink|file|equal|n/a": { basis: "different" },
+  "symlink|file|different|n/a": { basis: "different" },
+  "symlink|symlink|equal|n/a": { basis: "equal" },
+  "symlink|symlink|different|n/a": { basis: "different" },
+  "symlink|directory|equal|equal": { basis: "missing" },
+  "symlink|directory|equal|different": { basis: "different" },
+  "symlink|directory|different|equal": { basis: "different" },
+  "symlink|directory|different|different": { basis: "different" },
+  // Content is a directory: the recorded shape for every mode.
+  "directory|absent|equal|n/a": { basis: "missing" },
+  "directory|absent|different|n/a": { basis: "different" },
+  "directory|file|equal|n/a": { basis: "different" },
+  "directory|file|different|n/a": { basis: "different" },
+  "directory|symlink|equal|n/a": { basis: "equal" },
+  "directory|symlink|different|n/a": { basis: "different" },
+  "directory|directory|equal|equal": { basis: "missing" },
+  "directory|directory|equal|different": { basis: "different" },
+  "directory|directory|different|equal": { basis: "different" },
+  "directory|directory|different|different": { basis: "different" },
+};
+
+/**
+ * Classify one recorded destination through the table: lstat both paths,
+ * hash what is hashable, look the combination up, then let the bundle turn
+ * the row's basis into a state. `installedHash` reports the copy at the
+ * link path when one sits there, the content copy otherwise.
+ */
+function classifyRecorded(
+  mode: InstallMode,
+  destination: SkillDestination,
+  recordedHash: string,
+  bundled: { hash: string } | undefined,
+): { state: CheckState; installedHash?: string } {
+  const contentKind = pathKind(destination.content);
+  const linkKind: LinkKind = destination.link === undefined ? "none" : pathKind(destination.link);
+  const content = contentFacts(contentKind, mode, destination.content, recordedHash);
+  const link = destination.link !== undefined && linkKind === "directory"
+    ? folderFacts(destination.link, recordedHash)
+    : { relation: "n/a" as const, hash: undefined };
+  const key = `${contentKind}|${linkKind}|${content.relation}|${link.relation}`;
+  const row = DESTINATION_TABLE[key];
+  if (row === undefined) {
+    throw new Error(`No classification row for destination state: ${key}`);
+  }
+  const state: CheckState =
+    row.basis === "missing" ? "missing"
+      : row.basis === "equal"
+        ? (bundled !== undefined && bundled.hash !== recordedHash ? "outdated" : "ok")
+        : (bundled !== undefined && bundled.hash !== recordedHash ? "divergent" : "modified");
+  return { state, installedHash: linkKind === "directory" ? link.hash : content.hash };
 }
 
 /** A directory entry in an agent's skills dir that could be a seams skill. */
@@ -189,76 +337,31 @@ async function classifySkills(options: CheckOptions): Promise<Classification> {
   const meta = readSkillsMeta(cwd, options.scope);
   const entries: CheckEntry[] = [];
 
-  // Recorded skills: classify each recorded agent's destination.
+  // Recorded skills: classify each recorded agent's destination through
+  // the table. The entry reports the agent's own path (`destination.target`)
+  // and, when one is hashable, the copy the classification weighed.
   for (const name of Object.keys(meta?.skills ?? {}).sort()) {
     const record = meta!.skills[name];
     const bundledFacts = bundled.get(name);
     for (const agent of record.agents) {
       if (!isSupportedAgent(agent) || !agents.includes(agent)) continue;
       const destination = await skillDestination(cwd, options.scope, record.mode, agent, name);
+      const { state, installedHash } = classifyRecorded(
+        record.mode,
+        destination,
+        record.hash,
+        bundledFacts,
+      );
       const entry: CheckEntry = {
         skill: name,
         agent,
-        state: "ok",
+        state,
         path: destination.target,
         recordedHash: record.hash,
         bundledHash: bundledFacts?.hash,
         bundledPath: bundledFacts === undefined ? undefined : path.join(sourceDir, name),
       };
-      // A copy-mode destination that is actually a symlink is not the copy
-      // the record describes; the library replaces it with a real folder
-      // without touching the symlink's target. Mirrors the `skills list`
-      // state.
-      const content = lstatSafe(destination.content);
-      if (content === undefined || (record.mode === "copy" && content.isSymbolicLink())) {
-        entry.state = "missing";
-        entries.push(entry);
-        continue;
-      }
-      // The content hash decides before the link state: a modified or
-      // divergent copy is never an update target, whatever the link looks
-      // like. Repairing a link would hand the library the shared folder,
-      // and the library rewrites it (seams#sn2t) — the edits would be lost
-      // while the same run listed the folder for manual reconciliation.
-      entry.installedHash = skillFolderHash(destination.content);
-      const contentState = classifyRecord(entry.installedHash, record, bundledFacts);
-      if (contentState === "modified" || contentState === "divergent") {
-        entry.state = contentState;
-        entries.push(entry);
-        continue;
-      }
-      // A symlink-mode agent additionally needs its link. A missing link
-      // over an intact folder is repairable. A real folder at the link path
-      // is the agent's copy, not a link: it is kept when it differs from
-      // the record (the library would replace it with a symlink and lose
-      // the changes, as the install layer's classifyLink already knows),
-      // and is a lossless conversion target when it is byte-identical.
-      if (record.mode === "symlink" && destination.link !== undefined) {
-        const link = lstatSafe(destination.link);
-        if (link === undefined) {
-          entry.state = "missing";
-          entry.path = destination.link;
-          entries.push(entry);
-          continue;
-        }
-        if (!link.isSymbolicLink()) {
-          const linkHash = skillFolderHash(destination.link);
-          entry.installedHash = linkHash;
-          entry.path = destination.link;
-          const linkState = classifyRecord(linkHash, record, bundledFacts);
-          if (linkState === "modified" || linkState === "divergent") {
-            entry.state = linkState;
-            entries.push(entry);
-            continue;
-          }
-          // Byte-identical content in the wrong shape: the recorded symlink
-          // is missing and update converts the folder back into the link.
-          entry.state = "missing";
-          entries.push(entry);
-          continue;
-        }
-      }
-      entry.state = contentState;
+      if (installedHash !== undefined) entry.installedHash = installedHash;
       entries.push(entry);
     }
   }
