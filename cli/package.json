@@ -17,7 +17,7 @@
     "templates"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "node scripts/bundle-skills.mjs && tsc",
     "test": "node --test \"test/*.test.ts\"",
     "prepack": "npm run build"
   },

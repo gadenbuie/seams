@@ -3,3 +3,4 @@ site/
 node_modules/
 cli/node_modules/
 cli/dist/
+cli/skills/
