@@ -9,14 +9,24 @@ It never proves current behavior and never becomes canon by persisting.
 
 ## Discover and read
 
+When the project has the seams CLI installed, its reading commands speed these steps up, and each step below names the command and the way without it.
+The CLI only reads; it never decides what the work needs.
+
 1. Read `AGENTS.md` for the project's documentation homes.
    Start with the design index and the index for design overviews, then read only documents whose descriptions match the task.
+   With the CLI, `seams list` catalogs those homes from each document's frontmatter, with its type, title, and authority label; read the index files themselves either way.
 1. Read the user documentation and design overviews affected by the unit.
    Reading an index is preparation, not a substitute for reading the relevant document.
+   With the CLI, `seams find "<words>"` reports the section each match sits in, `seams read outline <document>` prints a document's headings with their line ranges, and `seams read <document> --section "<heading>"` reads one section.
+   Copy the heading text exactly as the outline prints it.
+   These replace opening the whole file only when the task needs a passage; read the whole document when the task needs the argument.
 1. Follow the document's code references and tests when current behavior matters.
    Treat the code, tests, and runtime evidence as reality.
 1. Report important contradictions between documentation and reality instead of silently choosing one.
    Keep the correction with the work.
+
+Without the CLI, do all of this with ordinary file reads.
+The commands change how fast you find a passage, not what you read or what you owe the reader.
 
 ## Create a design overview
 
@@ -49,6 +59,9 @@ Don't create a decision log.
 
 1. Identify the documentation affected by the unit before changing behavior.
    Include its update in the same body of work.
+   When the CLI is installed, `seams impact <path> [<path>...]` lists the documents that name or link to the paths the unit changes, and `seams impact --git-diff` asks the same about the working tree's uncommitted changes.
+   Its results are candidates for review, not findings: read each document and judge whether it is stale.
+   Without the CLI, search the documentation homes for the changed paths.
 1. Draft documentation for a new feature after its behavior becomes stable, but finish it before the work closes.
    Update existing documentation as the behavior or structure it describes changes.
 1. Fold lasting contracts, rationale, and active exceptions into the owning document.
@@ -60,6 +73,9 @@ Don't create a decision log.
    Keep task status, temporary hypotheses, execution checklists, and implementation history in the tracker or working records.
 1. Verify claims against the named code and tests.
    Correct or remove claims that can't be supported.
+1. Keep each document's frontmatter current: `title` and a `description` that says when to read it in every document, and `status` and `created` in proposals and plans.
+   The CLI catalogs documents from these fields, so a stale description or status misleads every reader that follows, human or agent.
+   The status vocabularies live in `seams-propose` and `seams-plan`.
 
 ### Greenfield flow
 

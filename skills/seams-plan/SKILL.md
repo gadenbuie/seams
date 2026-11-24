@@ -117,6 +117,20 @@ Record the confirmed read-back on the root item, where implementers and the rout
 Create the units with the commands in the tracker's reference.
 Write bodies from `assets/templates.md`.
 When the tracker is a Markdown plan document, start the document from `assets/plan.md`.
+When the seams CLI is installed, `seams new plan <slug>` creates it in the project's plans home from the bundled template, with the frontmatter filled; without the CLI, copy `assets/plan.md` into the plans home.
+
+A plan document's frontmatter `status` is its one status source.
+It takes these values, and the planner moves it:
+
+- `draft`: written, but the operator has not confirmed the outline and the read-back.
+  A draft authorizes nothing, and search tools that skip drafts will not find it.
+- `active`: the operator confirmed the plan.
+  Set this when you record the confirmation on the root item.
+- `done`: every unit in the plan has landed.
+- `abandoned`: the operator dropped the work, or the plan was replaced.
+  Say why in the plan body.
+
+Never leave a confirmed plan at `draft`.
 
 ### Size
 
