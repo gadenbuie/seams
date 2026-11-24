@@ -3,7 +3,6 @@
  * The `seams` executable. Parses the global flags, finds the command in the
  * registry, and hands the remaining arguments to it.
  */
-import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import { commands } from "./commands/index.ts";
 import { printText } from "./output.ts";
@@ -68,16 +67,16 @@ function isGlobalFlag(arg: string): boolean {
   return /^--(json|help|version)(=.*)?$/.test(arg);
 }
 
-/* c8 ignore next 3 */
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main()
-    .then((code) => {
-      process.exitCode = code;
-    })
-    .catch((error: unknown) => {
-      process.stderr.write(
-        `seams: ${error instanceof Error ? error.message : String(error)}\n`,
-      );
-      process.exitCode = 1;
-    });
-}
+// This file is the `seams` bin entry: nothing imports it as a module, so it
+// always runs main() when Node executes it. This also works when the entry is
+// reached through npm's bin symlink.
+main()
+  .then((code) => {
+    process.exitCode = code;
+  })
+  .catch((error: unknown) => {
+    process.stderr.write(
+      `seams: ${error instanceof Error ? error.message : String(error)}\n`,
+    );
+    process.exitCode = 1;
+  });

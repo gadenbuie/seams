@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, symlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
 
@@ -55,5 +56,16 @@ describe("the seams executable", () => {
     );
     const result = run(["--version"]);
     assert.equal(result.stdout.trim(), pkg.version);
+  });
+
+  it("works when started through a bin symlink", () => {
+    // npm installs the bin as a symlink into node_modules/.bin or a global bin
+    // directory; the entry must still run through it.
+    const bin = path.join(tmpdir(), `seams-bin-${process.pid}-${Date.now()}`, "seams");
+    mkdirSync(path.dirname(bin), { recursive: true });
+    symlinkSync(CLI, bin);
+    const result = spawnSync(process.execPath, [bin, "--version"], { encoding: "utf8" });
+    assert.equal(result.status, 0);
+    assert.equal(result.stdout.trim(), "0.1.0");
   });
 });

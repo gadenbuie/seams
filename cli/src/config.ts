@@ -147,8 +147,12 @@ function schemaIssues(manifest: unknown): string[] {
       const key = params.additionalProperty ?? params.additionalProperties;
       return `${where}: unknown key '${key}'`;
     }
+    // Path-shape problems are reported once, by pathProblem, in plainer words.
+    if (error.keyword === "pattern" && error.instancePath.startsWith("/paths/")) {
+      return undefined;
+    }
     return `${where} ${error.message ?? "is invalid"}`;
-  });
+  }).filter((issue): issue is string => issue !== undefined);
 }
 
 /**
@@ -179,7 +183,10 @@ export function loadProject(root: string): Project {
   }
 
   const issues = schemaIssues(parsed);
-  const paths = (parsed as ProjectManifest).paths ?? {};
+  const paths =
+    parsed !== null && typeof parsed === "object"
+      ? ((parsed as ProjectManifest).paths ?? {})
+      : {};
   for (const key of PATH_KEYS) {
     const value = paths[key];
     if (value === undefined) continue;

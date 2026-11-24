@@ -177,6 +177,27 @@ describe("loadProject, manifest", () => {
       return true;
     });
   });
+
+  it("reports each path problem once", () => {
+    const project = copyFixture("escaping");
+    assert.throws(() => loadProject(project), (error: unknown) => {
+      assert.ok(error instanceof ManifestError);
+      assert.equal(error.message.match(/paths\.design/g)?.length, 1);
+      assert.equal(error.message.match(/paths\.plans/g)?.length, 1);
+      return true;
+    });
+  });
+
+  it("rejects a manifest that is the JSON literal null", () => {
+    const project = tempProject();
+    mkdirSync(path.join(project, ".agents"), { recursive: true });
+    writeFileSync(path.join(project, MANIFEST_RELATIVE_PATH), "null");
+    assert.throws(() => loadProject(project), (error: unknown) => {
+      assert.ok(error instanceof ManifestError);
+      assert.doesNotMatch(error.message, /TypeError/);
+      return true;
+    });
+  });
 });
 
 describe("schemaFilePath", () => {
