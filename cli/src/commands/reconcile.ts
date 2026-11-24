@@ -127,7 +127,7 @@ function git(project: Project, args: string[]): SpawnSyncReturns<string> {
   return spawnSync("git", args, { cwd: project.root, encoding: "utf8" });
 }
 
-/** Resolve a revision spec to a full commit id, or null when git cannot. */
+/** Resolve a revision spec to a full commit id, or an error message when git cannot. */
 function resolveRevision(
   project: Project,
   spec: string,
@@ -425,6 +425,9 @@ function run(ctx: CommandContext): number {
   const targetPaths = [...new Set([...changes.committed, ...changes.uncommitted].map((file) => file.path))];
   const references = findReferences(project, targetPaths);
   const warnings = [...new Set(references.warnings)];
+  for (const warning of warnings) {
+    process.stderr.write(`warning: ${warning}\n`);
+  }
 
   const grouped = applyLimit(groupDocuments(references.documents), limit);
 
