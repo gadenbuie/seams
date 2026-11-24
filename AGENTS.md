@@ -5,7 +5,10 @@ In this repository, the documents and skills are the product.
 
 ## Where things live
 
-- **Canon:** [`docs/design/`](docs/design/index.md) holds seams' vision, principles, and invariants.
+seams uses its own process on itself, so some files do double duty.
+For example, [`docs/design/overviews/index.md`](docs/design/overviews/index.md) explains what design overviews look like, and this repository has no system that needs an overview yet.
+
+- **Canon:**\*\* [`docs/design/`](docs/design/index.md) holds seams' vision, principles, and invariants.
   These files also define the framework for every project that uses seams.
   Only the operator accepts changes to canon.
   Propose changes in a proposal or on a work item.
@@ -18,16 +21,16 @@ In this repository, the documents and skills are the product.
   Do not put agent procedures in the docs, or explanations for humans in the skills.
 - **Memory:** `.agents/proposals/` holds proposals.
   A proposal authorizes nothing until its status is accepted. `.agents/skills/` and `.claude/` hold writing tools for this repository, not part of seams.
-- **Work:** tracked in kata.
-  Run `kata quickstart --format contract` before changing the repository, search for an existing item, and follow [`skills/seams-track/references/kata.md`](skills/seams-track/references/kata.md).
-  If kata reports that the project is not registered, tell the operator.
+- **Work:** tracked in kata when a plan moves to implementation.
+  Planning, proposing, and discussing do not need kata.
+  Run `kata quickstart --format contract` before changing the repository, and follow [`skills/seams-track/references/kata.md`](skills/seams-track/references/kata.md).
   Never put credentials in `.kata.toml`, in `.kata.local.toml`, or in issues.
 
 ## Rules for changing seams
 
 - Keep the canon, the guide, and the skills consistent.
   A change to one usually needs a matching change in the others, in the same commit.
-- Write human docs in the operator's plain style (`.claude/skills/plain-writing`): everyday words, complete sentences, no dashes, no slogans, and no overselling.
+- Write human docs in the operator's plain style: everyday words, complete sentences, no dashes, no slogans, and no overselling.
   Start with the subject, not a description of the document itself, e.g., avoid "This guide explains" or "This document covers".
 - Keep examples generic.
   Do not leak paths, secrets, or settings from a host project or this machine.
@@ -37,8 +40,6 @@ In this repository, the documents and skills are the product.
   Mark who runs a skill with `metadata.invocation` (`operator` or `agent`), and say in the description when only the operator should run it.
 - The skills refer to each other as siblings, e.g., `<skills>/seams-track/references/kata.md`.
   Keep those paths valid when you rename or move a file.
-- Do not claim that seams has been validated by experiment.
-  Keep the transfer cautions in the supporting evidence.
 
 ## Verification
 

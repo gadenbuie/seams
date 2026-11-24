@@ -90,6 +90,4 @@ The skill reads your existing files and asks before moving or rewriting them.
 The canon for seams lives in [`docs/design/`](docs/design/index.md), its proposals live in `.agents/proposals/`, and its work is tracked in kata.
 The [`AGENTS.md`](AGENTS.md) file is the entry point for agents working on seams itself.
 
-seams hasn't been validated by experiment.
-Its ideas come from older fields, and the [supporting evidence](docs/supporting-evidence.md) says where each one comes from and where the comparison to agent-assisted coding stops.
 Use the parts that fit your project.

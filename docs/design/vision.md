@@ -40,6 +40,3 @@ A project can reach a finished product before the operator has used any part of 
   Each project chooses its own tracker.
 - seams is not an autonomous pipeline, and it doesn't aim for the longest unattended run.
 - seams doesn't require a project to use every file or every skill.
-- seams hasn't been validated by experiment.
-  Its ideas come from older fields, and the [supporting evidence](../supporting-evidence.md) says where each idea comes from and where the comparison stops.
-  A project should judge seams by how its own work goes.
