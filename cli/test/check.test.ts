@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
+import { rmSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { describe, it } from "node:test";
+import { MANIFEST_REPO_PATH } from "../src/config.ts";
 import type { Finding } from "../src/check/types.ts";
 import { copyFixture } from "./helpers.ts";
 
@@ -149,18 +151,36 @@ describe("seams check", () => {
     const { status, json } = runJson(cwd);
     assert.equal(status, 0);
     assert.equal(json.errors, 0);
+    // Each warning points at the missing home itself, not at the manifest.
     assert.deepEqual(
-      json.findings.map((finding) => finding.message),
+      json.findings.map((finding) => [finding.path, finding.message]),
       [
-        "the 'overviews' home does not exist yet: docs/design/overviews",
-        "the 'plans' home does not exist yet: .agents/plans",
-        "the 'proposals' home does not exist yet: .agents/proposals",
+        [".agents/plans", "the 'plans' home does not exist yet: .agents/plans"],
+        [
+          ".agents/proposals",
+          "the 'proposals' home does not exist yet: .agents/proposals",
+        ],
+        [
+          "docs/design/overviews",
+          "the 'overviews' home does not exist yet: docs/design/overviews",
+        ],
       ],
     );
     assert.ok(
       json.findings.every(
         (finding) => finding.id === "manifest" && finding.severity === "warning",
       ),
+    );
+  });
+
+  it("points a missing conventional home at the home, not at a manifest that is absent", () => {
+    const cwd = copyFixture("check-good");
+    rmSync(path.join(cwd, ".agents", "plans"), { recursive: true });
+    const { status, json } = runJson(cwd);
+    assert.equal(status, 0);
+    assert.deepEqual(
+      json.findings.map((finding) => [finding.path, finding.message]),
+      [[".agents/plans", "the 'plans' home does not exist yet: .agents/plans"]],
     );
   });
 
@@ -188,5 +208,9 @@ describe("seams check", () => {
     const result = run(["check", "extra"], cwd);
     assert.equal(result.status, 2);
     assert.match(result.stderr, /Usage: seams check/);
+  });
+
+  it("exposes the manifest path with forward slashes for finding paths", () => {
+    assert.equal(MANIFEST_REPO_PATH, ".agents/seams.json");
   });
 });

@@ -9,7 +9,7 @@
 import { parseArgs } from "node:util";
 import { checks } from "../check/index.ts";
 import type { Finding } from "../check/types.ts";
-import { findRoot, loadProject, ManifestError, MANIFEST_RELATIVE_PATH } from "../config.ts";
+import { findRoot, loadProject, ManifestError, MANIFEST_REPO_PATH } from "../config.ts";
 import { jsonEnvelope, printJson, printText } from "../output.ts";
 import type { Command, CommandContext } from "./index.ts";
 
@@ -61,7 +61,7 @@ function run(ctx: CommandContext): number {
     findings = error.issues.map((issue) => ({
       id: "manifest",
       severity: "error" as const,
-      path: MANIFEST_RELATIVE_PATH,
+      path: MANIFEST_REPO_PATH,
       message: issue,
     }));
   }

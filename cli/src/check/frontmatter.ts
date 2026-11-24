@@ -8,10 +8,11 @@
  * itself, including `index.md` navigation files, because they live in the
  * homes and carry the same frontmatter as the documents around them.
  */
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import type { PathKey, Project } from "../config.ts";
 import { parseFrontmatter } from "../docs/frontmatter.ts";
+import { topLevelMarkdownFiles, walkMarkdownFiles } from "../docs/discover.ts";
 import type { Check, Finding } from "./types.ts";
 
 /** How many body lines count as "near the top" when looking for duplicates. */
@@ -34,32 +35,6 @@ const HOMES: readonly Home[] = [
   { key: "proposals", requiresStatus: true, recursive: false },
   { key: "plans", requiresStatus: true, recursive: false },
 ];
-
-function isMarkdown(name: string): boolean {
-  return name.endsWith(".md");
-}
-
-function topLevelFiles(dir: string): string[] {
-  return readdirSync(dir, { withFileTypes: true })
-    .filter((entry) => entry.isFile() && isMarkdown(entry.name))
-    .map((entry) => path.join(dir, entry.name))
-    .sort();
-}
-
-function walkFiles(dir: string): string[] {
-  const files: string[] = [];
-  const entries = readdirSync(dir, { withFileTypes: true }).sort((a, b) =>
-    a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
-  );
-  for (const entry of entries) {
-    if (entry.isDirectory()) {
-      files.push(...walkFiles(path.join(dir, entry.name)));
-    } else if (entry.isFile() && isMarkdown(entry.name)) {
-      files.push(path.join(dir, entry.name));
-    }
-  }
-  return files;
-}
 
 /** The 1-based line of `key:` inside the frontmatter block, or null. */
 function fieldLine(lines: string[], key: string): number | null {
@@ -206,7 +181,7 @@ function run(project: Project): Finding[] {
     }
     if (!stats.isDirectory()) continue;
 
-    const files = home.recursive ? walkFiles(dir) : topLevelFiles(dir);
+    const files = home.recursive ? walkMarkdownFiles(dir) : topLevelMarkdownFiles(dir);
     for (const file of files) {
       findings.push(...checkFile(project, file, home.requiresStatus));
     }

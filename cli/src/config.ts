@@ -12,6 +12,9 @@ import { Ajv2020 } from "ajv/dist/2020.js";
 
 export const MANIFEST_RELATIVE_PATH = path.join(".agents", "seams.json");
 
+/** The manifest path as a repo-relative string with forward slashes. */
+export const MANIFEST_REPO_PATH = MANIFEST_RELATIVE_PATH.split(path.sep).join("/");
+
 export const PATH_KEYS = ["design", "overviews", "proposals", "plans"] as const;
 
 export type PathKey = (typeof PATH_KEYS)[number];

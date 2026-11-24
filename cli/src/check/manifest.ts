@@ -10,7 +10,12 @@
  */
 import { statSync } from "node:fs";
 import path from "node:path";
-import { MANIFEST_RELATIVE_PATH, PATH_KEYS, manifestIssues, type Project } from "../config.ts";
+import {
+  MANIFEST_REPO_PATH,
+  PATH_KEYS,
+  manifestIssues,
+  type Project,
+} from "../config.ts";
 import type { Check, Finding } from "./types.ts";
 
 function run(project: Project): Finding[] {
@@ -21,7 +26,7 @@ function run(project: Project): Finding[] {
       findings.push({
         id: "manifest",
         severity: "error",
-        path: MANIFEST_RELATIVE_PATH.split(path.sep).join("/"),
+        path: MANIFEST_REPO_PATH,
         message: issue,
       });
     }
@@ -34,11 +39,14 @@ function run(project: Project): Finding[] {
     } catch {
       /* Falls through to the warning below. */
     }
+    // The warning points at the missing home itself: with a conventional
+    // layout there is no manifest to point at, and even with one, the home
+    // is the thing to create.
     const repoPath = path.relative(project.root, dir).split(path.sep).join("/");
     findings.push({
       id: "manifest",
       severity: "warning",
-      path: MANIFEST_RELATIVE_PATH.split(path.sep).join("/"),
+      path: repoPath,
       message: `the '${key}' home does not exist yet: ${repoPath}`,
     });
   }
