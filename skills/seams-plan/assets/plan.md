@@ -18,4 +18,4 @@ Name the proposal path and the canon sections the work follows.>
 
 ## Verify
 
-<How to tell the plan is done: the checks to run and the outcome to expect.>
+\<How to tell the plan is done: the checks to run and the outcome to expect.>
