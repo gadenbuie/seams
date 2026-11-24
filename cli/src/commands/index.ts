@@ -4,6 +4,7 @@
  */
 import { schemaCommand } from "./schema.ts";
 import { listCommand } from "./list.ts";
+import { readCommand } from "./read.ts";
 import { skillsCommand } from "./skills.ts";
 
 export interface CommandContext {
@@ -22,5 +23,6 @@ export interface Command {
 export const commands: Record<string, Command> = {
   schema: schemaCommand,
   list: listCommand,
+  read: readCommand,
   skills: skillsCommand,
 };
