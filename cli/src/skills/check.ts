@@ -254,15 +254,19 @@ export const DESTINATION_TABLE: Record<string, DestinationRow> = {
 /**
  * Classify one recorded destination through the table: lstat both paths,
  * hash what is hashable, look the combination up, then let the bundle turn
- * the row's basis into a state. `installedHash` reports the copy at the
- * link path when one sits there, the content copy otherwise.
+ * the row's basis into a state. `installedHash` names the copy that decided
+ * the row: the content copy when its relation decided (or the destination
+ * simply matches the record), the link folder when the link side decided,
+ * and nothing when the decider is a regular file or nothing hashable.
+ * Exported for the matrix test, which asserts each setup reaches the row
+ * it names (`key`) and pins the reported hash.
  */
-function classifyRecorded(
+export function classifyRecorded(
   mode: InstallMode,
   destination: SkillDestination,
   recordedHash: string,
   bundled: { hash: string } | undefined,
-): { state: CheckState; installedHash?: string } {
+): { state: CheckState; installedHash?: string; key: string } {
   const contentKind = pathKind(destination.content);
   const linkKind: LinkKind = destination.link === undefined ? "none" : pathKind(destination.link);
   const content = contentFacts(contentKind, mode, destination.content, recordedHash);
@@ -279,7 +283,18 @@ function classifyRecorded(
       : row.basis === "equal"
         ? (bundled !== undefined && bundled.hash !== recordedHash ? "outdated" : "ok")
         : (bundled !== undefined && bundled.hash !== recordedHash ? "divergent" : "modified");
-  return { state, installedHash: linkKind === "directory" ? link.hash : content.hash };
+  // The reported hash names the copy that decided: the content copy when
+  // its relation did (or the destination matches the record), the link
+  // folder when the link side did. A decider that is not hashable (a
+  // regular file, an absent path, a missing link) reports nothing — a
+  // modified or divergent entry must never show the recorded hash.
+  const installedHash =
+    row.basis === "equal" ? content.hash
+      : row.basis === "missing" ? (link.hash ?? content.hash)
+        : content.relation === "different" ? content.hash
+          : contentKind === "file" ? undefined
+            : link.hash;
+  return { state, installedHash, key };
 }
 
 /** A directory entry in an agent's skills dir that could be a seams skill. */

@@ -29,8 +29,8 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
-import { checkSkills, DESTINATION_TABLE, updateSkills } from "../src/skills/check.ts";
-import { installSkills } from "../src/skills/install.ts";
+import { checkSkills, classifyRecorded, DESTINATION_TABLE, updateSkills } from "../src/skills/check.ts";
+import { installSkills, skillDestination } from "../src/skills/install.ts";
 import type { AgentId, InstallMode } from "../src/skills/install.ts";
 import { skillFolderHash } from "../src/skills/hash.ts";
 
@@ -274,8 +274,48 @@ async function runCase(c: MatrixCase): Promise<void> {
       c.agent === "claude-code" ? linkPath(project) : contentPath(project),
       `${c.key}: reports the agent's own path`,
     );
+    // The reported hash names the copy that decided: the edited content copy
+    // when the content differs, nothing when a regular file decided, the link
+    // folder when it differs, and never the recorded hash for a modified or
+    // divergent entry.
+    if (c.content === "edit" || c.content === "symlink-v2") {
+      assert.equal(
+        v1.entries[0].installedHash,
+        skillFolderHash(contentPath(project)),
+        `${c.key}: reports the hash of the edited content copy`,
+      );
+    } else if (c.content === "file") {
+      assert.equal(
+        v1.entries[0].installedHash,
+        undefined,
+        `${c.key}: a regular file at the content path is not hashable as a copy`,
+      );
+    } else if (c.link === "dir-edit") {
+      assert.equal(
+        v1.entries[0].installedHash,
+        skillFolderHash(linkPath(project)),
+        `${c.key}: reports the hash of the edited link folder`,
+      );
+    }
+    const entry = v1.entries[0];
+    if (entry.state === "modified" || entry.state === "divergent") {
+      assert.ok(
+        entry.installedHash === undefined || entry.installedHash !== entry.recordedHash,
+        `${c.key}: a kept entry never reports the recorded hash as installed`,
+      );
+    }
     const v2 = await checkSkills({ cwd: project, scope: "project", sourceDir: FIXTURE_V2 });
     assert.equal(v2.entries[0].state, c.v2, `${c.key}: classification against v2`);
+
+    // The setup reaches the row it names: the key the code computes from
+    // the real destination is the case's declared table row. The coverage
+    // set below is therefore the rows the code actually hit, not the labels
+    // the cases carry.
+    const destination = await skillDestination(project, "project", c.mode, c.agent, ORIENT);
+    const recordedHash = skillFolderHash(path.join(FIXTURE_V1, ORIENT));
+    const computed = classifyRecorded(c.mode, destination, recordedHash, { hash: recordedHash });
+    assert.equal(computed.key, c.key, `${c.key}: the setup reaches the row it names`);
+    assert.equal(computed.state, c.v1, `${c.key}: the table row classifies as expected`);
 
     // Update's repair/skip selection for both bundle relations, and the dry
     // runs write nothing.
