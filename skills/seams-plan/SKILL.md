@@ -120,15 +120,17 @@ When the tracker is a Markdown plan document, start the document from `assets/pl
 When the seams CLI is installed, `seams new plan <slug>` creates it in the project's plans home from the bundled template, with the frontmatter filled; without the CLI, copy `assets/plan.md` into the plans home.
 
 A plan document's frontmatter `status` is its one status source.
-It takes these values, and the planner moves it:
+It takes these values:
 
 - `draft`: written, but the operator has not confirmed the outline and the read-back.
   A draft authorizes nothing, and search tools that skip drafts will not find it.
 - `active`: the operator confirmed the plan.
-  Set this when you record the confirmation on the root item.
+  Step 2 collects that confirmation before anything is created, so set `active` when you create the plan document here.
+  If you write the document before the operator confirms, leave it `draft` until the confirmation, then set `active`.
 - `done`: every unit in the plan has landed.
+  When the tracker is a Markdown plan document, include a closing leaf in the tree that sets `status: done` on the plan document once the last unit lands.
 - `abandoned`: the operator dropped the work, or the plan was replaced.
-  Say why in the plan body.
+  You set this, and you say why in the plan body.
 
 Never leave a confirmed plan at `draft`.
 

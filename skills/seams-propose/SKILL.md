@@ -86,7 +86,7 @@ Never set it yourself on your own judgment.
 
 The frontmatter `status` field is the proposal's one status source.
 Set the status there, and record the decision date and any reason in the body, e.g., a line under the title reading `Accepted on 2026-11-23` or the reason a proposal was rejected.
-Never write a body line that restates the frontmatter status.
+Never write a body line that only restates the frontmatter status, such as `Status: accepted`; the body line carries the date and any reason.
 
 - **Accepted:** set `status: accepted` in the frontmatter, and note the date in the body.
   Apply the canon changes exactly as written in the proposal, and show the operator the diff.
