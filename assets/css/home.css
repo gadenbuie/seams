@@ -1,0 +1,64 @@
+/* Layout balancing for docmd containers.
+   Colors and spacing stay in the default theme. */
+
+/* The menubar carries the site name, so the sidebar title is redundant.
+   Keep the header itself; it holds the mobile menu button. */
+.sidebar .sidebar-header h1 {
+    display: none;
+}
+
+/* Hide the sidebar on the home page; assets/js/home-layout.js toggles
+   the body class on load and on SPA navigation. */
+body.no-sidebar .sidebar {
+    display: none;
+}
+
+body.no-sidebar .main-content-wrapper {
+    margin-left: 0;
+}
+
+/* The home page header would only repeat the menubar brand and show a
+   sidebar toggle that has nothing to toggle. */
+body.no-sidebar .page-header {
+    display: none;
+}
+
+/* The landing page needs neither the table of contents nor the
+   Home breadcrumb. */
+body.no-sidebar .toc-sidebar {
+    display: none;
+}
+
+body.no-sidebar .docmd-breadcrumbs-row {
+    display: none;
+}
+
+/* Keep the landing content just wide enough for the three-card row:
+   the card grid is 60rem wide, plus the content padding. */
+body.no-sidebar .content-area {
+    max-width: 64rem;
+}
+
+/* Hero call-to-action buttons on one row instead of one per line. */
+.docmd-hero .hero-content > br {
+    display: none;
+}
+
+/* Equal-height cards: stretch each card to its grid row and pin its
+   call-to-action button to the bottom of the card. */
+.grids .grid-item .card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.card .card-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.card .card-content .docmd-button {
+    margin-top: auto;
+    align-self: flex-start;
+}

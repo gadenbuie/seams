@@ -1,0 +1,6 @@
+# Files that use docmd container syntax (::: hero, ::: grids, and so on).
+# mdformat-sembr treats consecutive container lines as one paragraph and
+# joins them, which breaks docmd's directive parsing. Format these by hand.
+exclude = [
+    "docs/index.md",
+]

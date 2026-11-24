@@ -1,10 +1,40 @@
-# seams
+---
+title: "seams"
+description: "A set of conventions and agent skills for building software with coding agents."
+---
 
-seams is a set of conventions and agent skills for building software with coding agents.
-You put the conventions in your repository and install the skills in your agent harness.
-You and your agents then invoke the skills when you discuss a feature, plan work, implement it, or review it.
+::: hero glow:true
+# seams
+A set of conventions and agent skills for building software with coding agents.
+
+::: button title:"Read the guide" url:"guide.md" color:blue
+::: button title:"GitHub" url:"external:https://github.com/gadenbuie/seams" color:gray
+::: /hero
+
+::: grids
+  ::: grid
+    ::: card title:"Guide" icon:book-open
+    How seams works, from a first idea to reviewed work.
+    ::: button title:"Read the guide" url:"guide.md"
+    ::: /card
+  ::: /grid
+  ::: grid
+    ::: card title:"Design" icon:pen-tool
+    The vision, principles, and invariants that every seams project shares.
+    ::: button title:"Read the design" url:"design/index.md"
+    ::: /card
+  ::: /grid
+  ::: grid
+    ::: card title:"Supporting evidence" icon:quote
+    Where each idea comes from, and where the comparison to agent-assisted coding stops.
+    ::: button title:"Read the evidence" url:"supporting-evidence.md"
+    ::: /card
+  ::: /grid
+::: /grids
 
 seams isn't an application, an agent harness, or a work tracker.
+You put the conventions in your repository and install the skills in your agent harness.
+You and your agents then invoke the skills when you discuss a feature, plan work, implement it, or review it.
 No seams service runs in the background, and no skill acts until you or an agent invokes it.
 You keep using your preferred coding agent, tracker, and review tools.
 
@@ -36,13 +66,14 @@ You then run `/seams-plan` to turn the accepted proposal into tracked units of w
 Small, clear changes can go straight to an agent without a proposal or a detailed plan.
 
 ```mermaid
-flowchart LR
-    A["You and an agent<br/>discuss an idea"] -->|"Proposal"| B["You accept<br/>the proposal"]
-    B -->|"Accepted proposal"| C["A planner writes<br/>work items"]
-    C -->|"Work items"| D["Agents implement<br/>and review the work"]
-    D -->|"Code, tests, and documentation"| E["You review the documentation<br/>and try the software"]
+flowchart TD
+    A["You and an agent talk"] --> B["You have an idea"]
+    B -->|"Accepted proposal"| D1["Planner writes the work item"]
+    D1 --> D["Agents implement and review the work"]
+    D -->|"Code, tests, and documentation"| E["You review the code, docs, and test the software"]
     D -->|"Questions that change scope"| A
     E -->|"Corrections or a new direction"| A
+    A --> R["Records hold what happened and what you decided"]
 ```
 
 Each stage leaves information for the next stage.

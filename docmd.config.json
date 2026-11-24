@@ -6,6 +6,18 @@
   "layout": {
     "spa": true,
     "focusMode": true,
+    "menubar": {
+      "enabled": true,
+      "position": "top",
+      "left": [
+        { "type": "title", "text": "seams", "url": "/", "icon": "home" },
+        { "text": "Guide", "url": "/guide/" },
+        { "text": "Design", "url": "/design/" }
+      ],
+      "right": [
+        { "text": "GitHub", "url": "https://github.com/gadenbuie/seams", "icon": "github", "external": true }
+      ]
+    },
     "header": {
       "enabled": true
     },
@@ -14,7 +26,7 @@
       "defaultCollapsed": false
     },
     "optionsMenu": {
-      "position": "sidebar-top",
+      "position": "menubar",
       "components": {
         "search": true,
         "themeSwitch": true
@@ -29,7 +41,9 @@
   "theme": {
     "name": "default",
     "appearance": "system",
-    "codeHighlight": true
+    "codeHighlight": true,
+    "customCss": ["/assets/css/home.css"],
+    "customJs": ["/assets/js/home-layout.js"]
   },
   "minify": true,
   "autoTitleFromH1": true,
@@ -49,15 +63,9 @@
         { "title": "Vision", "path": "/design/vision/", "icon": "eye" },
         { "title": "Principles", "path": "/design/principles/", "icon": "compass" },
         { "title": "Invariants", "path": "/design/invariants/", "icon": "lock" },
-        { "title": "Overviews", "path": "/design/overviews/", "icon": "map" }
+        { "title": "Overviews", "path": "/design/overviews/", "icon": "map" },
+        { "title": "Supporting Evidence", "path": "/supporting-evidence/", "icon": "quote" }
       ]
-    },
-    { "title": "Supporting Evidence", "path": "/supporting-evidence/", "icon": "quote" },
-    {
-      "title": "GitHub",
-      "path": "https://github.com/gadenbuie/seams",
-      "icon": "github",
-      "external": true
     }
   ],
   "plugins": {
