@@ -125,7 +125,11 @@ function pathProblem(key: PathKey, value: unknown, root: string): string | undef
   if (value.includes("\\")) {
     return `paths.${key} must use "/" separators, got ${JSON.stringify(value)}`;
   }
-  if (value.split("/").includes("..")) {
+  const segments = value.split("/");
+  if (segments.includes("")) {
+    return `paths.${key} must not contain an empty segment, got ${JSON.stringify(value)}`;
+  }
+  if (segments.includes("..")) {
     return `paths.${key} must not contain a ".." segment, got ${JSON.stringify(value)}`;
   }
   const rel = path.relative(root, path.resolve(root, value));
@@ -147,8 +151,13 @@ function schemaIssues(manifest: unknown): string[] {
       const key = params.additionalProperty ?? params.additionalProperties;
       return `${where}: unknown key '${key}'`;
     }
-    // Path-shape problems are reported once, by pathProblem, in plainer words.
-    if (error.keyword === "pattern" && error.instancePath.startsWith("/paths/")) {
+    // Path-shape problems are reported once, by pathProblem, in plainer words:
+    // the schema's minLength and relativePath pattern reject exactly the shapes
+    // pathProblem restates.
+    if (
+      (error.keyword === "pattern" || error.keyword === "minLength") &&
+      error.instancePath.startsWith("/paths/")
+    ) {
       return undefined;
     }
     return `${where} ${error.message ?? "is invalid"}`;

@@ -188,6 +188,26 @@ describe("loadProject, manifest", () => {
     });
   });
 
+  it("rejects empty segments, trailing slashes, and empty paths", () => {
+    const project = tempProject();
+    mkdirSync(path.join(project, ".agents"), { recursive: true });
+    writeFileSync(
+      path.join(project, MANIFEST_RELATIVE_PATH),
+      JSON.stringify({
+        schemaVersion: 1,
+        seamsVersion: "0.1.0",
+        paths: { design: "", overviews: "docs//design", proposals: "docs/design/" },
+      }),
+    );
+    assert.throws(() => loadProject(project), (error: unknown) => {
+      assert.ok(error instanceof ManifestError);
+      assert.equal(error.message.match(/paths\.design/g)?.length, 1);
+      assert.equal(error.message.match(/paths\.overviews/g)?.length, 1);
+      assert.equal(error.message.match(/paths\.proposals/g)?.length, 1);
+      return true;
+    });
+  });
+
   it("rejects a manifest that is the JSON literal null", () => {
     const project = tempProject();
     mkdirSync(path.join(project, ".agents"), { recursive: true });
