@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pkg.garrickadenbuie.com/seams/schemas/v1/seams.schema.json",
+  "title": "seams project manifest",
+  "description": "The tracked .agents/seams.json manifest for a project that uses seams.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "seamsVersion"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "URL of the published schema for editor support."
+    },
+    "schemaVersion": {
+      "const": 1,
+      "description": "Version of the manifest schema. Controls parsing and migrations."
+    },
+    "seamsVersion": {
+      "type": "string",
+      "description": "Package version that last intentionally initialized or migrated the manifest."
+    },
+    "paths": {
+      "type": "object",
+      "description": "Documentation homes, relative to the repository root.",
+      "additionalProperties": false,
+      "properties": {
+        "design": { "$ref": "#/$defs/relativePath" },
+        "overviews": { "$ref": "#/$defs/relativePath" },
+        "proposals": { "$ref": "#/$defs/relativePath" },
+        "plans": { "$ref": "#/$defs/relativePath" }
+      }
+    },
+    "reconcile": {
+      "type": "object",
+      "description": "Optional reconciliation state.",
+      "additionalProperties": false,
+      "properties": {
+        "lastReconciledRevision": {
+          "type": ["string", "null"],
+          "description": "Revision recorded by the last completed reconciliation action."
+        }
+      }
+    }
+  },
+  "$defs": {
+    "relativePath": {
+      "description": "A relative path inside the repository: no leading slash, no drive letter, no `..` segment, no backslashes.",
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?![A-Za-z]:)(?!\\\\)(?:(?!\\.\\.($|/))[^/\\\\]+)(?:/(?:(?!\\.\\.($|/))[^/\\\\]+))*$"
+    }
+  }
+}
