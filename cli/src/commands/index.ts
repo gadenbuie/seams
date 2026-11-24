@@ -4,6 +4,7 @@
  */
 import { schemaCommand } from "./schema.ts";
 import { listCommand } from "./list.ts";
+import { skillsCommand } from "./skills.ts";
 
 export interface CommandContext {
   /** The caller passed the global `--json` flag. */
@@ -21,4 +22,5 @@ export interface Command {
 export const commands: Record<string, Command> = {
   schema: schemaCommand,
   list: listCommand,
+  skills: skillsCommand,
 };
