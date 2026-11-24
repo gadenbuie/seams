@@ -322,7 +322,7 @@ function compareFindings(a: Finding, b: Finding): number {
 }
 
 /** Attach the deeper-inspection command a manifest finding carries. */
-function manifestFinding(project: Project, finding: Finding): ManifestFinding {
+function manifestFinding(finding: Finding): ManifestFinding {
   const command =
     finding.line === undefined
       ? `seams read ${finding.path}`
@@ -456,8 +456,8 @@ function run(ctx: CommandContext): number {
 
   const brokenLinksAll = linksCheck.run(project).sort(compareFindings);
   const indexCoverageAll = indexCoverageCheck.run(project).sort(compareFindings);
-  const brokenLinks = bound(brokenLinksAll.map((finding) => manifestFinding(project, finding)), limit);
-  const indexCoverage = bound(indexCoverageAll.map((finding) => manifestFinding(project, finding)), limit);
+  const brokenLinks = bound(brokenLinksAll.map((finding) => manifestFinding(finding)), limit);
+  const indexCoverage = bound(indexCoverageAll.map((finding) => manifestFinding(finding)), limit);
 
   const candidates = bound(
     candidatesFor(project, references.documents, targetPaths),
