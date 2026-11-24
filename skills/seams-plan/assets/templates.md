@@ -8,6 +8,7 @@ tier, and labels where it has them, and keep the body for what the fields cannot
 ```markdown
 Part of <root ref>[ / <container ref>]. Proposal: <path>. Canon: <docs/design/invariants.md#section, ...>.
 Reference: <path or URL to the reference implementation, for a port>.
+Documentation: <user documents and design overviews to update, and the update each needs | none affected>.
 Branch: work lands on <integration or target branch>[; commit to <slice branch> while the container is open].
 
 <What this unit changes and why, in terms of what a user would see.>
@@ -22,6 +23,7 @@ Shared files: <files another open unit also edits> (<ref>).
 Blocked by <ref> because <reason>.
 
 ## Verify
+- Documentation: <claims, code references, and links checked against named code and tests | no documentation affected>
 - <observable outcome: command and expected result, exact output, or scenario>
 - <expected output changes>
 - Try it: <command or steps that show the new behavior | not user-visible>

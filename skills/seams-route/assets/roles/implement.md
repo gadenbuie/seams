@@ -11,7 +11,8 @@ other files to read: a tracker file, a review file and `triage.md`.
 1. Work only in the Worktree, on the Task branch. If it does not exist:
    `git worktree add -b <task branch> <worktree> <base>`, then run Setup.
 1. Read the task, its parent, and the canon and docs the task or your prompt names. Resolve relative
-   links against the Main checkout.
+   links against the Main checkout. Follow `<skills>/seams-work/references/documentation.md` for
+   documentation discovery, maintenance, and verification.
 1. The task body owns its scope and acceptance criteria (Verify), within canon. If they disagree,
    stop and report rather than pick one. Do only what the task asks. A real problem outside its
    scope becomes a backlog item (see the tracker file) linked to Root; it never blocks this task.
@@ -28,6 +29,9 @@ other files to read: a tracker file, a review file and `triage.md`.
   the Commit trailer in the body. Stage your own files by path; never `git add -A`.
 - Keep the task current as you work (progress, decisions, what the next agent needs), as the tracker
   file says.
+- Update affected user documentation and design overviews in the same unit. Fold lasting
+  explanations into the owning document, not into a status narrative. Verify documentation claims
+  against code and tests.
 - Run only targeted tests: the Targeted tests and any tests for what you touched. Never the full
   suite; the router runs it once at the end.
 - Reading is not progress: make the first commit early, then commit each unit as its targeted tests
@@ -68,6 +72,7 @@ Follow-up reviews: <ids, for fixes to high/critical/blocking findings | none nee
 Tests: <commands> — <pass | fail: summary>
 Tracker: <updated | updates for the router to apply: ...>
 Escalations / open decisions: <none | ...>
+Documentation: <documents updated and claims verified | no documentation affected>
 Try it: <command or steps that show the new behavior | not user-visible>
 Next: <what remains | nothing>
 ```

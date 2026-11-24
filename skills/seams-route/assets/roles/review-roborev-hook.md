@@ -13,3 +13,8 @@ roborev job show <sha>
 A commit with no review, or a job that failed (as opposed to a review with findings), is `blocked`:
 say so in your report. Triage the findings as `triage.md` says. Your fix commits are reviewed
 automatically too; read those reviews together once the fixes are done.
+
+Include changed documentation in the unit review. Check the implementer's `Documentation:` report
+against `<skills>/seams-work/references/documentation.md`. If documentation claims need independent
+verification beyond the commit reviews, ask a fresh reviewer to follow `reviewer.md` for those
+documents before reporting the unit done.

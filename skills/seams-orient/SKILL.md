@@ -1,6 +1,6 @@
 ---
 name: seams-orient
-description: "Principles for explaining something so the operator can act on it. Load before asking the operator for a decision, answer, approval, or choice; when writing a read-back of a plan or a report of landed work; when the operator lacks context, asks to be caught up, or asks for an explanation from first principles; and when work surfaces an issue the operator must decide. Also for design documents that record why software works the way it does."
+description: "Principles for explaining something so the operator can act on it. Load before asking the operator for a decision, answer, approval, or choice; when writing a read-back of a plan or a report of landed work; when the operator lacks context, asks to be caught up, or asks for an explanation from first principles; and when work surfaces an issue the operator must decide. Also for design overviews and user documentation that explain how software works and why it is shaped that way."
 metadata:
   author: Garrick Aden-Buie (@gadenbuie)
   version: "2.0"
@@ -15,7 +15,8 @@ along. In seams, this is how information moves up from the work to the operator:
 decision the operator can make.
 
 These principles apply to a question you put to the operator, an answer to "explain this to me", a
-read-back, a report of landed work, and a design document written for later readers.
+read-back, a report of landed work, and a design overview or user document written for later
+readers.
 
 ## Roles
 

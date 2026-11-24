@@ -37,6 +37,7 @@ directory that holds all the seams skills.
 | `assets/roles/fix.md`                                                             | An agent fixing findings it did not produce                            |
 | `assets/roles/land.md`                                                            | Landers                                                                |
 | `<skills>/seams-work/SKILL.md`                                                    | Implementers and fixers, for questions the task leaves open            |
+| `<skills>/seams-work/references/documentation.md`                                 | Implementers, fixers, and reviewers of changed documentation           |
 
 Read only the tracker file you need. You do not need to read the role files to route work.
 
@@ -177,8 +178,8 @@ work.
 
 Rely on the implementer's report, and check that it is complete: every commit appears with its
 review, every finding has a disposition, any fix for a high, critical, or blocking finding had a
-follow-up review, and the tracker is updated (or the updates are listed for you to apply).
-Spot-check that the head commit exists on the branch.
+follow-up review, affected documentation is updated and verified, and the tracker is updated (or the
+updates are listed for you to apply). Spot-check that the head commit exists on the branch.
 
 - **Incomplete report:** send it back to the same agent if the harness can resume it and its session
   has room. Otherwise give a fresh agent of the same tier the original prompt plus what is missing.
@@ -191,9 +192,11 @@ Spot-check that the head commit exists on the branch.
   canon section, and re-dispatch. If the question is reversible and inside the unit's scope, decide
   it yourself and record the decision on the unit, using a `high` subagent for analysis if needed.
   Take anything that changes what gets built to the operator, framed as a decision with options and
-  a recommendation (`seams-orient`). After the operator answers, ask whether canon could have
-  answered the question. If it could have, list the principle or invariant you would add in your
-  final report. Do not edit canon yourself.
+  a recommendation (`seams-orient`). If the answer changes the selected scope or direction, pause
+  the affected items and return to `seams-propose`. After acceptance, the planner updates the
+  affected units. After the operator answers, ask whether canon could have answered the question. If
+  it could have, list the principle or invariant you would add in your final report. Do not edit
+  canon yourself.
 - **Valve:** three findings against the same mechanism stop the unit until you, or a `high` subagent
   you ask, decide "patch, or delete and replace?" and record it on the unit.
 
@@ -222,7 +225,8 @@ tied to the implementation lands with the implementation.
 
 1. Review the whole integration branch against its target:
    `roborev review --branch --base <target>`, or a fresh `high` reviewer
-   (`assets/roles/reviewer.md`). A `high` agent triages the findings (`assets/roles/triage.md`) and
+   (`assets/roles/reviewer.md`). Include changed documentation in the review, and verify its claims
+   against the code and tests. A `high` agent triages the findings (`assets/roles/triage.md`) and
    gives fix specs to `medium` fixers. Run one round, and a second round only for fixes to high,
    critical, or blocking findings. Do not chase a clean final review.
 
@@ -234,6 +238,8 @@ tied to the implementation lands with the implementation.
 
    - **Try it:** the commands or steps that show the new behavior, collected from the implementers'
      reports.
+   - **Read:** the documentation that explains the change, including new cautions or unexpected
+     complexity. Name the claims the agents verified.
    - **What landed** and what was deferred.
    - **Decisions waiting** for the operator, each with options and a recommendation.
    - **Canon suggestions:** principles or invariants that would have answered the questions that

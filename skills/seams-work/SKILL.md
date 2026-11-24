@@ -1,6 +1,6 @@
 ---
 name: seams-work
-description: "Carry out one unit of work in a seams project: a direct request from the operator, a planned unit, a bug fix, or a mechanical change. Covers reading the right canon, staying in scope, what to do when you meet a question the work item leaves open, partial hand-offs, and closing on evidence. Load when you start, resume, or finish implementation work in a repository that has docs/design/ or an AGENTS.md that mentions seams. If a router gave you a role file, follow the role file and use this skill for questions."
+description: "Carry out one unit of work in a seams project: a direct request from the operator, a planned unit, a bug fix, or a mechanical change. Covers reading the right canon, staying in scope, what to do when you meet a question the work item leaves open, documentation maintenance, partial hand-offs, and closing on evidence. Load when you start, resume, or finish implementation work in a repository that has docs/design/ or an AGENTS.md that mentions seams. If a router gave you a role file, follow the role file and use this skill for questions."
 metadata:
   author: Garrick Aden-Buie (@gadenbuie)
   version: "2.0"
@@ -28,7 +28,12 @@ change canon.
    - the work item, its parent, and anything it links;
    - the invariants and principles that apply (usually `docs/design/invariants.md` and
      `principles.md`), including invariants marked **Planned**, which bind new work;
+   - the user documentation and design overviews affected by the unit, selected through the
+     project's documentation indexes;
    - the code and tests you will touch, and an exemplar if the item names one.
+
+   Follow `<skills>/seams-work/references/documentation.md` to discover, maintain, and verify that
+   documentation.
 
    Do not read draft proposals, plans, or notes unless the item links them. They authorize nothing,
    and they can pull you off scope.
@@ -85,15 +90,22 @@ or invariant that would have answered it. Do not edit canon yourself.
   change seems to need one, record why on the item and ask before building it.
 - Commit as you go, in small commits with the tracker's commit trailer.
 - Record discoveries, decisions, and real dependencies on the item as they happen. Do not put
-  progress or status into canon or into a separate status file.
+  progress or status into canon, documentation, or a separate status file.
+- Update the user documentation and design overviews affected by the unit in the same body of work.
+  A new feature's documentation can wait until its behavior is stable, but it must be complete
+  before the work closes. In greenfield work, move lasting explanations from the proposal and plan
+  into the owning overview as the system takes shape.
 - A real problem outside the unit's scope becomes a backlog item. It does not block this unit.
 
 ## Finish
 
 1. Run the targeted checks and the repository's full checks. Report any check you could not run.
-1. Read your own diff against the acceptance criteria.
+1. Read your own diff against the acceptance criteria. Verify changed documentation against the code
+   and tests with `<skills>/seams-work/references/documentation.md`, and include the documentation
+   in the review. If an affected document is still stale or missing, the unit isn't done.
 1. Get an independent review appropriate to the risk, if the project asks for one.
 1. If the change affects what a user sees, record how to try it: a command, a URL, or a few steps.
+   Point to the documentation the operator can read to understand the change.
 1. If you are working alone, close the item with evidence through the tracker: what changed, the
    commands you ran, and the commit. With a router, leave closing to the router. A summary or a
    checked box is not evidence.

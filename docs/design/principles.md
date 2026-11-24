@@ -1,8 +1,10 @@
 # Principles
 
-Principles help the operator and agents choose between options that could all work. Each principle
-says what to prefer and how to apply it. When a principle and an [invariant](invariants.md)
-disagree, the invariant wins.
+Principles record the operator's standing preferences for decisions along the path from an idea to
+implementation. They cover choices such as how code is structured, which tools to use, how errors
+behave, when compatibility matters, and whether to prefer feature breadth or depth. They let agents
+apply the operator's judgment when several options could work. Each principle says what to prefer
+and how to apply it. When a principle and an invariant disagree, the invariant wins.
 
 ## Account for the strengths and limits of both parties
 
@@ -70,6 +72,18 @@ and name the established term next to them so readers can find the source. Use t
 itself when it gives agents a stronger signal, i.e., when the term makes an agent more likely to
 behave the way the operator wants. The [supporting evidence](../supporting-evidence.md) cites the
 source of each idea. Avoid military doctrine as a source when a reasonable alternative exists.
+
+## Maintain documentation with the work
+
+Documentation helps fresh agents and the operator understand the current system at a level that code
+can't provide on its own. Implementers update the user documentation and design overviews affected
+by their work, because a separate documentation step loses the context that produced the change. A
+new feature can be documented after its behavior becomes stable, and an existing feature keeps its
+documentation current as it changes.
+
+Give each fact one owning document and update that document instead of appending implementation
+history. Agents verify documentation claims against code and tests. The operator reads the
+documentation to judge whether the resulting system matches their intent.
 
 ## Leave work tracking open
 

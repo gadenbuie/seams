@@ -12,3 +12,8 @@ roborev job show --job <id>
 `job show` tells them apart. A job that failed is `blocked`: say so in your report. Triage the
 findings as `triage.md` says. A follow-up review covers only the fixing commits:
 `roborev review --since <last reviewed head>`.
+
+Include changed documentation in the unit review. Check the implementer's `Documentation:` report
+against `<skills>/seams-work/references/documentation.md`. If documentation claims need independent
+verification beyond the roborev findings, ask a fresh reviewer to follow `reviewer.md` for those
+documents before reporting the unit done.

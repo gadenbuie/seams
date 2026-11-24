@@ -36,3 +36,6 @@ proposal is accepted.>
 ### Work selected
 
 \<The outcomes that acceptance selects, at the level the operator can check. What is not selected.>
+
+Documentation affected: \<existing user documents and design overviews to update; any new overview
+expected; or none>. A planned overview becomes current only as implementation makes its claims true.

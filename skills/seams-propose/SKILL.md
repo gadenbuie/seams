@@ -24,12 +24,16 @@ one-off decisions.
 - Name each one `NNNN-<kebab-cased-slug>.md`, where `NNNN` is the next unused number, e.g.,
   `0004-offline-sync.md`.
 - Start from `assets/proposal.md`.
-- Canon lives in `docs/design/` (`vision.md`, `principles.md`, `invariants.md`), unless `AGENTS.md`
-  says otherwise.
+- Canon lives in the named files `docs/design/vision.md`, `principles.md`, `invariants.md`, and an
+  optional `invariants/` folder, unless `AGENTS.md` says otherwise. Design overviews in
+  `docs/design/overviews/` are memory, not canon.
 
 ## Start
 
 1. Read the project's canon in full. It is short on purpose.
+1. Read the documentation homes in `AGENTS.md`, the design and overview indexes, and any existing
+   documents the question affects. Use `<skills>/seams-work/references/documentation.md` to find
+   them and to decide whether the work is likely to need a new or updated overview.
 1. Search `.agents/proposals/` for a proposal on the same question. Continue an open draft instead
    of starting a new one. Read rejected and deferred proposals on the topic, so you don't propose
    what the operator already set aside.
@@ -61,12 +65,14 @@ Before asking the operator to accept, rework the proposal so it is easy to check
 1. **Sort each agreed point by where it belongs:**
    - a change to vision, principles, or invariants (canon);
    - work to build (the scope that `seams-plan` will turn into units);
+   - a lasting explanation to create or update in user documentation or a design overview;
    - background that stays in the proposal as history.
 1. **Turn decisions into principles where you can.** If a rejected option or an agreed choice rests
    on a reason that applies beyond this proposal, write the reason as a principle.
 1. **Write the canon changes out exactly,** as the text you would add or replace in each canon file.
-1. **State what acceptance selects,** and what it does not select. Accepting a proposal selects the
-   work it describes. It does not start that work.
+1. **State what acceptance selects,** and what it does not select. Name the affected documentation
+   and whether a new overview is expected. Accepting a proposal selects the work it describes. It
+   does not start that work or make a planned overview true before implementation.
 1. **Resolve or list every open question.** A question left open must not hide a consequential
    decision that the planner would have to make.
 

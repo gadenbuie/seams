@@ -55,6 +55,10 @@ dependents become ready before the target branch has the code.
    the tracker's reference in `<skills>/seams-track/references/`. Raise every conflict between the
    repository's conventions and this skill with the operator together, once, before creating
    anything.
+1. Read the documentation homes in `AGENTS.md`, the design and overview indexes, and the user
+   documentation and design overviews the proposal affects. Use
+   `<skills>/seams-work/references/documentation.md` to discover them and to decide whether a new
+   overview is warranted.
 1. Search the tracker and reuse existing items. When re-planning, read the decisions and hand-offs
    on closed leaves, and plan against what landed, not the old bodies.
 1. A gap that changes **what** gets built belongs to the operator. Take it back to the proposal, and
@@ -160,6 +164,9 @@ A body is the final plan for one unit, complete for a fresh agent with no conver
 
 - Link the parent, the proposal, the canon sections that govern the unit, and, for a port, the
   reference implementation.
+- Name the user documentation and design overviews the unit affects and the update each needs. In
+  greenfield work, include an overview only when it will explain design that is hard to recover from
+  code and user documentation; don't require one for every unit.
 - Name files and symbols, and mark new paths. Refer to code by symbol or heading, never by line
   number, so the body survives upstream changes.
 - Record mechanism decisions already made. A `low` or `medium` leaf leaves no consequential decision
@@ -173,7 +180,7 @@ alone can pass, without later units. Ask for the smallest tests that cover the b
 suite's cost matters, and asking for more costs the worker its session. Replacing a slow test with a
 faster one is fine, and "replace" never means deleting coverage. Name the targeted test commands,
 because the router runs the full checks. For a unit that changes what a user sees, include how to
-try it.
+try it. Include verification of changed documentation against its named code and tests.
 
 **Done when** gives a clear sense of done, so the worker finishes without encouragement. Keep the
 template's standing instruction: work out what you can yourself, try the named fallbacks when

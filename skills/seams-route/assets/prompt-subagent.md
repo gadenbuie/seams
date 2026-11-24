@@ -13,10 +13,12 @@ Read these files first and follow them:
 - <skill>/assets/roles/triage.md  (implementer, fixer)
 - <skills>/seams-track/references/<kata.md | github.md | markdown.md>, or <your tracker note>  (implementer, fixer)
 - <skills>/seams-work/SKILL.md, section "When you meet a question"  (implementer, fixer)
+- <skills>/seams-work/references/documentation.md  (implementer, fixer, reviewer of documentation)
 
 Then read the task (<`kata show <ref>` | `gh issue view <n> --json title,body,comments` | path#heading>)
 and: <the canon sections that govern it (docs/design/invariants.md, principles.md), the repo's agent
-instructions, other paths>. Do not read draft proposals or plans unless the task links them.
+instructions, the affected user documents and design overviews, other paths>. Do not read draft
+proposals or plans unless the task links them.
 
 Values:
 - Worktree: <absolute path>

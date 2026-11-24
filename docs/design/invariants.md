@@ -8,24 +8,66 @@ marked **Planned**. A planned invariant binds new work, but it isn't yet true of
 
 ## 1. Each statement lives in the home that matches its type
 
-The type of a statement decides where it lives and what it authorizes. Code and tests aren't
-statements in this sense, but the table includes them because they are the only evidence of what
-exists.
+The type of a statement decides where it lives and what weight it carries in a given context.
+Authority is relative to the question. Canon carries the most weight for intent and constraints.
+Accepted proposals and work items carry more weight for implementers working within the selected
+scope. Code, tests, and runtime evidence carry the most weight for what exists. Code and tests
+aren't statements in this sense, but the list includes them because they establish reality.
 
-| Type                 | Home                                   | What it authorizes                                                               |
-| :------------------- | :------------------------------------- | :------------------------------------------------------------------------------- |
-| Vision               | `docs/design/vision.md`                | Nothing directly. It guides which work to propose.                               |
-| Principle            | `docs/design/principles.md`            | Choosing between options that would all work.                                    |
-| Invariant            | `docs/design/invariants.md`            | Rejecting any change that breaks it.                                             |
-| Draft proposal       | `.agents/proposals/`                   | Nothing. It informs discussion.                                                  |
-| Accepted proposal    | `.agents/proposals/`                   | The work it describes. Its durable parts move into canon.                        |
-| Work item            | The project's tracker                  | Changes within its scope. It holds progress, questions, decisions, and evidence. |
-| Plan, note, finding  | `.agents/` or the tracker              | Nothing. It informs the work it is linked to.                                    |
-| Code, tests, runtime | The repository and its running systems | Nothing. They show what exists.                                                  |
+- Vision
+  - **Location:** `docs/design/vision.md`
+  - **Weight and context:** Strong for product intent. It defines the system's overall shape, which
+    features fit, and criteria for assessing their value and priorities. It guides shaping and
+    assessment.
+- Principle
+  - **Location:** `docs/design/principles.md`
+  - **Weight and context:** Strong for standing decisions. It records the operator's preferences for
+    structure, tools, errors, compatibility, feature breadth, and similar choices from idea through
+    implementation.
+- Invariant
+  - **Location:** `docs/design/invariants.md` or `docs/design/invariants/`
+  - **Weight and context:** Binding at every stage. A reviewer can reject any change that breaks it.
+- Design overview
+  - **Location:** `docs/design/overviews/`
+  - **Weight and context:** Descriptive weight for the current design. It helps maintainers and
+    reviewers understand the system, but doesn't override reality or canon.
+- User documentation
+  - **Location:** The project's documentation locations
+  - **Weight and context:** Descriptive weight for expected use. It guides users and reviewers, but
+    doesn't establish current behavior by itself or change design intent.
+- Draft proposal
+  - **Location:** `.agents/proposals/`
+  - **Weight and context:** Exploratory weight only. It informs discussion and has no accepted
+    weight until the operator accepts it.
+- Accepted proposal
+  - **Location:** `.agents/proposals/`
+  - **Weight and context:** Strong for the work it selects. It tells implementers the accepted scope
+    and direction, but can't change canon or bind unrelated work. Its durable parts move into canon.
+- Work item
+  - **Location:** The project's tracker
+  - **Weight and context:** Strong for one unit's execution. It holds scope, progress, questions,
+    decisions, and evidence within the accepted direction and canon.
+- Plan, note, finding
+  - **Location:** `.agents/` or the tracker
+  - **Weight and context:** Working weight for linked work. It provides analysis and context, but
+    can't independently change accepted direction or scope.
+- Code, tests, runtime
+  - **Location:** The repository and its running systems
+  - **Weight and context:** Decisive for what exists. Code and runtime show actual behavior, and
+    tests show checked expectations. None shows the operator's intent by itself.
 
-Vision, principles, and invariants together are **canon**. Everything else in the table except code,
-tests, and runtime evidence is **memory**. A project may use other file names if its agent entry
-point, e.g., `AGENTS.md`, says where each type lives.
+An accepted proposal or work item can't override canon, and current code can't redefine intent.
+There is no single ranking that answers every question.
+
+Vision, principles, and invariants together are **canon**. `docs/design/index.md` is navigation, not
+canon. When `invariants.md` becomes an index to `invariants/`, each invariant lives in exactly one
+topic file. Design overviews, user documentation, and the other statements in the list are
+**memory**. Code, tests, and runtime evidence are **reality**.
+
+A project may use other file names, including `memory/` or `architecture/` instead of `overviews/`,
+if its agent entry point, e.g., `AGENTS.md`, says where each type lives. When repo-level `docs/` is
+unavailable, the default design root is `.agents/design/`, with the same canon files and
+`overviews/` folder. An existing home for the same kind of documentation wins over the default.
 
 ## 2. Only the operator changes canon
 
@@ -34,8 +76,10 @@ each change. An agent never edits canon on its own judgment.
 
 ## 3. Memory never becomes canon just because it persists, is detailed, or is recent
 
-A plan, note, or finding has no more authority after many sessions than it had when it was written.
-A proposal moves its durable parts into canon only when the operator accepts it.
+A plan, note, finding, design overview, or user documentation has no more authority after many
+sessions than it had when it was written. A proposal moves its durable parts into canon only when
+the operator accepts it. A design overview can explain an accepted rule or decision, but the
+overview links to its canon or proposal instead of claiming authority for itself.
 
 ## 4. Only an accepted proposal or a direct request from the operator authorizes work
 
@@ -70,5 +114,17 @@ conversation.
 
 ## 9. Only code, tests, and runtime evidence establish what exists
 
-Tracker status, summaries, checklists, and design documents don't show that something works. A claim
-that work is done cites the commands, tests, or checks that show it.
+Tracker status, summaries, checklists, design overviews, and user documentation don't show that
+something works. A claim that work is done cites the commands, tests, or checks that show it.
+
+## 10. A unit of work maintains the documentation its change affects
+
+Implementers identify the user documentation and design overviews affected by their unit and update
+them in the same body of work. Documentation for a new feature can be drafted after its behavior
+becomes stable, but it is complete before the work closes. A change to existing behavior or system
+structure updates the documentation that already describes it.
+
+Agents verify changed documentation against code and tests and include it in review. Lasting
+explanations and cautions move into the owning document, while task status, execution checklists,
+and implementation history stay in working records. Only code, tests, and runtime evidence establish
+what exists.

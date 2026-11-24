@@ -1,10 +1,10 @@
 # Supporting evidence
 
-seams applies older ideas to agent-assisted coding. The supporting evidence names the source of each
-idea, says what seams takes from it, and says where the comparison stops. It is a reading guide. It
-is not a claim that seams has been tested as a whole method.
+seams applies older ideas to agent-assisted coding. Each idea has a named source, a statement of
+what seams takes from it, and a description of where the comparison stops. The sources do not show
+that seams has been tested as a whole method.
 
-## How to read this document
+## How to read the sources
 
 The sources come from fields that answer different questions. A study of human memory doesn't show
 how a language model behaves, and a vendor's report about one harness doesn't establish a general
@@ -23,8 +23,9 @@ Each source is one of these kinds:
 
 ## 1. Sorting statements by type
 
-seams gives every statement a type, and the type decides what the statement authorizes. The idea
-comes from standards writing and from architecture description.
+seams gives every statement a type, a home, and a context where its weight applies. The idea comes
+from standards writing and from architecture description. A separate invariant says which statements
+authorize work.
 
 **Normative and informative text.** The W3C
 [QA Framework: Specification Guidelines](https://www.w3.org/TR/qaframe-spec/) (2005) asks
@@ -50,22 +51,24 @@ for agents. The seams types are about authority, not genre, so a canon file can 
 of explanation.
 
 **Coverage checklists.** [arc42](https://arc42.org/overview/) lists architecture concerns that are
-easy to forget, e.g., constraints, runtime behavior, deployment, and quality requirements, and asks
-writers to fill only the sections that help their readers. seams uses arc42 as a checklist when a
-project writes invariants. Making all twelve sections mandatory would add the kind of empty
-structure seams tries to avoid.
+easy to forget, e.g., system context, building blocks, runtime behavior, cross-cutting concepts,
+deployment, and quality requirements, and asks writers to fill only the sections that help their
+readers. seams uses these content ideas in design overviews, without adopting arc42's formal section
+names. Binding rules belong in canon or tests. Making all twelve sections mandatory would add the
+kind of empty structure seams tries to avoid.
 
 ## 2. Canon, memory, and drift
 
-seams separates canon, which the operator has accepted, from memory, which is working material. The
-split comes from the study of how project knowledge decays.
+seams separates canon, which the operator has accepted, from memory, which includes working records
+and maintained documentation. The split comes from the study of how project knowledge decays.
 
 **Knowledge is easier to use than to maintain.** A
 [systematic review by Weinreich and Groher](https://se.jku.at/software-architecture-knowledge-management-approaches-and-their-support-for-knowledge-management-activities-a-systematic-literature-review/)
 (2016) found 56 approaches to architecture knowledge in 115 studies. Using captured knowledge was
 better supported than capturing, sharing, reusing, and above all maintaining it. seams therefore
-gives canon a small size, one home per statement, and a reconcile step, so maintenance has a defined
-path.
+gives each fact one owning document, updates documentation with the work, and provides a reconcile
+step. Memory has no single home or owner, and keeping it clear takes deliberate effort. The source
+supports the maintenance problem, not the claim that this particular procedure solves it.
 
 **Decision records.** Michael Nygard's
 [Documenting Architecture Decisions](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions)
@@ -82,9 +85,19 @@ the operator. Dropping the separate record is a synthesis, and no source above t
 **Writing the documents after the fact.** Parnas and Clements, in
 [A Rational Design Process: How and Why to Fake It](https://users.ece.utexas.edu/~perry/education/SE-Intro/fakeit.pdf)
 (1986), argue that real design never follows a clean sequence, and that a project should still
-produce the documents a clean process would have produced. seams applies this to canon. Canon
-describes the accepted present, and the path that led there stays in proposals and work items. It
+produce the documents a clean process would have produced. seams applies this to canon and design
+overviews. Canon describes the accepted present, and an overview describes the current system. The
+path that led there stays in proposals and work items. Especially in greenfield work, lasting
+explanations move from proposals to plans to overviews as implementation makes them true. This flow
 doesn't permit claiming that something exists when it doesn't.
+
+**Current-state overviews.** Alex Kladov's
+[ARCHITECTURE.md essay](https://matklad.github.io/2021/02/06/ARCHITECTURE.md.html) (2021) describes
+a short, maintained architecture overview with a codemap, module relationships, boundaries, and
+cross-cutting concerns. seams takes the current-state overview and navigation ideas. It doesn't
+adopt the essay's suggestion to revisit the document only a few times a year, because seams asks
+agents to update affected documentation with each unit of work. This is a practitioner report, not
+evidence that either cadence works better for coding agents.
 
 **Drift.** Sidney Dekker's
 [Drift into Failure](https://www.routledge.com/Drift-into-Failure/Dekker/p/book/9781409422211)
@@ -389,8 +402,12 @@ They are anecdotes.
 The ingredients are old. seams combines them for one setting, an operator working with coding
 agents:
 
-- Each statement has a type and a home, and the type limits what the statement authorizes.
-- Canon is small and changes only when the operator accepts a change. Everything else is memory.
+- Each statement has a type and a home, and its weight depends on the question and reader. A
+  separate rule limits which statements authorize work.
+- Canon is small and changes only when the operator accepts a change. Working records and
+  documentation are memory. Code, tests, and runtime evidence are reality.
+- Design overviews and user documentation are maintained with the work, verified against reality,
+  and used by the operator during review.
 - The operator's effort goes into proposals and canon, and agents plan and carry out the work.
 - The planner translates in both directions, with a read-back going up and units going down.
 - Agents coordinate only through artifacts, so any agent can continue any other agent's work.

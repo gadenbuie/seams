@@ -10,8 +10,8 @@ metadata:
 # Shape work
 
 How work is split, ordered, and dispatched changes its cost, speed, and correctness more than who
-carries it out. This skill supplies the patterns. It owns no tracker or workflow, and it informs the
-skill that does.
+carries it out. The planner or router owns the tracker and workflow, and it uses these patterns to
+shape the work.
 
 **The one thing to get right:** two opposite errors cost the same. One is serializing independent
 work, e.g., seven identical units handed to one worker. The other is parallelizing dependent work,
@@ -20,9 +20,9 @@ are independent and similar, do one first as a verified exemplar, then fan out t
 
 ## Read the references before you plan or schedule
 
-This file is an index, not the method. The patterns that change outcomes (the independence test, the
-exemplar brief, sizing a leaf, width and pacing, resuming a failed run) are only in `references/`.
-Skimming this file and planning from memory is the common failure.
+Read the reference files for the patterns that change outcomes, including the independence test, the
+exemplar brief, sizing a leaf, width and pacing, and resuming a failed run. Skimming this overview
+and planning from memory is the common failure.
 
 1. Before you write, outline, or propose any plan, or decide any order, width, or parallelism, open
    the reference files for your situation (table below) with your own file reads. Do it now, not

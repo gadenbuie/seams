@@ -29,6 +29,11 @@ part of it, and by then a change of direction means undoing a lot of work.
   need to supervise each task.
 - An agent can tell which statements bind it, which statements only inform it, and which statements
   describe what exists.
+- Agents can use written criteria from the operator to assess whether a feature fits, how valuable
+  it is, and which parts deserve priority. They don't have to infer value from code or effort.
+- The operator and fresh agents can read maintained design overviews to understand how the current
+  system fits together without reconstructing that understanding from code or implementation
+  history.
 - An agent in a fresh session can continue the work from what earlier agents left in the repository
   and the tracker.
 - Questions that need the operator reach them as decisions they can make. Questions that canon
