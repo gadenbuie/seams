@@ -2,7 +2,7 @@ MD_PATHS := README.md AGENTS.md docs skills
 MDFORMAT := uvx --from mdformat==1.0.0 --with mdformat-gfm==1.0.0 --with mdformat-frontmatter==2.2.0 --with mdformat-sembr==0.2.0 mdformat
 SKILLS_VALIDATE := uvx --from skills-ref==0.1.1 agentskills validate
 
-.PHONY: all check check-format check-links check-design check-skills format help
+.PHONY: all check check-format check-links check-design check-skills format docs-install docs-build docs-dev help
 
 all: check help ## Run all checks, then show available commands
 
@@ -33,6 +33,18 @@ check-skills: ## Validate every skill in skills/
 
 format: ## Format Markdown files
 	$(MDFORMAT) --wrap keep $(MD_PATHS)
+
+DOCCMD := npx --no-install docmd
+
+docs-install: ## Install the docmd site dependencies
+	npm install --no-audit --no-fund --loglevel=error
+
+docs-build: docs-install ## Build the docs site with docmd
+	rm -rf site
+	$(DOCCMD) build
+
+docs-dev: docs-install ## Start the docmd dev server
+	$(DOCCMD) dev
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*## "}; {printf "  %-16s %s\n", $$1, $$2}'

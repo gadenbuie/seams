@@ -1,1 +1,3 @@
 .kata.local.toml
+site/
+node_modules/

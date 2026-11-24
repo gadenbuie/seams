@@ -1,0 +1,71 @@
+{
+  "title": "seams",
+  "url": "https://pkg.garrickadenbuie.com/seams/",
+  "src": "docs",
+  "out": "site",
+  "layout": {
+    "spa": true,
+    "focusMode": true,
+    "header": {
+      "enabled": true
+    },
+    "sidebar": {
+      "collapsible": true,
+      "defaultCollapsed": false
+    },
+    "optionsMenu": {
+      "position": "sidebar-top",
+      "components": {
+        "search": true,
+        "themeSwitch": true
+      }
+    },
+    "footer": {
+      "style": "minimal",
+      "content": "© 2026 Garrick Aden-Buie.",
+      "branding": false
+    }
+  },
+  "theme": {
+    "name": "default",
+    "appearance": "system",
+    "codeHighlight": true
+  },
+  "minify": true,
+  "autoTitleFromH1": true,
+  "copyCode": true,
+  "pageNavigation": true,
+  "markdown": {
+    "breaks": false
+  },
+  "navigation": [
+    { "title": "Home", "path": "/", "icon": "home" },
+    { "title": "Guide", "path": "/guide/", "icon": "book-open" },
+    {
+      "title": "Design",
+      "icon": "pen-tool",
+      "collapsible": true,
+      "children": [
+        { "title": "Vision", "path": "/design/vision/", "icon": "eye" },
+        { "title": "Principles", "path": "/design/principles/", "icon": "compass" },
+        { "title": "Invariants", "path": "/design/invariants/", "icon": "lock" },
+        { "title": "Overviews", "path": "/design/overviews/", "icon": "map" }
+      ]
+    },
+    { "title": "Supporting Evidence", "path": "/supporting-evidence/", "icon": "quote" },
+    {
+      "title": "GitHub",
+      "path": "https://github.com/gadenbuie/seams",
+      "icon": "github",
+      "external": true
+    }
+  ],
+  "plugins": {
+    "ai": {
+      "assistant": false
+    },
+    "seo": {
+      "defaultDescription": "seams is a set of conventions and agent skills for building software with coding agents."
+    }
+  }
+}
