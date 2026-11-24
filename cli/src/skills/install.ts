@@ -104,11 +104,12 @@ export class ModeMismatchError extends Error {
 
 // The library module: imported lazily so the telemetry kill switch is in the
 // environment before the library loads (the module captures the user's home
-// directory at import time; env changes later have no effect).
+// directory at import time; env changes later have no effect). Reused by the
+// check/update layer (check.ts) so the whole CLI shares one import.
 type SkillsLibrary = typeof import("skills");
 let libraryPromise: Promise<SkillsLibrary> | undefined;
 
-function library(): Promise<SkillsLibrary> {
+export function library(): Promise<SkillsLibrary> {
   process.env.DISABLE_TELEMETRY = "1";
   libraryPromise ??= import("skills");
   return libraryPromise;
@@ -144,6 +145,23 @@ export interface SkillDestination {
   target: string;
 }
 
+/** The directory an agent's skills live in for `scope` (its own directory;
+ * universal agents share the canonical `.agents`/`~/.agents` skills dir). */
+export async function agentSkillsDir(
+  cwd: string,
+  scope: Scope,
+  agent: AgentId,
+): Promise<string> {
+  const info = (await supportedAgentInfo()).get(agent);
+  if (info === undefined) throw new UnsupportedAgentError([agent]);
+  if (info.globalSkillsDir === null) {
+    throw new Error(`The skills library reports no global skills directory for ${agent}.`);
+  }
+  return scope === "project"
+    ? path.resolve(cwd, info.projectSkillsDir)
+    : info.globalSkillsDir;
+}
+
 /**
  * The destination of one skill for one agent. In copy mode each agent gets its
  * own folder (universal agents share the canonical `.agents/skills`). In
@@ -177,7 +195,7 @@ export async function skillDestination(
 }
 
 /** lstat that returns undefined instead of throwing ENOENT. */
-function lstatSafe(target: string) {
+export function lstatSafe(target: string) {
   try {
     return lstatSync(target);
   } catch (error) {
@@ -217,6 +235,12 @@ export interface InstallOptions {
   agents?: AgentId[];
   /** Skill names; when omitted, every bundled skill is selected. */
   skills?: string[];
+  /**
+   * The directory to install from. Defaults to the skills bundled with the
+   * running package; tests point it at a fixture directory so a v1 → v2
+   * update can be exercised without repacking the package.
+   */
+  sourceDir?: string;
   dryRun?: boolean;
 }
 
@@ -242,7 +266,7 @@ function uniqueInOrder<T>(values: T[]): T[] {
 }
 
 /** The skill's own version, from SKILL.md frontmatter metadata. */
-function versionOf(source: SkillSource, name: string): string | undefined {
+export function versionOf(source: SkillSource, name: string): string | undefined {
   const skill = source.skills.find((entry) => entry.name === name);
   const version = skill?.metadata?.version;
   return typeof version === "string" ? version : undefined;
@@ -300,7 +324,7 @@ function classifyExisting(
 }
 
 /** Add `agent` to a skill's record, creating or updating it. Returns whether anything changed. */
-function upsertRecord(
+export function upsertRecord(
   meta: SkillsMeta,
   name: string,
   facts: { hash: string; version?: string },
@@ -359,8 +383,8 @@ export async function installSkills(options: InstallOptions): Promise<InstallRep
     detected = true;
   }
 
-  const sourceDir = bundledSkillsDir();
-  // Throws before any write when the bundled directory is missing (seams#sn2t).
+  const sourceDir = options.sourceDir ?? bundledSkillsDir();
+  // Throws before any write when the source directory is missing (seams#sn2t).
   const source = await lib.resolveSource(sourceDir);
   const available = source.skills.map((skill) => skill.name);
   let selected: string[];
