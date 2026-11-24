@@ -30,7 +30,7 @@ For example, [`docs/design/overviews/index.md`](docs/design/overviews/index.md) 
 
 - Keep the canon, the guide, and the skills consistent.
   A change to one usually needs a matching change in the others, in the same commit.
-- Write human docs in the operator's plain style: everyday words, complete sentences, no dashes, no slogans, and no overselling.
+- Write human docs in the operator's plain style: everyday words, complete sentences, no dashes, no jargon, no analogies, no filler, and no overselling.
   Start with the subject, not a description of the document itself, e.g., avoid "This guide explains" or "This document covers".
 - Keep examples generic.
   Do not leak paths, secrets, or settings from a host project or this machine.
