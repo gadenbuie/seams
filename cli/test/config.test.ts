@@ -182,8 +182,8 @@ describe("loadProject, manifest", () => {
     const project = copyFixture("escaping");
     assert.throws(() => loadProject(project), (error: unknown) => {
       assert.ok(error instanceof ManifestError);
-      assert.equal(error.message.match(/paths\.design/g)?.length, 1);
-      assert.equal(error.message.match(/paths\.plans/g)?.length, 1);
+      assert.equal(error.message.match(/paths[.\/]design/g)?.length, 1);
+      assert.equal(error.message.match(/paths[.\/]plans/g)?.length, 1);
       return true;
     });
   });
@@ -201,9 +201,9 @@ describe("loadProject, manifest", () => {
     );
     assert.throws(() => loadProject(project), (error: unknown) => {
       assert.ok(error instanceof ManifestError);
-      assert.equal(error.message.match(/paths\.design/g)?.length, 1);
-      assert.equal(error.message.match(/paths\.overviews/g)?.length, 1);
-      assert.equal(error.message.match(/paths\.proposals/g)?.length, 1);
+      assert.equal(error.message.match(/paths[.\/]design/g)?.length, 1);
+      assert.equal(error.message.match(/paths[.\/]overviews/g)?.length, 1);
+      assert.equal(error.message.match(/paths[.\/]proposals/g)?.length, 1);
       return true;
     });
   });
