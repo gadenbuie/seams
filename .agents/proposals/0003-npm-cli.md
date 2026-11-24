@@ -68,8 +68,11 @@ Workflow orchestration would make seams harder to adopt and would duplicate tool
 
 - Document commands live at the top level instead of under a `docs` namespace.
 - The first navigation commands are `list`, `find`, and `read`. `read outline` is a subcommand because outline output does not combine with section or line selection.
-- The CLI reads existing indexes and plain Markdown.
-  It does not require frontmatter, a separate catalog, or model-based search.
+- Canon, design overviews, proposals, and plans use lightweight YAML frontmatter with only `title` and `description` fields.
+  The description says when to read the document.
+  The CLI uses these fields to build listings, while existing indexes remain reading guides.
+  Existing proposal fields such as status and creation date keep their current homes.
+  The CLI does not require a separate catalog or model-based search.
 - `new <proposal|plan|overview> <slug>` handles naming conventions, duplicate checks, and templates.
   Proposal and plan templates are useful.
   An overview remains minimal because seams does not require a fixed overview structure.
@@ -129,10 +132,10 @@ Its outline output includes headings, inclusive line ranges, and section sizes w
 The skill tells agents to choose the smallest relevant sections and to keep a compact note of what they read.
 A navigation subagent can return paths, ranges, and reasons instead of copying complete documents into the parent context.
 
-seams can use these reading patterns without adopting that skill's required frontmatter.
-The seams indexes already describe documents, and the proposal to add documentation as memory allowed a later navigation tool through a separate proposal.
-This is that separate decision.
-The CLI would read the existing indexes rather than require a second catalog.
+seams can adopt the skill's lightweight frontmatter without adopting its other conventions.
+A `title` and short `description` would let the CLI build a listing directly from documents in the configured documentation homes.
+The documentation-as-memory proposal already identifies titles and descriptions as useful selection aids.
+Existing indexes remain useful reading guides, but the CLI would not depend on duplicate index entries or require a second catalog.
 
 ### The npm `skills` package
 
@@ -261,7 +264,9 @@ Update preserves modified or unknown copies for manual reconciliation instead of
 
 #### `list`, `find`, and `read`
 
-`list` reads the configured indexes and returns a compact catalog with paths, descriptions, byte sizes, document types, and proposal statuses where available.
+`list` discovers documents in the configured documentation homes and reads `title` and `description` from their YAML frontmatter.
+It returns a compact catalog with paths, titles, descriptions, byte sizes, document types, and proposal statuses where available.
+It does not depend on hand-maintained index entries.
 Filters select canon, overviews, proposals, or plans.
 
 `find` searches explicit document types and statuses.
@@ -275,7 +280,8 @@ Output includes enough source information for a later targeted read.
 
 #### `new`
 
-`new proposal` finds the next unused proposal number, checks for similar open proposals, applies the proposal template, and sets draft status. `new plan` applies the project's plan naming and template conventions. `new overview` creates only the minimal starting document and updates the index when asked.
+`new proposal` finds the next unused proposal number, checks for similar open proposals, applies the proposal template, and sets draft status. `new plan` applies the project's plan naming and template conventions.
+Each command creates a document with minimal `title` and `description` frontmatter. `new overview` otherwise creates only the minimal starting document and updates the index when asked.
 None of these commands creates or edits canon.
 
 #### `impact`
@@ -300,7 +306,7 @@ The command does not decide whether a document contradicts reality, whether memo
 
 #### `check`, `doctor`, and `schema`
 
-`check` covers mechanical project checks, including local links and anchors, design index coverage, skill references, proposal numbering and status fields, and manifest validity.
+`check` covers mechanical project checks, including local links and anchors, design index coverage, required document frontmatter, skill references, proposal numbering and status fields, and manifest validity.
 It can delegate formatting and project-specific checks to the project's existing tools.
 
 `doctor` reports manifest problems, missing configured paths, missing `AGENTS.md` discovery, runtime requirements, and skill installation state.
@@ -330,7 +336,7 @@ Mechanical warnings are not semantic findings about intent or reality.
 - **`status`, `context`, and `why`.** Explicit document commands cover the selected need with less workflow coupling.
 - **Harness hooks for the first release.** They require evidence about actual failure modes and useful intervention points.
 - **An MCP server for the first release.** It can reuse the read layer later.
-- **Required frontmatter or a separate document catalog.** Existing indexes and plain Markdown are sufficient.
+- **A separate document catalog or a large metadata schema.** The CLI reads `title` and `description` from frontmatter, and existing indexes remain reading guides.
 - **Model-based or vector search.** Simple search establishes the need before adding dependencies and indexing state.
 - **Automatic documentation or canon writing.** Agents and the operator retain those duties.
 - **Automatic reconciliation state.** The first command requires `--since` and only collects evidence.
@@ -369,6 +375,9 @@ Replace the final paragraph of invariant 1 with:
 > A project may use other file names, including `memory/` or `architecture/` instead of `overviews/`, if its agent entry point, e.g., `AGENTS.md`, says where each type lives or points to `.agents/seams.json` as the record of those homes.
 > When repo-level `docs/` is unavailable, the default design root is `.agents/design/`, with the same canon files and `overviews/` folder.
 > An existing home for the same kind of documentation wins over the default.
+>
+> Canon, design overviews, proposals, and plans start with YAML frontmatter that provides a `title` and a short `description` of when to read the document.
+> These fields support document listings and do not change the document's authority.
 
 ## Work selected by acceptance
 
@@ -376,13 +385,14 @@ Acceptance selects these outcomes:
 
 - Add a publishable `@grrrck/seams` npm package with the reviewed command surface, bundled skills, templates, and versioned JSON Schema.
 - Add the tracked project manifest and update adoption so the agent writes it after the operator chooses documentation homes.
+- Add `title` and `description` frontmatter to canon, design overviews, proposals, plans, and document templates, including adoption guidance for existing documents.
 - Use the supported `skills` library for installation and agent detection, with stable installation metadata, safe updates, and no telemetry from seams' calls.
 - Add selective document navigation, explicit authority labels, document creation, impact reports, bounded reconciliation evidence, and mechanical checks.
 - Update the README, guide, design overview guidance, and relevant skills so the CLI remains an optional way to perform the documented steps.
 - Add the missing proposal template referenced by `seams-propose`.
 - Add package, fixture, schema, output, and reading-path tests for the behavior above.
 
-Acceptance does not select hooks, MCP, workflow orchestration, tracker integration, automatic canon or overview writing, or a new document metadata requirement.
+Acceptance does not select hooks, MCP, workflow orchestration, tracker integration, automatic canon or overview writing, or a document metadata schema beyond `title` and `description`.
 
 ## Documentation and skills affected
 
@@ -391,16 +401,17 @@ The implementation would update:
 - `README.md` and `docs/index.md` with the `npx @grrrck/seams init` starting path.
 - `docs/guide.md` with the CLI's purpose, optional nature, manifest, and basic reading commands.
 - `AGENTS.md` so the CLI and its tests become part of the seams product and verification procedure.
-- `skills/seams-adopt/` so adoption writes the manifest and records it in `AGENTS.md`.
-- `skills/seams-work/references/documentation.md` so agents can use the CLI for discovery and targeted reading when it is available.
+- `skills/seams-adopt/` so adoption writes the manifest, records it in `AGENTS.md`, and adds frontmatter to existing documents without changing their body text.
+- `skills/seams-work/references/documentation.md` so agents can use the CLI for discovery and targeted reading when it is available and can maintain the document frontmatter.
 - `skills/seams-propose/` and `skills/seams-plan/` so document creation can use `seams new` without requiring it.
 - `skills/seams-reconcile/` so the evidence command replaces mechanical steps without replacing agent judgment.
-- `docs/design/overviews/index.md` so the navigation guidance includes the CLI and keeps indexes as the source of document descriptions.
+- `docs/design/overviews/index.md` so the navigation guidance includes the CLI, uses frontmatter as the source of document descriptions, and keeps indexes as reading guides.
 - A maintained design overview for the CLI once its implementation is stable enough to explain.
 
 ## Verification
 
-The implementation needs tests for default and custom documentation homes, absent and malformed manifests, schema validation, proposal statuses, Markdown outlines with fenced code, bounded output, stable JSON, and path handling outside the repository.
+The implementation needs tests for default and custom documentation homes, absent and malformed manifests, missing and invalid document frontmatter, schema validation, proposal statuses, Markdown outlines with fenced code, bounded output, stable JSON, and path handling outside the repository.
+Listing tests must show that the CLI uses frontmatter rather than duplicate descriptions in an index.
 Package tests need to install the built tarball and exercise both human and agent setup modes.
 
 Skill installation tests need temporary project and global homes, several harness targets, modified copies, interrupted writes, dry runs, and updates from one package version to another.
