@@ -20,7 +20,7 @@ For example, [`docs/design/overviews/index.md`](docs/design/overviews/index.md) 
   Human docs explain, and skills instruct.
   Do not put agent procedures in the docs, or explanations for humans in the skills.
 - **Memory:** `.agents/proposals/` holds proposals.
-  A proposal authorizes nothing until its status is accepted. `.agents/skills/` and `.claude/` hold writing tools for this repository, not part of seams.
+  A proposal authorizes nothing until its status is accepted.
 - **Work:** tracked in kata when a plan moves to implementation.
   Planning, proposing, and discussing do not need kata.
   Run `kata quickstart --format contract` before changing the repository, and follow [`skills/seams-track/references/kata.md`](skills/seams-track/references/kata.md).
