@@ -50,6 +50,7 @@ interface Candidate {
   status: string | null;
   reason: string;
   lines: ReferenceLine[];
+  linesOmitted: number;
   command: string;
 }
 
@@ -236,10 +237,10 @@ describe("seams reconcile", () => {
     assert.deepEqual(lines("Canon"), [["docs/design/canon.md", [7, 9]]]);
     assert.deepEqual(lines("Overviews"), [["docs/design/overviews/system.md", [7]]]);
     assert.deepEqual(lines("Accepted proposals"), [[".agents/proposals/0001-accepted.md", [9]]]);
-    assert.deepEqual(lines("Other proposals"), [[".agents/proposals/0002-draft.md", [9]]]);
+    assert.deepEqual(lines("Other proposals"), [[".agents/proposals/0002-draft.md", [9, 11]]]);
     assert.deepEqual(lines("Plans"), [[".agents/plans/0001-active.md", [9]]]);
-    assert.equal(json.references.total, 6);
-    assert.equal(json.references.shown, 6);
+    assert.equal(json.references.total, 7);
+    assert.equal(json.references.shown, 7);
     assert.equal(json.references.omitted, 0);
   });
 
@@ -279,13 +280,13 @@ describe("seams reconcile", () => {
     assert.equal(json.changedFiles.uncommitted.items.length, 1);
     assert.equal(json.changedFiles.uncommitted.omitted, 1);
     assert.equal(json.references.shown, 1);
-    assert.equal(json.references.omitted, 5);
+    assert.equal(json.references.omitted, 6);
     assert.equal(json.brokenLinks.items.length, 1);
     assert.equal(json.candidates.items.length, 1);
     assert.equal(json.candidates.omitted, 2);
 
     const text = run(["reconcile", "--since", "HEAD~1", "--limit", "1"], cwd);
-    assert.ok(text.stdout.includes("Showing 1 of 6 references."));
+    assert.ok(text.stdout.includes("Showing 1 of 7 references."));
     assert.ok(text.stdout.includes("(1 more omitted)"));
     assert.ok(text.stdout.includes("(2 more omitted)"));
   });
@@ -319,6 +320,16 @@ describe("seams reconcile", () => {
         "plan status 'active' is not terminal and it names changed files",
       ],
     ]);
+    // A candidate shows its first referencing line and reports the rest.
+    const draft = json.candidates.items.find(
+      (candidate) => candidate.path === ".agents/proposals/0002-draft.md",
+    );
+    assert.deepEqual(draft?.lines.map((line) => line.line), [9]);
+    assert.equal(draft?.linesOmitted, 1);
+    for (const candidate of json.candidates.items) {
+      assert.equal(candidate.lines.length, 1);
+      assert.equal(typeof candidate.linesOmitted, "number");
+    }
   });
 
   it("keeps an accepted proposal that names a changed canon document out of the candidates", () => {

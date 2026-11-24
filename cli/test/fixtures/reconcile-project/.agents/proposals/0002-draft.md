@@ -7,3 +7,5 @@ created: 2025-01-03
 # Draft parser proposal
 
 A draft that names src/a/b.ts in passing.
+
+Again, src/a/b.ts is named on a second line.

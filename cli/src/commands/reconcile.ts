@@ -86,7 +86,10 @@ interface Candidate {
   status: string | null;
   /** The mechanical reason this document is a candidate, never a verdict. */
   reason: string;
+  /** The first referencing line, so a candidate stays bounded on its own. */
   lines: ReferenceLine[];
+  /** Referencing lines past the first, reported instead of printed. */
+  linesOmitted: number;
   command: string;
 }
 
@@ -206,10 +209,19 @@ function changedFiles(
     "--no-renames",
     "HEAD",
   ]);
-  const untracked = git(project, ["ls-files", "--others", "--exclude-standard", "-z"]);
-  if (uncommittedDiff.error || uncommittedDiff.status !== 0 || untracked.error || untracked.status !== 0) {
+  if (uncommittedDiff.error || uncommittedDiff.status !== 0) {
+    const diffStderr = (uncommittedDiff.stderr ?? "").trim();
     return {
-      error: `git diff failed${(uncommittedDiff.stderr ?? "").trim().length > 0 ? `: ${(uncommittedDiff.stderr ?? "").trim()}` : ""}`,
+      error: `git diff failed${diffStderr.length > 0 ? `: ${diffStderr}` : ""}`,
+      committed: [],
+      uncommitted: [],
+    };
+  }
+  const untracked = git(project, ["ls-files", "--others", "--exclude-standard", "-z"]);
+  if (untracked.error || untracked.status !== 0) {
+    const lsStderr = (untracked.stderr ?? "").trim();
+    return {
+      error: `git ls-files failed${lsStderr.length > 0 ? `: ${lsStderr}` : ""}`,
       committed: [],
       uncommitted: [],
     };
@@ -370,7 +382,11 @@ function candidatesFor(
       authority: doc.authority,
       status: doc.status,
       reason,
-      lines: doc.lines,
+      // One line keeps each candidate bounded; the omitted count and the
+      // read command point at the rest, and the References section holds the
+      // bounded detail.
+      lines: doc.lines.slice(0, 1),
+      linesOmitted: doc.lines.length - 1,
       command: `seams read ${doc.path}`,
     });
   }
@@ -540,6 +556,9 @@ function run(ctx: CommandContext): number {
     printText(`    ${candidate.reason}`);
     for (const line of candidate.lines) {
       printText(`    ${line.line}: ${line.text}`);
+    }
+    if (candidate.linesOmitted > 0) {
+      printText(`    (${candidate.linesOmitted} more reference line${candidate.linesOmitted === 1 ? "" : "s"})`);
     }
   }
   if (manifest.candidates.omitted > 0) {
