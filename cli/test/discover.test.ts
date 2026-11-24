@@ -53,6 +53,7 @@ describe("discoverDocuments", () => {
         ".agents/proposals/0002-second.md",
         ".agents/proposals/0003-broken.md",
         ".agents/proposals/0004-unlabeled.md",
+        ".agents/proposals/0005-multiline.md",
         ".agents/plans/no-status.md",
         ".agents/plans/notes.md",
         ".agents/plans/plan-alpha.md",
@@ -133,6 +134,8 @@ describe("discoverDocuments", () => {
   it("reports malformed frontmatter without dropping the document", () => {
     const { documents } = discoverFixture("list-project");
     const broken = byPath(documents, "docs/design/broken.md");
+    // Only the parse problem: no misleading "missing title" on top of it.
+    assert.equal(broken.problems.length, 1);
     assert.match(broken.problems[0] ?? "", /^malformed frontmatter:/);
     assert.equal(broken.title, "Broken");
     assert.equal(broken.description, null);
@@ -176,6 +179,15 @@ describe("discoverDocuments", () => {
     assert.deepEqual(warnings, ["overviews home not found: docs/design/overviews"]);
     const proposal = byPath(documents, "ideas/0001-idea.md");
     assert.equal(proposal.authority, "accepted proposal");
+  });
+
+  it("keeps a multi-line description as written for JSON consumers", () => {
+    const { documents } = discoverFixture("list-project");
+    const multiline = byPath(documents, ".agents/proposals/0005-multiline.md");
+    assert.equal(
+      multiline.description,
+      "First line of the description.\nSecond line of the description.",
+    );
   });
 
   it("uses the .agents/design fallback home", () => {

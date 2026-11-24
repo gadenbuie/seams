@@ -34,23 +34,29 @@ function usageError(message: string): number {
   return 2;
 }
 
-/** One text line for one document: path, title, bytes, status, description. */
+/** One text line for one document: path, title, bytes, authority, description. */
 function textLine(doc: {
   path: string;
   title: string;
   bytes: number;
-  status?: string | null;
+  authority: string;
   description: string | null;
   problems: string[];
 }): string {
-  const parts = [doc.path, doc.title, `${doc.bytes} bytes`];
-  if (doc.status !== undefined && doc.status !== null) parts.push(doc.status);
-  if (doc.description !== null) parts.push(doc.description);
+  // The authority label carries the status for proposals and plans, so a
+  // draft never reads as accepted and an overview never reads as canon.
+  const parts = [doc.path, squashWhitespace(doc.title), `${doc.bytes} bytes`, doc.authority];
+  if (doc.description !== null) parts.push(squashWhitespace(doc.description));
   let line = parts.join(" · ");
   if (doc.problems.length > 0) {
     line += `  [problems: ${doc.problems.join("; ")}]`;
   }
   return line;
+}
+
+/** Collapse internal whitespace so one document stays on one text line. */
+function squashWhitespace(text: string): string {
+  return text.replace(/\s+/g, " ").trim();
 }
 
 function run(ctx: CommandContext): number {

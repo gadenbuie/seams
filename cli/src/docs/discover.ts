@@ -155,9 +155,10 @@ function readDocument(project: Project, file: string, type: DocType): DocumentMe
 
   let title = stringField(data, "title", problems);
   if (title === null) {
-    // When the whole frontmatter block is missing, that problem already says
-    // it; a separate "missing title" would only repeat it.
-    if (data.title === undefined && !problems.includes("missing frontmatter")) {
+    // When frontmatter parsing already reported a problem, that problem says
+    // it; a separate "missing title" would only point at the wrong fix.
+    // Title is the first field read, so `problems` here is parse-only.
+    if (data.title === undefined && problems.length === 0) {
       problems.push("missing title");
     } else if (typeof data.title === "string") {
       problems.push("missing title: 'title' is empty");
@@ -187,6 +188,10 @@ function readDocument(project: Project, file: string, type: DocType): DocumentMe
   return doc;
 }
 
+function repoRelative(project: Project, dir: string): string {
+  return path.relative(project.root, dir).split(path.sep).join("/");
+}
+
 /**
  * Walk a project's documentation homes and collect each document's metadata.
  *
@@ -203,13 +208,11 @@ export function discoverDocuments(project: Project): DiscoveryResult {
     try {
       stats = statSync(dir);
     } catch {
-      warnings.push(
-        `${home.label} home not found: ${path.relative(project.root, dir).split(path.sep).join("/")}`,
-      );
+      warnings.push(`${home.label} home not found: ${repoRelative(project, dir)}`);
       continue;
     }
     if (!stats.isDirectory()) {
-      warnings.push(`${home.label} home is not a directory: ${dir}`);
+      warnings.push(`${home.label} home is not a directory: ${repoRelative(project, dir)}`);
       continue;
     }
 

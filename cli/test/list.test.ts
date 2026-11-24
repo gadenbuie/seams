@@ -31,10 +31,39 @@ describe("seams list", () => {
 
     const vision = out.find((line) => line.includes("docs/design/vision.md"));
     assert.ok(vision, "expected a line for docs/design/vision.md");
-    assert.match(vision ?? "", /Vision · \d+ bytes · What seams is for\./);
+    assert.match(vision ?? "", /Vision · \d+ bytes · canon · What seams is for\./);
 
     const accepted = out.find((line) => line.includes(".agents/proposals/0001-first.md"));
-    assert.match(accepted ?? "", /0001-first\.md · First proposal · \d+ bytes · accepted · An accepted proposal\./);
+    assert.match(
+      accepted ?? "",
+      /0001-first\.md · First proposal · \d+ bytes · accepted proposal · An accepted proposal\./,
+    );
+
+    const unlabeled = out.find((line) => line.includes(".agents/proposals/0004-unlabeled.md"));
+    assert.match(unlabeled ?? "", /proposal \(not authorization\)/);
+
+    const overview = out.find((line) => line.includes("docs/design/overviews/system.md"));
+    assert.match(overview ?? "", /memory \(verify against code\)/);
+
+    // One line per document, plus one header per non-empty group.
+    const json = JSON.parse(run(["list", "--json"], cwd).stdout);
+    const groups = new Set(
+      (json.documents as { type: string }[]).map((doc) => doc.type),
+    ).size;
+    assert.equal(out.length, json.documents.length + groups);
+  });
+
+  it("keeps one text line per document even for multi-line descriptions", () => {
+    const cwd = copyFixture("list-project");
+    const result = run(["list"], cwd);
+    assert.equal(result.status, 0);
+    const multiline = lines(result.stdout).find((line) =>
+      line.includes(".agents/proposals/0005-multiline.md"),
+    );
+    assert.match(
+      multiline ?? "",
+      /0005-multiline\.md · Multiline proposal · \d+ bytes · draft proposal \(not authorization\) · First line of the description\. Second line of the description\./,
+    );
   });
 
   it("shows title fallbacks and problems on the document line", () => {
