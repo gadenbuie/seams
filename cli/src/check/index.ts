@@ -6,6 +6,9 @@ import { frontmatterCheck } from "./frontmatter.ts";
 import { numberingCheck } from "./numbering.ts";
 import { statusCheck } from "./status.ts";
 import { manifestCheck } from "./manifest.ts";
+import { linksCheck } from "./links.ts";
+import { indexCoverageCheck } from "./indexCoverage.ts";
+import { skillRefsCheck } from "./skillRefs.ts";
 import type { Check } from "./types.ts";
 
 export const checks: readonly Check[] = [
@@ -13,4 +16,7 @@ export const checks: readonly Check[] = [
   numberingCheck,
   statusCheck,
   manifestCheck,
+  linksCheck,
+  indexCoverageCheck,
+  skillRefsCheck,
 ];
