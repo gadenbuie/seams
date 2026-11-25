@@ -828,6 +828,103 @@ html[data-theme="dark"] .home-button-primary:hover {
 }
 
 /* ---------------------------------------------------------------------------
+   Mermaid diagrams. The renderer paints its own palette into each SVG and
+   cycles a rainbow across nodes by data-color-id; these rules replace that
+   with the site's palette. Nodes sit in a soft teal wash with sage strokes;
+   edges run in the teal stitch, like the seams they draw.
+   --------------------------------------------------------------------------- */
+
+.mermaid svg {
+    font-family: var(--home-body) !important;
+    fill: var(--home-ink) !important;
+}
+
+.mermaid svg .node rect,
+.mermaid svg .node circle,
+.mermaid svg .node ellipse,
+.mermaid svg .node polygon,
+.mermaid svg .node path {
+    fill: color-mix(in srgb, var(--home-stitch) 16%, var(--home-surface)) !important;
+    stroke: color-mix(in srgb, var(--home-stitch) 45%, var(--home-ink)) !important;
+}
+
+.mermaid svg .flowchart-link,
+.mermaid svg .edgePaths .path,
+.mermaid svg .edgePath .path {
+    stroke: color-mix(in srgb, var(--home-stitch) 55%, var(--home-ink)) !important;
+    fill: none !important;
+}
+
+.mermaid svg marker,
+.mermaid svg .arrowMarkerPath {
+    stroke: color-mix(in srgb, var(--home-stitch) 55%, var(--home-ink)) !important;
+    fill: color-mix(in srgb, var(--home-stitch) 55%, var(--home-ink)) !important;
+}
+
+.mermaid svg .cluster rect {
+    fill: color-mix(in srgb, var(--home-stitch) 6%, var(--home-surface)) !important;
+    stroke: var(--home-border) !important;
+}
+
+/* Dark mode lifts the teal: the wash gains weight and the strokes brighten
+   so the diagram keeps its depth instead of sinking into the paper. */
+:root[data-theme="dark"] .mermaid svg .node rect,
+:root[data-theme="dark"] .mermaid svg .node circle,
+:root[data-theme="dark"] .mermaid svg .node ellipse,
+:root[data-theme="dark"] .mermaid svg .node polygon,
+:root[data-theme="dark"] .mermaid svg .node path {
+    fill: color-mix(in srgb, var(--home-stitch) 20%, var(--home-surface)) !important;
+    stroke: color-mix(in srgb, var(--home-stitch) 70%, var(--home-ink)) !important;
+}
+
+:root[data-theme="dark"] .mermaid svg .flowchart-link,
+:root[data-theme="dark"] .mermaid svg .edgePaths .path,
+:root[data-theme="dark"] .mermaid svg .edgePath .path {
+    stroke: color-mix(in srgb, var(--home-stitch) 70%, var(--home-ink)) !important;
+    fill: none !important;
+}
+
+:root[data-theme="dark"] .mermaid svg marker,
+:root[data-theme="dark"] .mermaid svg .arrowMarkerPath {
+    stroke: color-mix(in srgb, var(--home-stitch) 70%, var(--home-ink)) !important;
+    fill: color-mix(in srgb, var(--home-stitch) 70%, var(--home-ink)) !important;
+}
+
+:root[data-theme="dark"] .mermaid svg .cluster rect {
+    fill: color-mix(in srgb, var(--home-stitch) 10%, var(--home-surface)) !important;
+}
+
+/* The neo-look drop shadow reads as a glow on the dark paper; the wash
+   and stroke carry the depth instead. */
+:root[data-theme="dark"] .mermaid svg .node rect,
+:root[data-theme="dark"] .mermaid svg .node circle,
+:root[data-theme="dark"] .mermaid svg .node polygon,
+:root[data-theme="dark"] .mermaid svg .cluster rect {
+    filter: none !important;
+}
+
+.mermaid svg .edgeLabel,
+.mermaid svg .edgeLabel p,
+.mermaid svg .edgeLabel rect,
+.mermaid svg .labelBkg {
+    background-color: var(--home-surface) !important;
+    fill: var(--home-surface) !important;
+}
+
+/* The renderer's own scoped rules set label colors per theme; the site
+   palette wins on every theme, so labels never go dark-on-dark. */
+.mermaid svg .label,
+.mermaid svg .label text,
+.mermaid svg .label span,
+.mermaid svg .nodeLabel,
+.mermaid svg .nodeLabel span,
+.mermaid svg .edgeLabel,
+.mermaid svg foreignObject div {
+    color: var(--home-ink) !important;
+    fill: var(--home-ink) !important;
+}
+
+/* ---------------------------------------------------------------------------
    Narrow screens
    --------------------------------------------------------------------------- */
 
