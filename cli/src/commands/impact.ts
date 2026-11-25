@@ -16,6 +16,7 @@ import { spawnSync, type SpawnSyncReturns } from "node:child_process";
 import { parseArgs } from "node:util";
 import path from "node:path";
 import { findRoot, loadProject, type Project } from "../config.ts";
+import { GROUP_ORDER, groupOf } from "../docs/groups.ts";
 import { findReferences, type DocumentReferences } from "../docs/references.ts";
 import { jsonEnvelope, printJson, printText } from "../output.ts";
 import type { Command, CommandContext } from "./index.ts";
@@ -25,16 +26,6 @@ const DEFAULT_LIMIT = 50;
 const USAGE = "Usage: seams impact <path> [paths...] | seams impact --git-diff [--limit N]";
 
 const NOTE = "These are candidates for review, not proof that a document is stale.";
-
-/** The authority groups, in report order. Navigation comes last. */
-const GROUP_ORDER = [
-  "Canon",
-  "Overviews",
-  "Accepted proposals",
-  "Other proposals",
-  "Plans",
-  "Navigation",
-];
 
 /** One referencing document, in the shape both outputs carry. */
 interface ImpactEntry {
@@ -52,25 +43,6 @@ interface ImpactGroup {
 function usageError(message: string): number {
   process.stderr.write(`${message}\n${USAGE}\n`);
   return 2;
-}
-
-/** The authority group a document belongs to. */
-function groupOf(doc: DocumentReferences): string {
-  // A home's index.md is a navigation page, not a document of its home's
-  // type. It folds into the existing group of its home, except the canon
-  // home's index, which is navigation rather than canon, so no existing
-  // group fits and it takes the navigation group.
-  if (doc.index === true && doc.type === "canon") return "Navigation";
-  switch (doc.type) {
-    case "canon":
-      return "Canon";
-    case "overview":
-      return "Overviews";
-    case "proposal":
-      return doc.status === "accepted" ? "Accepted proposals" : "Other proposals";
-    case "plan":
-      return "Plans";
-  }
 }
 
 /**

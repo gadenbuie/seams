@@ -235,16 +235,41 @@ describe("seams reconcile", () => {
     };
     assert.deepEqual(
       json.references.groups.map((group) => group.label),
-      ["Canon", "Overviews", "Accepted proposals", "Other proposals", "Plans"],
+      ["Canon", "Overviews", "Accepted proposals", "Other proposals", "Plans", "Navigation"],
     );
     assert.deepEqual(lines("Canon"), [["docs/design/canon.md", [7, 9]]]);
     assert.deepEqual(lines("Overviews"), [["docs/design/overviews/system.md", [7]]]);
     assert.deepEqual(lines("Accepted proposals"), [[".agents/proposals/0001-accepted.md", [9]]]);
     assert.deepEqual(lines("Other proposals"), [[".agents/proposals/0002-draft.md", [9, 11]]]);
     assert.deepEqual(lines("Plans"), [[".agents/plans/0001-active.md", [9]]]);
-    assert.equal(json.references.total, 7);
-    assert.equal(json.references.shown, 7);
+    // The canon home's index is navigation, not canon, so it takes the
+    // navigation group instead of joining the Canon group.
+    assert.deepEqual(lines("Navigation"), [["docs/design/index.md", [5]]]);
+    assert.equal(json.references.total, 8);
+    assert.equal(json.references.shown, 8);
     assert.equal(json.references.omitted, 0);
+  });
+
+  it("places the canon home's index under Navigation, the same group as impact", () => {
+    const cwd = gitRepo();
+    // The fixture's canon-home index names the changed parser. Canon says
+    // the design index is navigation, not canon, so both commands must
+    // report it under the same group: the duplicated rule once drifted here.
+    const impactResult = run(["impact", "src/a/b.ts", "--json"], cwd);
+    assert.equal(impactResult.status, 0);
+    const impact = JSON.parse(impactResult.stdout) as {
+      groups: { label: string; entries: { path: string }[] }[];
+    };
+    const { json } = reconcileJson(["--since", "HEAD~1"], cwd);
+    const groupOfIndex = (groups: { label: string; entries: { path: string } }[]): string => {
+      const labels = groups
+        .filter((group) => group.entries.some((entry) => entry.path === "docs/design/index.md"))
+        .map((group) => group.label);
+      assert.equal(labels.length, 1, "the index appears in exactly one group");
+      return labels[0];
+    };
+    assert.equal(groupOfIndex(impact.groups), "Navigation");
+    assert.equal(groupOfIndex(json.references.groups), "Navigation");
   });
 
   it("reports broken links and exits 1, but reports no index coverage problems", () => {
@@ -283,13 +308,13 @@ describe("seams reconcile", () => {
     assert.equal(json.changedFiles.uncommitted.items.length, 1);
     assert.equal(json.changedFiles.uncommitted.omitted, 1);
     assert.equal(json.references.shown, 1);
-    assert.equal(json.references.omitted, 6);
+    assert.equal(json.references.omitted, 7);
     assert.equal(json.brokenLinks.items.length, 1);
     assert.equal(json.candidates.items.length, 1);
     assert.equal(json.candidates.omitted, 2);
 
     const text = run(["reconcile", "--since", "HEAD~1", "--limit", "1"], cwd);
-    assert.ok(text.stdout.includes("Showing 1 of 7 references."));
+    assert.ok(text.stdout.includes("Showing 1 of 8 references."));
     assert.ok(text.stdout.includes("(1 more omitted)"));
     assert.ok(text.stdout.includes("(2 more omitted)"));
   });

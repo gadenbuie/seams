@@ -24,6 +24,7 @@ import { linksCheck } from "../check/links.ts";
 import type { Finding } from "../check/types.ts";
 import { findRoot, loadProject, type Project } from "../config.ts";
 import { discoverDocuments } from "../docs/discover.ts";
+import { GROUP_ORDER, groupOf } from "../docs/groups.ts";
 import {
   findReferences,
   type DocumentReferences,
@@ -41,9 +42,6 @@ const NOTE =
 
 const SKILL_NOTE =
   "This command reports evidence only. Interpret drift and propose corrections with the seams-reconcile skill.";
-
-/** The authority groups, in report order, the same grouping as `impact`. */
-const GROUP_ORDER = ["Canon", "Overviews", "Accepted proposals", "Other proposals", "Plans"];
 
 /** Terminal statuses per document type, from the status check's vocabularies. */
 const TERMINAL_STATUSES: Record<"proposal" | "plan", readonly string[]> = {
@@ -236,20 +234,6 @@ function changedFiles(
       ),
     ],
   };
-}
-
-/** The authority group a document belongs to, the same grouping as `impact`. */
-function groupOf(doc: DocumentReferences): string {
-  switch (doc.type) {
-    case "canon":
-      return "Canon";
-    case "overview":
-      return "Overviews";
-    case "proposal":
-      return doc.status === "accepted" ? "Accepted proposals" : "Other proposals";
-    case "plan":
-      return "Plans";
-  }
 }
 
 /** Bucket the documents into authority groups, keeping discovery order. */
