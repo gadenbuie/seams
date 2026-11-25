@@ -14,6 +14,52 @@
         }, tree);
     };
 
+    // The proposal card opens in two states: the summary shows in the
+    // preview, and one button reveals the whole document while a sticky
+    // bar holds a close control at the bottom of the card. Closing also
+    // walks the reader back to the card, since the collapsed text no
+    // longer fills the screen.
+    var wireExcerpt = function () {
+        var more = document.querySelector('.home-excerpt-more');
+        if (!more || more.dataset.wired) return;
+        more.dataset.wired = '1';
+        var rest = more.querySelector('.home-excerpt-rest');
+        var toggle = more.querySelector('.home-excerpt-toggle');
+        var card = more.closest('.home-excerpt');
+        var hide = card.querySelector('.home-excerpt-hidebar button');
+        // The preview ends exactly where the motivation section begins,
+        // so the fade covers the summary's last lines and the next
+        // heading never peeks through.
+        var sizePreview = function () {
+            card.style.setProperty('--home-preview-h', rest.offsetTop + 'px');
+        };
+        var setCollapse = function (collapsed) {
+            if (collapsed) {
+                card.setAttribute('data-collapsed', '');
+            } else {
+                card.removeAttribute('data-collapsed');
+            }
+            toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+            rest.inert = collapsed;
+            rest.setAttribute('aria-hidden', collapsed ? 'true' : 'false');
+        };
+        toggle.addEventListener('click', function () { setCollapse(false); });
+        hide.addEventListener('click', function () {
+            setCollapse(true);
+            if (card) {
+                var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                card.scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'start' });
+            }
+        });
+        sizePreview();
+        // Webfonts change how the summary wraps; re-measure when they land.
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(sizePreview);
+        }
+        window.addEventListener('resize', sizePreview);
+        setCollapse(true);
+    };
+
     var apply = function () {
         var slug = String(read('page.slug') || '');
         var base = String(read('site.base') || '/');
@@ -27,6 +73,7 @@
             wireCopyButtons();
             wireSeams();
             wireLoopThread();
+            wireExcerpt();
         }
     };
 
@@ -127,9 +174,10 @@
         });
     };
 
-    // The install chip copies its command and says so for a moment.
+    // The install chip and the prompt box copy their command and say so
+    // for a moment.
     var wireCopyButtons = function () {
-        document.querySelectorAll('.home-install[data-copy]').forEach(function (btn) {
+        document.querySelectorAll('.home-install[data-copy], .home-copy[data-copy]').forEach(function (btn) {
             if (btn.dataset.wired) return;
             btn.dataset.wired = '1';
             btn.addEventListener('click', function () {

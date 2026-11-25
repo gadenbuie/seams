@@ -23,6 +23,29 @@
     --home-accent-strong: #8f300a;
     --home-stitch: #9ebc9f;
     --home-plum: #66225c;
+
+    /* The repo tree reads as a terminal window whose content sits on
+       white: the title bar carries the tint, the body stays clean, and
+       the caption sits between them. Dark mode keeps the same hierarchy
+       one step deeper. */
+    --home-terminal-bg: #ffffff;
+    --home-terminal-border: #d8c8ba;
+    --home-terminal-bar: #f0e8dd;
+    --home-terminal-caption-bg: #f8f4ee;
+    --home-terminal-text: #43303a;
+    --home-terminal-muted: #6d5e66;
+    --home-terminal-caption: #5d4e57;
+    --home-terminal-accent: #8f300a;
+    --home-terminal-dot-rust: #b7410e;
+    --home-terminal-dot-sage: #6f8a70;
+    --home-terminal-dot-plum: #66225c;
+    --home-terminal-shadow: rgba(42, 26, 36, 0.18);
+
+    /* The quilt patches label themselves in a very dark shade of their
+       own fabric; dark mode flips to a light shade of the same hue. */
+    --home-patch-rust: #5f2a12;
+    --home-patch-sage: #3c4c3d;
+    --home-patch-plum: #3a1a34;
     --home-display: "Fraunces", "Iowan Old Style", Georgia, serif;
     --home-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --home-mono: "JetBrains Mono", SFMono-Regular, Consolas, Menlo, monospace;
@@ -71,6 +94,20 @@
     --home-accent-strong: #f2946e;
     --home-stitch: #6f8a70;
     --home-plum: #c993b8;
+
+    --home-terminal-bg: #241c1d;
+    --home-terminal-border: #3d2d33;
+    --home-terminal-bar: #1a1315;
+    --home-terminal-caption-bg: #1f1819;
+    --home-terminal-text: #ece2d9;
+    --home-terminal-muted: #a8979f;
+    --home-terminal-caption: #d3c6c3;
+    --home-terminal-accent: #e5794e;
+    --home-terminal-shadow: rgba(0, 0, 0, 0.55);
+
+    --home-patch-rust: #f0a583;
+    --home-patch-sage: #9db8a0;
+    --home-patch-plum: #cfa0c4;
     --bg-color: var(--home-paper);
     --header-bg: rgba(26, 21, 22, 0.85);
     --header-border: var(--home-border);
@@ -540,19 +577,39 @@ html[data-theme="dark"] .home-button-primary:hover {
 
 .home-tree {
     margin: 0.6rem 0 0;
-    background: var(--home-surface);
-    border: 1px dashed var(--home-border-strong);
+    background: var(--home-terminal-bg);
+    border: 1px solid var(--home-terminal-border);
     border-radius: 12px;
     overflow: hidden;
+    box-shadow: 0 16px 32px -20px var(--home-terminal-shadow);
 }
 
 .home-tree-title {
+    position: relative;
     font-family: var(--home-mono);
     font-size: 0.78rem;
-    color: var(--home-muted);
+    color: var(--home-terminal-muted);
     margin: 0;
-    padding: 0.7rem 1.2rem;
-    border-bottom: 1px dashed var(--home-border);
+    padding: 0.65rem 1.2rem;
+    background: var(--home-terminal-bar);
+    border-bottom: 1px solid var(--home-terminal-border);
+    text-align: center;
+}
+
+/* The window buttons are three dots drawn from the palette: the accent,
+   the stitch green, and the plum. One element carries all three through
+   its box shadows, so the markup stays untouched. */
+.home-tree-title::before {
+    content: "";
+    position: absolute;
+    left: 1.2rem;
+    top: 50%;
+    width: 9px;
+    height: 9px;
+    margin-top: -4.5px;
+    border-radius: 50%;
+    background: var(--home-terminal-dot-rust);
+    box-shadow: 15px 0 0 var(--home-terminal-dot-sage), 30px 0 0 var(--home-terminal-dot-plum);
 }
 
 .home-tree-title code {
@@ -564,6 +621,7 @@ html[data-theme="dark"] .home-button-primary:hover {
     padding: 1.1rem 1.2rem 1.2rem;
     font-family: var(--home-mono);
     font-size: 0.82rem;
+    color: var(--home-terminal-text);
 }
 
 .home-tree-line {
@@ -573,17 +631,42 @@ html[data-theme="dark"] .home-button-primary:hover {
     margin: 0;
     line-height: 2.05;
     white-space: pre;
+    transition: opacity 0.25s ease-out;
+}
+
+/* Pointing at the tree dims the other lines and brings the hovered
+   line up to the page's own ink, notes included. */
+.home-tree-body:hover .home-tree-line:not(:hover) {
+    opacity: 0.4;
+}
+
+.home-tree-line:hover,
+.home-tree-line:hover i,
+.home-tree-line:hover .home-tree-branch,
+.home-tree-line:hover .home-tree-note {
+    color: var(--home-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .home-tree-line {
+        transition: none;
+    }
+}
+
+.home-tree-branch {
+    color: var(--home-terminal-muted);
 }
 
 .home-tree-line i {
     font-style: normal;
-    color: var(--home-muted);
+    font-weight: 500;
+    color: var(--home-terminal-text);
 }
 
 .home-tree-note {
     font-family: var(--home-body);
     font-size: 0.8rem;
-    color: var(--home-muted);
+    color: var(--home-terminal-muted);
     margin-left: auto;
     padding-left: 1.5rem;
     white-space: normal;
@@ -592,14 +675,25 @@ html[data-theme="dark"] .home-button-primary:hover {
 
 .home-tree-canon .home-tree-note,
 .home-tree-canon .home-tree-note b {
-    color: var(--home-accent);
+    color: var(--home-terminal-accent);
 }
 
-.home-tree-caption {
-    font-size: 0.86rem;
-    color: var(--home-muted);
+/* The caption reads as a comment on the file it describes. docmd's own
+   figcaption rule is more specific, so the selector matches its weight. */
+main .home-tree-caption {
+    font-family: var(--home-mono);
+    font-style: normal;
+    font-size: 0.78rem;
+    line-height: 1.65;
+    color: var(--home-terminal-caption);
+    background: var(--home-terminal-caption-bg);
     padding: 0.9rem 1.2rem;
-    border-top: 1px solid var(--home-border);
+    border-top: 1px solid var(--home-terminal-border);
+}
+
+/* Selection inside the terminal follows the window, not the page. */
+.home-tree ::selection {
+    background: color-mix(in srgb, var(--home-terminal-accent) 35%, transparent);
 }
 
 /* ---------------------------------------------------------------------------
@@ -617,6 +711,8 @@ html[data-theme="dark"] .home-button-primary:hover {
     font-family: var(--home-mono);
     font-size: 0.68rem;
     font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
     color: var(--home-muted);
     text-align: left;
     padding: 0.6rem 1rem 0.6rem 0;
@@ -641,15 +737,18 @@ html[data-theme="dark"] .home-button-primary:hover {
     background: none;
 }
 
-.home-perm-canon {
-    color: var(--home-accent);
-}
-
 .home-perm-where {
     font-family: var(--home-mono);
     font-size: 0.78rem;
     color: var(--home-muted);
     white-space: nowrap;
+}
+
+/* docmd tints hovered table rows; this table reads as a record of what
+   each kind of information is, not a list of links, so the hover stays
+   off. */
+.home .home-perm tr:hover td {
+    background: none;
 }
 
 /* ---------------------------------------------------------------------------
@@ -660,10 +759,11 @@ html[data-theme="dark"] .home-button-primary:hover {
     margin: 2.5rem 0 0;
     max-width: 44rem;
     border: 1px dashed var(--home-border-strong);
-    border-left: 3px solid var(--home-accent);
     border-radius: 10px;
     background: var(--home-surface);
-    overflow: hidden;
+    /* No overflow clipping here: it would become the containing block
+       for the sticky hide bar and keep it from reaching the viewport
+       edge. The corners it would clip are rounded explicitly below. */
 }
 
 .home-excerpt-path {
@@ -703,25 +803,158 @@ html[data-theme="dark"] .home-button-primary:hover {
     font-size: inherit;
 }
 
-.home-excerpt-quote {
-    margin: 1.1rem 0 0;
-    padding: 0;
-}
-
-.home-excerpt-quote p {
-    font-family: var(--home-display);
-    font-style: italic;
-    font-size: 1.25rem;
-    line-height: 1.45;
-    color: var(--home-ink);
-    margin: 0;
-}
-
 .home-excerpt-caption {
+    border-radius: 0 0 9px 9px;
     font-size: 0.86rem;
     color: var(--home-muted);
     padding: 0.9rem 1.3rem;
     border-top: 1px dashed var(--home-stitch);
+}
+
+/* The full proposal opens in two states. Collapsed, the summary shows
+   in the preview and its last lines fade out before the motivation
+   section begins; one button reveals the whole document. While it is
+   open, a sticky bar holds the bottom of the card at the viewport edge,
+   so closing never needs a scroll back. The collapsed state lives on
+   the card, since the bar and the actions sit outside the reveal
+   itself. The preview height is measured by home-layout.js. */
+.home-excerpt[data-collapsed] .home-excerpt-doc {
+    overflow: hidden;
+    max-height: var(--home-preview-h, 15rem);
+    -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 4.5rem), transparent);
+    mask-image: linear-gradient(to bottom, black calc(100% - 4.5rem), transparent);
+}
+
+.home-excerpt[data-collapsed] .home-excerpt-hidebar {
+    display: none;
+}
+
+.home-excerpt:not([data-collapsed]) .home-excerpt-actions {
+    display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .home-excerpt:not([data-collapsed]) .home-excerpt-rest {
+        animation: home-reveal 0.4s ease-out;
+    }
+}
+
+@keyframes home-reveal {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.home-excerpt-toggle,
+.home-excerpt-hide {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--home-mono);
+    font-size: 0.8rem;
+    color: var(--home-accent);
+    background: none;
+    border: none;
+    padding: 0.3rem 0.5rem;
+    cursor: pointer;
+}
+
+.home-excerpt-toggle:hover,
+.home-excerpt-hide:hover {
+    color: var(--home-accent-strong);
+}
+
+.home-excerpt-toggle:focus-visible,
+.home-excerpt-hide:focus-visible {
+    outline: 2px solid var(--home-accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
+.home-excerpt-toggle::after,
+.home-excerpt-hide::after {
+    content: "";
+    width: 7px;
+    height: 7px;
+    margin-top: -3px;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+}
+
+.home-excerpt-toggle::after {
+    transform: rotate(45deg);
+}
+
+.home-excerpt-hide::after {
+    transform: rotate(225deg);
+}
+
+.home-excerpt-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.4rem;
+}
+
+.home-excerpt-hidebar {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    margin: 0.4rem -1.3rem -1.4rem;
+    padding: 0.55rem 1.3rem;
+    background: var(--home-surface);
+    border-top: 1px dashed var(--home-border);
+}
+
+.home-excerpt-doc {
+    position: relative;
+    margin-top: 1.4rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed var(--home-border);
+    font-size: 0.94rem;
+}
+
+.home-excerpt-doc h3,
+.home-excerpt-doc h4 {
+    font-family: var(--home-display);
+    font-weight: 600;
+    border-bottom: none;
+    padding-bottom: 0;
+    color: var(--home-ink);
+}
+
+.home-excerpt-doc h3 {
+    font-size: 1.15rem;
+    margin: 2rem 0 0.7rem;
+}
+
+.home-excerpt-doc h4 {
+    font-size: 1rem;
+    margin: 1.6rem 0 0.5rem;
+}
+
+.home-excerpt-doc > :first-child {
+    margin-top: 0;
+}
+
+.home-excerpt-doc p {
+    margin: 0 0 0.9rem;
+}
+
+.home-excerpt-doc ul,
+.home-excerpt-doc ol {
+    margin: 0 0 0.9rem;
+    padding-left: 1.4rem;
+}
+
+.home-excerpt-doc li {
+    margin: 0 0 0.35rem;
 }
 
 /* ---------------------------------------------------------------------------
@@ -773,11 +1006,24 @@ html[data-theme="dark"] .home-button-primary:hover {
     border-radius: 50%;
 }
 
-/* The steps the operator owns sit in the accent color. */
-.home-loop-step:nth-child(2) .home-loop-num,
-.home-loop-step:nth-child(5) .home-loop-num {
+/* The steps the operator owns sit in the accent color; the agent-driven
+   steps keep the quiet look, with a fainter circle and a softened
+   heading, so who decides each step reads at a glance. */
+.home-loop-step:nth-of-type(1) .home-loop-num,
+.home-loop-step:nth-of-type(2) .home-loop-num,
+.home-loop-step:nth-of-type(5) .home-loop-num {
     border-color: var(--home-accent);
     color: var(--home-accent);
+}
+
+.home-loop-step:nth-of-type(3) .home-loop-num,
+.home-loop-step:nth-of-type(4) .home-loop-num {
+    border-color: var(--home-border);
+}
+
+.home-loop-step:nth-of-type(3) .home-loop-what,
+.home-loop-step:nth-of-type(4) .home-loop-what {
+    color: color-mix(in srgb, var(--home-ink) 76%, var(--home-paper));
 }
 
 /* The thread between the stages runs as the same conveyor stitch as
@@ -884,8 +1130,9 @@ html[data-theme="dark"] .home-button-primary:hover {
     margin-bottom: 0.35rem;
 }
 
-.home-loop-step:nth-child(2) .home-loop-who,
-.home-loop-step:nth-child(5) .home-loop-who {
+.home-loop-step:nth-of-type(1) .home-loop-who,
+.home-loop-step:nth-of-type(2) .home-loop-who,
+.home-loop-step:nth-of-type(5) .home-loop-who {
     color: var(--home-accent);
 }
 
@@ -935,16 +1182,25 @@ html[data-theme="dark"] .home-button-primary:hover {
     padding: 0 0.4rem;
 }
 
+/* The return path runs under the whole row of stages, from the fifth
+   back to the first. On narrow screens the stages stack vertically, so
+   the wide curve steps aside for the glyph the text already carries. */
 .home-loop-return {
     font-size: 0.88rem;
     color: var(--home-muted);
-    margin: 1.8rem 0 0;
+    margin: 1.6rem 0 0;
+    text-align: center;
 }
 
-.home-loop-return::before {
-    content: "\21B6";
-    margin-right: 0.45rem;
-    color: var(--home-accent);
+.home-loop-return svg {
+    display: block;
+    width: 100%;
+    height: 38px;
+    margin: 0 0 0.2rem;
+}
+
+.home-loop-return path {
+    stroke: var(--home-border-strong);
 }
 
 /* ---------------------------------------------------------------------------
@@ -956,38 +1212,97 @@ html[data-theme="dark"] .home-button-primary:hover {
     margin: 2rem 0 0;
     padding: 0;
     max-width: 46rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr));
+    gap: 1rem;
 }
 
+/* Each path is a patch in a small quilt: squares cut from the palette's
+   fabrics, each carrying an inset stitch, hung slightly off square like
+   hand-sewn work. Hover straightens the patch and lifts it off the
+   paper. */
 .home-path {
+    position: relative;
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 1.5rem;
-    padding: 0.85rem 0;
-    border-bottom: 1px dashed var(--home-border);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.55rem;
+    padding: 1.05rem 1.15rem;
+    border: 1px solid var(--home-border-strong);
+    border-radius: 8px;
+    transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
 }
 
-.home-path:first-child {
-    border-top: 1px dashed var(--home-border);
+.home-path:nth-child(odd) {
+    transform: rotate(0.5deg);
+}
+
+.home-path:nth-child(even) {
+    transform: rotate(-0.45deg);
+}
+
+.home-path:nth-child(1) {
+    background: color-mix(in srgb, var(--home-accent) 6%, var(--home-surface));
+}
+
+.home-path:nth-child(2) {
+    background: color-mix(in srgb, var(--home-stitch) 10%, var(--home-surface));
+}
+
+.home-path:nth-child(3) {
+    background: color-mix(in srgb, var(--home-plum) 6%, var(--home-surface));
+}
+
+.home-path:nth-child(4) {
+    background: color-mix(in srgb, var(--home-accent) 3%, var(--home-surface));
+}
+
+.home-path:nth-child(5) {
+    background: color-mix(in srgb, var(--home-stitch) 5%, var(--home-surface));
+}
+
+.home-path::after {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    border: 1.5px dashed color-mix(in srgb, var(--home-ink) 22%, transparent);
+    border-radius: 4px;
+    pointer-events: none;
+}
+
+.home-path:hover {
+    transform: rotate(0deg);
+    box-shadow: 0 10px 22px -14px var(--home-terminal-shadow);
 }
 
 .home-path-want {
-    font-size: 0.96rem;
+    font-family: var(--home-mono);
+    font-size: 0.8rem;
+    color: var(--home-patch-rust);
+}
+
+.home-path:nth-child(2) .home-path-want,
+.home-path:nth-child(5) .home-path-want {
+    color: var(--home-patch-sage);
+}
+
+.home-path:nth-child(3) .home-path-want {
+    color: var(--home-patch-plum);
 }
 
 .home-path-links {
     display: flex;
-    gap: 1.2rem;
-    flex-wrap: wrap;
-    justify-content: flex-end;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
 }
 
 .home-path-link {
-    color: var(--home-accent);
+    font-family: var(--home-display);
+    font-size: 1.12rem;
     font-weight: 500;
-    font-size: 0.92rem;
+    color: var(--home-accent);
     text-decoration: none;
-    white-space: nowrap;
 }
 
 .home-path-link:hover {
@@ -999,13 +1314,24 @@ html[data-theme="dark"] .home-button-primary:hover {
     content: "\2192";
     margin-left: 0.35rem;
     color: var(--home-muted);
+    font-family: var(--home-body);
+    font-size: 0.85em;
+    display: inline-block;
+    transition: transform 0.25s ease-out;
+}
+
+.home-path-link:hover::after {
+    transform: translateX(3px);
 }
 
 /* ---------------------------------------------------------------------------
    Start a project
    --------------------------------------------------------------------------- */
 
-.home-install-strip {
+/* The section rule above gives every section its seam divider and 3.5rem
+   of air. This section is its own card, so it takes the card's own even
+   padding instead of the section air that would pile up inside it. */
+.home .home-install-strip {
     background: var(--home-surface);
     border: 1px dashed var(--home-border-strong);
     border-radius: 12px;
@@ -1024,30 +1350,61 @@ html[data-theme="dark"] .home-button-primary:hover {
     max-width: 44rem;
 }
 
+/* The prompt is a control, not a card: a copyable line of text with its
+   copy button attached to the same edge. */
+.home-install-prompt {
+    display: flex;
+    align-items: stretch;
+    max-width: 44rem;
+    margin: 1.2rem 0 1.1rem;
+    background: var(--code-bg);
+    border: 1px solid var(--home-border);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.home-install-cmd {
+    flex: 1;
+    display: block;
+    font-family: var(--home-mono);
+    font-size: 0.88rem;
+    padding: 0.8rem 1.1rem;
+    margin: 0 !important;
+}
+
+.home-install-cmd code {
+    background: none;
+    padding: 0;
+    font-size: inherit;
+    color: var(--home-accent);
+}
+
+.home-copy {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--home-mono);
+    font-size: 0.78rem;
+    color: var(--home-muted);
+    background: none;
+    border: none;
+    border-left: 1px dashed var(--home-border);
+    padding: 0 1rem;
+    cursor: pointer;
+}
+
+.home-copy:hover {
+    color: var(--home-accent);
+    background: color-mix(in srgb, var(--home-accent) 5%, transparent);
+}
+
+.home-copy .home-install-hint.is-copied {
+    color: var(--home-stitch);
+}
+
 .home-install-note {
     margin-top: 0.8rem !important;
     font-size: 0.88rem;
-    color: var(--home-muted);
-}
-
-/* ---------------------------------------------------------------------------
-   Colophon
-   --------------------------------------------------------------------------- */
-
-.home .home-meta {
-    border-top: none;
-    padding-top: 0;
-    margin-top: 3rem;
-}
-
-.home-meta p {
-    font-size: 0.86rem;
-    color: var(--home-muted);
-    max-width: 46rem;
-    margin: 0;
-}
-
-.home-meta a {
     color: var(--home-muted);
 }
 
@@ -1329,13 +1686,27 @@ html[data-theme="dark"] .home-button-primary:hover {
         white-space: normal;
     }
 
-    .home-path {
-        flex-direction: column;
-        gap: 0.3rem;
+    .home-paths {
+        grid-template-columns: 1fr;
     }
 
-    .home-path-links {
-        justify-content: flex-start;
+    .home-loop-return svg {
+        height: 26px;
+    }
+
+    .home-tree-title::before {
+        display: none;
+    }
+
+    .home-install-prompt {
+        flex-direction: column;
+    }
+
+    .home-copy {
+        justify-content: center;
+        border-left: none;
+        border-top: 1px dashed var(--home-border);
+        padding: 0.6rem;
     }
 }
 
@@ -1361,6 +1732,10 @@ html[data-theme="dark"] .home-button-primary:hover {
         font-size: 0.74rem;
     }
 
+    .home-excerpt-doc {
+        font-size: 0.92rem;
+    }
+
     .home-tree-line {
         white-space: normal;
     }
@@ -1374,6 +1749,10 @@ html[data-theme="dark"] .home-button-primary:hover {
 
     .home-excerpt-body {
         padding: 1rem 1rem 1.1rem;
+    }
+
+    .home-excerpt-hidebar {
+        margin: 0.4rem -1rem -1.1rem;
     }
 
     .home-excerpt-frontmatter {
