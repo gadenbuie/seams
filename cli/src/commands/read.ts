@@ -31,6 +31,7 @@ const HOME_TYPES: Record<(typeof PATH_KEYS)[number], DocType> = {
   overviews: "overview",
   proposals: "proposal",
   plans: "plan",
+  notes: "note",
 };
 
 function usageError(message: string): number {

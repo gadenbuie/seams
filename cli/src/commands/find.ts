@@ -24,13 +24,14 @@ import { outline, type DocLine, type Heading } from "../docs/outline.ts";
 import { jsonEnvelope, printJson, printText } from "../output.ts";
 import type { Command, CommandContext } from "./index.ts";
 
-const TYPE_FLAGS = ["canon", "overviews", "proposals", "plans"] as const;
+const TYPE_FLAGS = ["canon", "overviews", "proposals", "plans", "notes"] as const;
 
 const FLAG_TO_TYPE: Record<(typeof TYPE_FLAGS)[number], DocType> = {
   canon: "canon",
   overviews: "overview",
   proposals: "proposal",
   plans: "plan",
+  notes: "note",
 };
 
 const DEFAULT_LIMIT = 10;
@@ -46,7 +47,7 @@ const PROPOSAL_HIDDEN_STATUSES = ["draft", "rejected", "deferred", "withdrawn"];
 const PLAN_HIDDEN_STATUSES = ["draft", "abandoned"];
 
 const USAGE =
-  "Usage: seams find <query> [--type canon|overviews|proposals|plans] " +
+  "Usage: seams find <query> [--type canon|overviews|proposals|plans|notes] " +
   "[--status <status>] [--include-all] [--limit N] [--max-bytes N]";
 
 function usageError(message: string): number {
@@ -339,7 +340,12 @@ function run(ctx: CommandContext): number {
 
   const project = loadProject(findRoot(process.cwd()));
   const { documents, warnings } = discoverDocuments(project);
-  const typed = filter === undefined ? documents : documents.filter((doc) => doc.type === filter);
+  // General searches omit notes, the lowest-weight local memory; only the
+  // explicit --type notes selects them.
+  const typed =
+    filter === undefined
+      ? documents.filter((doc) => doc.type !== "note")
+      : documents.filter((doc) => doc.type === filter);
 
   // Status filtering. An explicit --status is a filter like --type: only
   // documents carrying that exact status are searched, so canon and overviews,

@@ -10,13 +10,14 @@ import { discoverDocuments, TYPE_ORDER, type DocType } from "../docs/discover.ts
 import { jsonEnvelope, printJson, printText } from "../output.ts";
 import type { Command, CommandContext } from "./index.ts";
 
-const TYPE_FLAGS = ["canon", "overviews", "proposals", "plans"] as const;
+const TYPE_FLAGS = ["canon", "overviews", "proposals", "plans", "notes"] as const;
 
 const FLAG_TO_TYPE: Record<(typeof TYPE_FLAGS)[number], DocType> = {
   canon: "canon",
   overviews: "overview",
   proposals: "proposal",
   plans: "plan",
+  notes: "note",
 };
 
 /** The plural `--type` label each document type shows as in grouped text output. */
@@ -25,9 +26,10 @@ const TYPE_LABELS: Record<DocType, (typeof TYPE_FLAGS)[number]> = {
   overview: "overviews",
   proposal: "proposals",
   plan: "plans",
+  note: "notes",
 };
 
-const USAGE = "Usage: seams list [--type canon|overviews|proposals|plans]";
+const USAGE = "Usage: seams list [--type canon|overviews|proposals|plans|notes]";
 
 function usageError(message: string): number {
   process.stderr.write(`${message}\n${USAGE}\n`);
@@ -84,7 +86,12 @@ function run(ctx: CommandContext): number {
 
   const project = loadProject(findRoot(process.cwd()));
   const { documents, warnings } = discoverDocuments(project);
-  const selected = filter === undefined ? documents : documents.filter((doc) => doc.type === filter);
+  // General listings omit notes, the lowest-weight local memory; only the
+  // explicit --type notes selects them.
+  const selected =
+    filter === undefined
+      ? documents.filter((doc) => doc.type !== "note")
+      : documents.filter((doc) => doc.type === filter);
 
   if (ctx.json) {
     printJson(jsonEnvelope("list", { documents: selected, warnings }));

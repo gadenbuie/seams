@@ -35,5 +35,10 @@ export function groupOf(doc: DocumentReferences): string {
       return doc.status === "accepted" ? "Accepted proposals" : "Other proposals";
     case "plan":
       return "Plans";
+    case "note":
+      // Notes never reach a reference report: findReferences excludes them
+      // as local, lowest-weight context. This case keeps the switch exhaustive
+      // rather than adding a maintenance group no report can reach.
+      return "Notes";
   }
 }
