@@ -21,14 +21,15 @@ Maintaining the overviews a unit of work touches stays with `seams-work`.
 ## Start
 
 1. Read what the operator gave you: `<subject | path-to-overview>` and any `[notes]`.
-   A path names an existing overview, so this is a refresh; go to **Refresh an overview**.
-   A subject names a system or subsystem to explain; go to **Create an overview**.
+   A path names an existing overview, so the work is a refresh; a subject names a system or subsystem to explain, so the work is a new overview.
 1. Read the documentation homes in `AGENTS.md`, the design index, and the design overviews index.
    Read the existing overviews whose subjects neighbor the one at hand, so the new document does not duplicate an explanation another document already owns.
 1. Read the canon that governs the subject, and read the code and user documentation well enough to say what exists today.
 1. Apply the creation test from the shared procedure.
+   It gates a new overview; a refresh does not repeat it, because the operator has already settled that the document exists.
    When the design is cheaply recoverable from code and user documentation, or an existing document already owns the explanation, say so and stop.
    An existing document can also need a small correction rather than a new one, and the operator decides what to do instead.
+1. Then go to **Create an overview** or **Refresh an overview**, as step 1 classified the request.
 
 ## Create an overview
 
@@ -51,12 +52,13 @@ Maintaining the overviews a unit of work touches stays with `seams-work`.
 1. Verify each claim against the code and tests it names.
    Report contradictions rather than resolving them silently.
 1. Rewrite the current explanation in place, following the shared procedure and `seams-orient`.
-   Update the frontmatter `description` and the index entry when what the document is for has changed.
+   When the refresh would change what the document is for, confirm that change with the operator before rewriting, and update the frontmatter `description` and the index entry after.
 1. Run the project's checks, then hand off with a read-back of what changed and why, with the evidence for each change.
 
 ## Rules
 
-- Nothing is written before the operator confirms the scope.
+- The operator confirms the scope before a new overview is written.
+  A refresh rewrites in place and reports what changed and why.
 - An overview is maintained memory, not canon.
   It never authorizes work, never overrides canon, and never becomes a decision log.
 - Write the current explanation instead of appending a narrative of the latest change.
