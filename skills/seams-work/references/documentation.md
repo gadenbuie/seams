@@ -44,6 +44,9 @@ The note may stay linked as optional background, but a link to an uncommitted no
 Create an overview when a system or subsystem has connections, constraints, or reasoning that a reader can't recover cheaply from code and user documentation.
 Don't create one for every file, feature, proposal, or unit of work.
 
+This section serves an agent maintaining documentation inside a unit of work.
+When the operator asks for a standalone session to create or refresh an overview, the `seams-overview` skill owns that moment: it scopes the document with the operator, then follows this section for the writing itself.
+
 Keep the collection flat.
 Use a descriptive filename for a system or subsystem overview.
 Most concepts and flows belong in the subsystem overview that owns them.
