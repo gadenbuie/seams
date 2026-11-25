@@ -99,6 +99,9 @@ function gitRepo(): string {
     assert.equal(result.status, 0, `git ${args.join(" ")} failed: ${result.stderr}`);
   };
   git(["init"]);
+  // The fixture repo must not inherit the machine's commit signing: tests
+  // would hang on the operator's keychain instead of failing fast.
+  git(["config", "commit.gpgsign", "false"]);
   git(["add", "-A"]);
   git(["commit", "-m", "base"]);
   writeFileSync(path.join(cwd, "src", "a", "b.ts"), 'export const marker = "b2";\n');
