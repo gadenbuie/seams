@@ -54,7 +54,7 @@
     --glow-color: color-mix(in srgb, var(--home-accent) 7%, transparent);
     --glow-color-strong: color-mix(in srgb, var(--home-accent) 14%, transparent);
     --halo-soft: 0 0 0 4px color-mix(in srgb, var(--home-accent) 10%, transparent);
-    --menubar-bg: var(--home-paper);
+    --menubar-bg: var(--home-surface);
     --menubar-text: var(--home-ink);
 }
 
@@ -94,7 +94,7 @@
     --glow-color: color-mix(in srgb, var(--home-accent) 8%, transparent);
     --glow-color-strong: color-mix(in srgb, var(--home-accent) 16%, transparent);
     --halo-soft: 0 0 0 4px color-mix(in srgb, var(--home-accent) 14%, transparent);
-    --menubar-bg: var(--home-paper);
+    --menubar-bg: var(--home-surface);
     --menubar-text: var(--home-ink);
 }
 
