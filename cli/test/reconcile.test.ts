@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { appendFileSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { appendFileSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
@@ -515,5 +515,36 @@ describe("seams reconcile", () => {
       assert.ok(found > at, `expected ${label} after the previous section`);
       at = found;
     }
+  });
+
+  it("excludes notes from the reference report", () => {
+    const cwd = gitRepo();
+    // A scratch note that references a changed file: without the notes
+    // exclusion it would be the only Markdown document reported for it.
+    mkdirSync(path.join(cwd, "_dev", "notes"), { recursive: true });
+    writeFileSync(
+      path.join(cwd, "_dev", "notes", "scratch.md"),
+      "# Scratch\n\nSee [b.ts](../../src/a/b.ts) for the marker.\n",
+    );
+
+    const { status, json } = reconcileJson(["--since", "HEAD~1"], cwd);
+    // The fixture carries an intentional broken link, so the command exits 1;
+    // this test is about which documents the reference report lists.
+    assert.equal(status, 1);
+    assert.deepEqual(json.warnings, []);
+    const allPaths = json.references.groups.flatMap((group) =>
+      group.entries.map((entry) => entry.path),
+    );
+    assert.equal(allPaths.some((p) => p.startsWith("_dev/notes")), false);
+    assert.equal(
+      json.candidates.items.some((candidate) => candidate.path.startsWith("_dev/notes")),
+      false,
+    );
+    // The shared documents that reference src/a/b.ts still appear.
+    assert.equal(
+      allPaths.some((p) => p === "docs/design/overviews/system.md"),
+      true,
+      JSON.stringify(allPaths),
+    );
   });
 });

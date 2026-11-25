@@ -2,15 +2,18 @@
  * The `links` check: local links in the documentation resolve, and their
  * anchors match a heading in the target file.
  *
- * Scanned files are the Markdown files of the four documentation homes, the
- * root `README.md` and `AGENTS.md`, and the root `skills/` folder when it
- * exists. External `http(s)` and `mailto` links are other sites' concern, and
- * links inside fenced code blocks are code samples, not links. Anchors use
- * GitHub-style slugs, including the `-1` suffix a duplicate heading gets.
+ * Scanned files are the Markdown files of the four shared documentation
+ * homes, the root `README.md` and `AGENTS.md`, and the root `skills/` folder
+ * when it exists. The notes home is not scanned: notes are local, uncommitted
+ * scratch, and a link to something on another branch or later deleted is
+ * their normal state, not a finding. External `http(s)` and `mailto` links
+ * are other sites' concern, and links inside fenced code blocks are code
+ * samples, not links. Anchors use GitHub-style slugs, including the `-1`
+ * suffix a duplicate heading gets.
  */
 import { existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
-import type { Project } from "../config.ts";
+import { SHARED_PATH_KEYS, type Project } from "../config.ts";
 import {
   documentBody,
   extractInlineLinks,
@@ -38,7 +41,10 @@ class AnchorIndex {
 /** The Markdown files the links check scans, as absolute paths, sorted. */
 function scannedFiles(project: Project): string[] {
   const files = new Set<string>();
-  for (const dir of Object.values(project.paths)) {
+  // Only the shared homes: an uncommitted note's dangling link is local
+  // scratch, not a finding that should fail `seams check`.
+  for (const key of SHARED_PATH_KEYS) {
+    const dir = project.paths[key];
     let stats: ReturnType<typeof statSync>;
     try {
       stats = statSync(dir);

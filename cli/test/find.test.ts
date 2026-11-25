@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { existsSync, rmSync } from "node:fs";
 import path from "node:path";
 import { describe, it } from "node:test";
 import { copyFixture } from "./helpers.ts";
@@ -314,6 +315,69 @@ describe("seams find", () => {
       assert.equal(result.status, 2, `expected exit 2 for: ${args.join(" ")}`);
       assert.match(result.stderr, /Usage: seams find/);
     }
+  });
+});
+
+describe("seams find, notes", () => {
+  it("omits notes from a general search", () => {
+    const cwd = copyFixture("notes-project");
+    const result = run(["find", "wobbly"], cwd);
+    assert.equal(result.status, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "No matches for 'wobbly'.\n");
+
+    const { json } = findJson(["wobbly"], cwd);
+    assert.deepEqual(json.results, []);
+    assert.equal(json.excluded, 0);
+
+    // --include-all relaxes status exclusions, not the notes boundary.
+    const all = run(["find", "wobbly", "--include-all"], cwd);
+    assert.equal(all.status, 0);
+    assert.equal(all.stdout, "No matches for 'wobbly'.\n");
+  });
+
+  it("searches notes with --type notes and labels their authority", () => {
+    const cwd = copyFixture("notes-project");
+    const result = run(["find", "wobbly", "--type", "notes"], cwd);
+    assert.equal(result.status, 0);
+    assert.equal(result.stderr, "");
+    const [first, ...rest] = result.stdout.split("\n");
+    assert.equal(rest.filter((line) => line.length > 0).length, 1);
+    assert.match(rest[0], /wobbly experiment/);
+    // The section match sits in the Scratch pad section, whose heading line
+    // belongs to the section, so the anchor is the line the match starts on.
+    assert.match(first, /_dev\/notes\/scratch\.md:3 · note \(not authorization\) · Scratch pad/);
+
+    const { json } = findJson(["wobbly", "--type", "notes"], cwd);
+    assert.deepEqual(json.warnings, []);
+    assert.deepEqual(
+      json.results.map((r) => [r.path, r.authority, r.line]),
+      [["_dev/notes/scratch.md", "note (not authorization)", 3]],
+    );
+    assert.match(json.results[0].excerpt, /wobbly experiment/);
+  });
+
+  it("finds a note through its optional frontmatter", () => {
+    const cwd = copyFixture("notes-project");
+    const { json } = findJson(["optional frontmatter", "--type", "notes"], cwd);
+    assert.deepEqual(
+      json.results.map((r) => [r.path, r.heading, r.line]),
+      [["_dev/notes/summary.md", "Session summary", 5]],
+    );
+    assert.equal(
+      json.results[0].excerpt,
+      "Session summary — Optional frontmatter on a note.",
+    );
+  });
+
+  it("searches no notes and no warning when the notes home is absent", () => {
+    const cwd = copyFixture("notes-project");
+    rmSync(path.join(cwd, "_dev", "notes"), { recursive: true, force: true });
+    const result = run(["find", "wobbly", "--type", "notes"], cwd);
+    assert.equal(result.status, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "No matches for 'wobbly'.\n");
+    assert.equal(existsSync(path.join(cwd, "_dev", "notes")), false);
   });
 });
 

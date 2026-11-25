@@ -28,6 +28,17 @@ The CLI only reads; it never decides what the work needs.
 Without the CLI, do all of this with ordinary file reads.
 The commands change how fast you find a passage, not what you read or what you owe the reader.
 
+## Notes are scratch, not documentation
+
+Local working notes hold short-lived experiments, research, and background.
+They are the lowest-weight project memory: they authorize nothing, they are uncommitted by default, and general documentation reads do not surface them.
+
+`seams list` and `seams find` omit notes, so a documentation read never drags scratch material in.
+Read notes only when the task calls for them, with `seams list --type notes`, `seams find "<words>" --type notes`, or `seams read` by path, and never present a note as a decision or as evidence that work is done.
+
+When your work depends on information in a note, move that information into the shared artifact that owns it, in full: the proposal for an agreed direction, the work item for scope and evidence, the owning document for a lasting explanation.
+The note may stay linked as optional background, but a link to an uncommitted note is never the only record of a decision, scope, acceptance criterion, or evidence.
+
 ## Create a design overview
 
 Create an overview when a system or subsystem has connections, constraints, or reasoning that a reader can't recover cheaply from code and user documentation.

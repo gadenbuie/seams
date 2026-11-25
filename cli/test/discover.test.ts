@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, statSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
@@ -31,6 +31,7 @@ describe("authorityOf", () => {
     assert.equal(authorityOf({ type: "proposal", status: null }), "proposal (not authorization)");
     assert.equal(authorityOf({ type: "plan", status: "draft" }), "draft plan");
     assert.equal(authorityOf({ type: "plan", status: null }), "plan");
+    assert.equal(authorityOf({ type: "note" }), "note (not authorization)");
   });
 });
 
@@ -219,5 +220,86 @@ describe("discoverDocuments", () => {
       documents.map((doc) => doc.path),
       [".agents/design/vision.md", ".agents/design/overviews/system.md"],
     );
+  });
+});
+
+describe("discoverDocuments, notes", () => {
+  it("discovers nested Markdown notes after the shared homes", () => {
+    const { documents, warnings } = discoverFixture("notes-project");
+    assert.deepEqual(warnings, []);
+    assert.deepEqual(
+      documents.filter((doc) => doc.type === "note").map((doc) => doc.path),
+      ["_dev/notes/nested/idea.md", "_dev/notes/scratch.md", "_dev/notes/summary.md"],
+    );
+    assert.equal(
+      documents.some((doc) => doc.path.endsWith("data.txt")),
+      false,
+      "non-Markdown files in the notes home are not discovered",
+    );
+  });
+
+  it("requires no metadata and reports no problems for a plain note", () => {
+    const { documents } = discoverFixture("notes-project");
+    const scratch = byPath(documents, "_dev/notes/scratch.md");
+    assert.equal(scratch.type, "note");
+    assert.equal(scratch.title, "Scratch pad");
+    assert.equal(scratch.description, null);
+    assert.deepEqual(scratch.problems, []);
+    assert.equal(scratch.authority, "note (not authorization)");
+    assert.equal("status" in scratch, false);
+    assert.equal("created" in scratch, false);
+
+    // A note with no H1 falls back to the file name without a problem.
+    const idea = byPath(documents, "_dev/notes/nested/idea.md");
+    assert.equal(idea.title, "idea");
+    assert.deepEqual(idea.problems, []);
+
+    // Frontmatter stays optional, not forbidden: a note may carry it.
+    const summary = byPath(documents, "_dev/notes/summary.md");
+    assert.equal(summary.title, "Session summary");
+    assert.equal(summary.description, "Optional frontmatter on a note.");
+    assert.deepEqual(summary.problems, []);
+  });
+
+  it("stays silent when the notes home is missing", () => {
+    const project = copyFixture("notes-project");
+    rmSync(path.join(project, "_dev", "notes"), { recursive: true, force: true });
+    const { documents, warnings } = discoverDocuments(loadProject(project));
+    assert.deepEqual(warnings, []);
+    assert.equal(documents.some((doc) => doc.type === "note"), false);
+  });
+
+  it("stays silent when the notes path is not a directory", () => {
+    const project = copyFixture("notes-project");
+    rmSync(path.join(project, "_dev", "notes"), { recursive: true, force: true });
+    writeFileSync(path.join(project, "_dev", "notes"), "a file, not a home");
+    const { documents, warnings } = discoverDocuments(loadProject(project));
+    assert.deepEqual(warnings, []);
+    assert.equal(documents.some((doc) => doc.type === "note"), false);
+  });
+
+  it("uses an existing _dev/notes with no manifest entry", () => {
+    const project = copyFixture("notes-project");
+    rmSync(path.join(project, ".agents", "seams.json"), { force: true });
+    const { documents, warnings } = discoverDocuments(loadProject(project));
+    assert.equal(loadProject(project).source, "conventional");
+    assert.deepEqual(warnings, []);
+    const scratch = byPath(documents, "_dev/notes/scratch.md");
+    assert.equal(scratch.type, "note");
+  });
+
+  it("follows a custom notes home from the manifest", () => {
+    const project = copyFixture("notes-project");
+    const manifestPath = path.join(project, ".agents", "seams.json");
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+    manifest.paths.notes = "scratch/pad";
+    writeFileSync(manifestPath, JSON.stringify(manifest));
+    mkdirSync(path.join(project, "scratch", "pad"), { recursive: true });
+    writeFileSync(path.join(project, "scratch", "pad", "moved.md"), "# Moved\n");
+    const { documents, warnings } = discoverDocuments(loadProject(project));
+    assert.deepEqual(warnings, []);
+    const moved = byPath(documents, "scratch/pad/moved.md");
+    assert.equal(moved.type, "note");
+    assert.equal(documents.some((doc) => doc.path.startsWith("_dev/notes")), false);
   });
 });

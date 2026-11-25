@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { existsSync, rmSync } from "node:fs";
 import path from "node:path";
 import { describe, it } from "node:test";
 import { copyFixture } from "./helpers.ts";
@@ -165,5 +166,55 @@ describe("seams list", () => {
 
     const positional = run(["list", "extra"], cwd);
     assert.equal(positional.status, 2);
+  });
+});
+
+describe("seams list, notes", () => {
+  it("omits notes from a general listing", () => {
+    const cwd = copyFixture("notes-project");
+    const result = run(["list"], cwd);
+    assert.equal(result.status, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout.includes("_dev/notes"), false);
+    const headers = lines(result.stdout).filter((line) => line.endsWith(":"));
+    assert.deepEqual(headers, ["canon:", "overviews:", "proposals:", "plans:"]);
+
+    const json = JSON.parse(run(["list", "--json"], cwd).stdout);
+    assert.equal(json.documents.some((doc) => doc.type === "note"), false);
+    assert.deepEqual(json.warnings, []);
+  });
+
+  it("lists notes with --type notes and the note authority", () => {
+    const cwd = copyFixture("notes-project");
+    const result = run(["list", "--type", "notes"], cwd);
+    assert.equal(result.status, 0);
+    assert.equal(result.stderr, "");
+
+    const out = lines(result.stdout);
+    assert.deepEqual(
+      out.filter((line) => line.endsWith(":")),
+      ["notes:"],
+    );
+    const scratch = out.find((line) => line.includes("_dev/notes/scratch.md"));
+    assert.match(
+      scratch ?? "",
+      /_dev\/notes\/scratch\.md · Scratch pad · \d+ bytes · note \(not authorization\)/,
+    );
+    // A plain note's title falls back to the first H1 or the file name.
+    const idea = out.find((line) => line.includes("_dev/notes/nested/idea.md"));
+    assert.match(
+      idea ?? "",
+      /_dev\/notes\/nested\/idea\.md · idea · \d+ bytes · note \(not authorization\)/,
+    );
+  });
+
+  it("lists no notes and no warning when the notes home is absent", () => {
+    const cwd = copyFixture("notes-project");
+    rmSync(path.join(cwd, "_dev", "notes"), { recursive: true, force: true });
+    const result = run(["list", "--type", "notes"], cwd);
+    assert.equal(result.status, 0);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(lines(result.stdout), []);
+    assert.equal(existsSync(path.join(cwd, "_dev", "notes")), false);
   });
 });

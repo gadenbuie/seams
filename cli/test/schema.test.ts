@@ -25,6 +25,26 @@ describe("the bundled schema", () => {
     assert.equal(validate({ schemaVersion: 1, seamsVersion: "0.1.0", extra: true }), false);
   });
 
+  it("accepts an optional paths.notes entry", () => {
+    const schema = JSON.parse(
+      readFileSync(path.resolve(import.meta.dirname, "..", "schemas", "v1", "seams.schema.json"), "utf8"),
+    );
+    const validate = new Ajv2020({ strict: false }).compile(schema);
+    assert.equal(
+      validate({ schemaVersion: 1, seamsVersion: "0.1.0", paths: { notes: "_dev/notes" } }),
+      true,
+      JSON.stringify(validate.errors ?? []),
+    );
+    assert.equal(
+      validate({ schemaVersion: 1, seamsVersion: "0.1.0", paths: { notes: "/etc/notes" } }),
+      false,
+    );
+    assert.equal(
+      validate({ schemaVersion: 1, seamsVersion: "0.1.0", paths: { notes: "../outside" } }),
+      false,
+    );
+  });
+
   it("covers the copied example fixture", () => {
     // copyFixture must keep .agents/seams.json, including hidden directories.
     const project = copyFixture("example");

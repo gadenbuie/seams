@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { cpSync, mkdtempSync, writeFileSync } from "node:fs";
+import { appendFileSync, cpSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
@@ -289,5 +289,40 @@ describe("seams impact", () => {
     const result = run(["impact", "--git-diff"], cwd);
     assert.equal(result.status, 1);
     assert.ok(result.stderr.includes("Not inside a git repository"));
+  });
+});
+
+describe("seams impact, notes", () => {
+  it("never reports a note, even when only a note references the path", () => {
+    const cwd = copyFixture("notes-project");
+    mkdirSync(path.join(cwd, "src"), { recursive: true });
+    writeFileSync(path.join(cwd, "src", "only-note.ts"), "export const marker = 1;\n");
+    appendFileSync(
+      path.join(cwd, "_dev", "notes", "scratch.md"),
+      "Only the scratch note links to [only-note](../../src/only-note.ts).\n",
+    );
+
+    const result = run(["impact", "src/only-note.ts"], cwd);
+    assert.equal(result.status, 0);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(result.stdout.split("\n").filter((l) => l.length > 0), [
+      "No references found for: src/only-note.ts",
+      "These are candidates for review, not proof that a document is stale.",
+    ]);
+
+    const { status, json } = impactJson(["src/only-note.ts"], cwd);
+    assert.equal(status, 0);
+    assert.deepEqual(json.groups, []);
+    assert.equal(json.shown, 0);
+    assert.equal(json.omitted, 0);
+  });
+
+  it("reports the shared documents that reference a path, without the note that links it", () => {
+    const cwd = copyFixture("notes-project");
+    const { status, json } = impactJson(["docs/design/vision.md"], cwd);
+    assert.equal(status, 0);
+    const allPaths = json.groups.flatMap((group) => group.entries.map((entry) => entry.path));
+    assert.equal(allPaths.some((p) => p.startsWith("_dev/notes")), false);
+    assert.ok(allPaths.includes("docs/design/overviews/system.md"), JSON.stringify(allPaths));
   });
 });

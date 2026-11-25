@@ -26,7 +26,7 @@ import {
   manifestPath,
   ManifestError,
   MANIFEST_REPO_PATH,
-  PATH_KEYS,
+  SHARED_PATH_KEYS,
   type Project,
 } from "../config.ts";
 import { checkSkills } from "../skills/check.ts";
@@ -211,9 +211,11 @@ function agentsArea(root: string, project: Project | undefined): DoctorArea {
 
   const content = readFileSync(file, "utf8");
   const hasManifest = existsSync(manifestPath(root));
+  // The AGENTS.md entry point must point at a shared documentation home: a
+  // notes-only mention does not help a fresh agent find canon or memory.
   const homes = project === undefined
     ? []
-    : PATH_KEYS.map((key) => repoPath(project.root, project.paths[key]));
+    : SHARED_PATH_KEYS.map((key) => repoPath(project.root, project.paths[key]));
   const mentionedHome = homes.find((home) => content.includes(home));
 
   if (hasManifest && content.includes(MANIFEST_REPO_PATH)) {

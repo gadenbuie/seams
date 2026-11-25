@@ -13,10 +13,10 @@ import type { PathKey, Project } from "../config.ts";
 import { parseFrontmatter } from "./frontmatter.ts";
 
 /** A document's type, named by the home it lives in. */
-export type DocType = "canon" | "overview" | "proposal" | "plan";
+export type DocType = "canon" | "overview" | "proposal" | "plan" | "note";
 
 /** The display order of document types in catalogs. */
-export const TYPE_ORDER: readonly DocType[] = ["canon", "overview", "proposal", "plan"];
+export const TYPE_ORDER: readonly DocType[] = ["canon", "overview", "proposal", "plan", "note"];
 
 /** The metadata of one discovered document. */
 export interface DocumentMeta {
@@ -64,10 +64,12 @@ interface Home {
   /** The manifest or conventional path key this home reads. */
   pathKey: PathKey;
   type: DocType;
-  /** Overviews nest in subfolders; the other homes list their top level only. */
+  /** Overviews and notes nest in subfolders; the other homes list their top level only. */
   recursive: boolean;
   /** Navigation indexes are never documents of their home's type. */
   skipIndex: boolean;
+  /** An optional home contributes no documents and no warning when it is missing. */
+  optional?: boolean;
 }
 
 const HOMES: readonly Home[] = [
@@ -75,6 +77,7 @@ const HOMES: readonly Home[] = [
   { label: "overviews", pathKey: "overviews", type: "overview", recursive: true, skipIndex: true },
   { label: "proposals", pathKey: "proposals", type: "proposal", recursive: false, skipIndex: false },
   { label: "plans", pathKey: "plans", type: "plan", recursive: false, skipIndex: false },
+  { label: "notes", pathKey: "notes", type: "note", recursive: true, skipIndex: false, optional: true },
 ];
 
 /**
@@ -100,6 +103,8 @@ export function authorityOf(doc: {
       const prefix = doc.status === null || doc.status === undefined ? "" : `${doc.status} `;
       return `${prefix}plan`;
     }
+    case "note":
+      return "note (not authorization)";
   }
 }
 
@@ -170,18 +175,28 @@ function readDocument(project: Project, file: string, type: DocType): DocumentMe
   const text = readFileSync(file, "utf8");
   const { data, bodyStartLine, problems } = parseFrontmatter(text);
 
+  // A note's metadata is optional in full: a plain note with no frontmatter
+  // is the note's normal state, not a gap to report. A frontmatter block that
+  // is present but malformed stays a problem, like any other broken metadata.
+  if (type === "note") {
+    const plain = problems.indexOf("missing frontmatter");
+    if (plain !== -1) problems.splice(plain, 1);
+  }
+
   let title = stringField(data, "title", problems);
   if (title === null) {
     // When frontmatter parsing already reported a problem, that problem says
     // it; a separate "missing title" would only point at the wrong fix.
     // Title is the first field read, so `problems` here is parse-only.
-    if (data.title === undefined && problems.length === 0) {
-      problems.push("missing title");
-    } else if (typeof data.title === "string") {
-      problems.push("missing title: 'title' is empty");
+    // Notes need no title: the first H1 or the file name is the note's title,
+    // not a fallback that reports a gap.
+    if (type !== "note") {
+      if (data.title === undefined && problems.length === 0) {
+        problems.push("missing title");
+      } else if (typeof data.title === "string") {
+        problems.push("missing title: 'title' is empty");
+      }
     }
-    // The title falls back to the first H1 and then to the file name; both
-    // cases keep the problem so the gap stays visible.
     const lines = text.split(/\r?\n/);
     title = firstHeading(lines, bodyStartLine) ?? path.basename(file, ".md");
   }
@@ -212,8 +227,10 @@ function repoRelative(project: Project, dir: string): string {
 /**
  * Walk a project's documentation homes and collect each document's metadata.
  *
- * A home folder that does not exist contributes no documents and one warning.
- * Canon, proposals, and plans list the top level of their home; overviews nest.
+ * A home folder that does not exist contributes no documents and one warning,
+ * except the optional notes home, which stays silent: notes are local and may
+ * not exist. Canon, proposals, and plans list the top level of their home;
+ * overviews and notes nest.
  */
 export function discoverDocuments(
   project: Project,
@@ -228,11 +245,15 @@ export function discoverDocuments(
     try {
       stats = statSync(dir);
     } catch {
-      warnings.push(`${home.label} home not found: ${repoRelative(project, dir)}`);
+      if (home.optional !== true) {
+        warnings.push(`${home.label} home not found: ${repoRelative(project, dir)}`);
+      }
       continue;
     }
     if (!stats.isDirectory()) {
-      warnings.push(`${home.label} home is not a directory: ${repoRelative(project, dir)}`);
+      if (home.optional !== true) {
+        warnings.push(`${home.label} home is not a directory: ${repoRelative(project, dir)}`);
+      }
       continue;
     }
 

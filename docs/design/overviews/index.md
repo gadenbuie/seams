@@ -125,6 +125,7 @@ Reading the index is preparation, not a substitute for reading the relevant over
 Add a catalog script, a large frontmatter schema, or other navigation tooling only when a simple index is no longer enough.
 
 The seams CLI can also help an agent navigate the collection. `seams list` names every document with the title and description from its frontmatter, `seams find` searches the documents for text, and `seams read outline` prints a document's headings with their line ranges so the agent can read one section instead of the whole file.
+Neither the catalog nor the search shows local working notes: notes appear only when the agent asks for them, with `seams list --type notes` or `seams find "<text>" --type notes`, and `seams read` opens one by its path.
 The CLI is optional, and an agent without it navigates with the index and ordinary file reads.
 Keep the frontmatter title and description of each document current either way, because the index and the CLI both show them.
 The index stays a reading guide that says when to read each document, not a catalog that restates them.

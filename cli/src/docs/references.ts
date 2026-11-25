@@ -300,9 +300,13 @@ export function findReferences(project: Project, paths: string[]): ReferencesRes
   // Each home's index.md joins the scanned documents, so links from the
   // navigation indexes are reported like links from any other document.
   const { documents, warnings } = discoverDocuments(project, { includeIndexes: true });
+  // Notes are excluded: they are local, lowest-weight context, not maintained
+  // documents or coordination artifacts, so impact and reconcile never report
+  // them.
+  const scanned = documents.filter((doc) => doc.type !== "note");
 
   const found: DocumentReferences[] = [];
-  for (const doc of documents) {
+  for (const doc of scanned) {
     const abs = path.join(project.root, doc.path);
     let text: string;
     try {

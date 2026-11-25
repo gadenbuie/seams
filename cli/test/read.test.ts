@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
@@ -339,5 +339,83 @@ describe("seams read outline", () => {
 
     const extra = run(["read", "outline", "docs/design/invariants.md", "extra.md"], cwd);
     assert.equal(extra.status, 2);
+  });
+});
+
+describe("seams read, notes", () => {
+  it("reads a note explicitly with the note authority", () => {
+    const cwd = copyFixture("notes-project");
+    const result = run(["read", "_dev/notes/scratch.md"], cwd);
+    assert.equal(result.status, 0);
+    assert.equal(result.stderr, "");
+    const header = "_dev/notes/scratch.md · note (not authorization) · lines 1-4";
+    assert.ok(result.stdout.startsWith(header + "\n"));
+    assert.equal(
+      result.stdout.slice(header.length + 1),
+      fixtureFile(cwd, "_dev/notes/scratch.md"),
+    );
+  });
+
+  it("resolves a bare name against the notes home", () => {
+    const cwd = copyFixture("notes-project");
+    const result = run(["read", "summary.md"], cwd);
+    assert.equal(result.status, 0);
+    assert.ok(result.stdout.startsWith("_dev/notes/summary.md · note (not authorization) ·"));
+
+    const nested = run(["read", "nested/idea.md"], cwd);
+    assert.equal(nested.status, 0);
+    assert.ok(nested.stdout.startsWith("_dev/notes/nested/idea.md · note (not authorization) ·"));
+  });
+
+  it("returns a note section by heading", () => {
+    const cwd = copyFixture("notes-project");
+    const result = run(["read", "_dev/notes/summary.md", "--section", "Session summary"], cwd);
+    assert.equal(result.status, 0);
+    assert.ok(result.stdout.startsWith("_dev/notes/summary.md · note (not authorization) · lines 6-8\n"));
+  });
+
+  it("outlines a note with its headings and sizes", () => {
+    const cwd = copyFixture("notes-project");
+    const result = run(["read", "outline", "_dev/notes/scratch.md"], cwd);
+    assert.equal(result.status, 0);
+    assert.equal(result.stderr, "");
+    const out = result.stdout.split("\n").filter((line) => line.length > 0);
+    assert.equal(out[0], "_dev/notes/scratch.md · note (not authorization)");
+    assert.match(out[1], /  1-4 · \d+ bytes · # Scratch pad/);
+  });
+
+  it("prefers the shared home when a note shares its name", () => {
+    const cwd = copyFixture("notes-project");
+    writeFileSync(
+      path.join(cwd, "_dev", "notes", "vision.md"),
+      "# Scratch vision\n\nA note, not canon.\n",
+    );
+
+    const shared = run(["read", "vision.md"], cwd);
+    assert.equal(shared.status, 0);
+    assert.ok(shared.stdout.startsWith("docs/design/vision.md · canon ·"));
+
+    // The note itself still reads explicitly.
+    const note = run(["read", "_dev/notes/vision.md"], cwd);
+    assert.equal(note.status, 0);
+    assert.ok(
+      note.stdout.startsWith("_dev/notes/vision.md · note (not authorization) ·"),
+    );
+  });
+
+  it("still rejects a path that leaves the repository root", () => {
+    const cwd = copyFixture("notes-project");
+    const result = run(["read", "../../outside.md"], cwd);
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /outside the repository root/);
+  });
+
+  it("reading an absent note never creates the notes directory", () => {
+    const cwd = copyFixture("notes-project");
+    rmSync(path.join(cwd, "_dev", "notes"), { recursive: true, force: true });
+    const result = run(["read", "_dev/notes/scratch.md"], cwd);
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /Document not found/);
+    assert.equal(existsSync(path.join(cwd, "_dev", "notes")), false);
   });
 });

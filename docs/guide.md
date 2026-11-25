@@ -77,6 +77,11 @@ Memory has no single form, owner, or location.
 A project's memory includes proposals, plans, work items, design overviews, user documentation, and other records. seams can't put all memory in one place.
 It can help you find the records, assess their value, and direct agents to maintain them as the system evolves.
 
+A project may also keep local working notes for short-lived experiments, research, and background.
+Notes are the lowest-weight memory.
+They authorize nothing, stay uncommitted by default, and stay out of general listings and searches until you ask for them.
+Adoption looks for your existing notes convention, suggests `_dev/notes/` when there is none, and you confirm the home before anything is recorded.
+
 Maintaining memory takes deliberate effort.
 Without maintenance, it becomes unclear or confusing.
 Memory never becomes canon just because it persists, is detailed, or is recent.
@@ -297,6 +302,8 @@ The conventions do not require it: every step in seams also works with ordinary 
 
 A project records where its documents live in a manifest, the file `.agents/seams.json` that `seams-adopt` writes after you choose the documentation homes.
 The manifest records the home of each document type: canon, design overviews, proposals, and plans.
+The manifest also takes an optional `notes` entry for the local notes home.
+When the entry or the whole manifest is absent, the tool still discovers an existing `_dev/notes/` on its own, and it never creates the folder: a project without notes simply has none, and a missing notes home produces no warning.
 When the manifest is absent, the tool looks in the conventional layout instead: `docs/design/` for canon and design overviews, and `.agents/proposals/` and `.agents/plans/` for proposals and plans.
 A project with a custom home always needs the manifest, because otherwise the tool looks in the default places.
 
@@ -308,6 +315,9 @@ The reading commands help an agent start work without reading everything:
 | `seams find "<text>"`           | The places the text appears, with a short excerpt and the document and heading around it.                       |
 | `seams read <document>`         | A whole document, one section with `--section <heading>`, or a line range with `--lines <a-b>`.                 |
 | `seams read outline <document>` | The document's headings with their line ranges and sizes, so the agent can choose what to read.                 |
+
+General `seams list` and `seams find` omit notes, so an ordinary documentation read does not surface them.
+Notes appear only when the caller asks for them: `seams list --type notes` lists them, `seams find "<text>" --type notes` searches them, and `seams read` opens one by its path.
 
 The examples write the command as `seams`.
 When the tool is not installed as a command, run the same commands through npx, e.g., `npx @grrrck/seams list`.
@@ -332,7 +342,8 @@ docs/design/
     concept_<topic-slug>.md  optional standalone concept
     flow_<flow-slug>.md      optional standalone flow
 .agents/proposals/   proposals
-.agents/plans/       working notes and plans, e.g., notes for a proposal in progress
+.agents/plans/       plans
+_dev/notes/          local working notes, uncommitted by default
 .agents/seams.json   the manifest that records where each document type lives
 <tracker>            work items, e.g., kata, GitHub issues, or Markdown files
 ```

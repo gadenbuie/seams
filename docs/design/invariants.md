@@ -56,10 +56,16 @@ Code and tests aren't statements in this sense, but the list includes them becau
   - **Location:** The project's tracker
   - **Weight and context:** Strong for one unit's execution.
     It holds scope, progress, questions, decisions, and evidence within the accepted direction and canon.
-- Plan, note, finding
+- Plan
   - **Location:** `.agents/` or the tracker
   - **Weight and context:** Working weight for linked work.
     It provides analysis and context, but can't independently change accepted direction or scope.
+- Note
+  - **Location:** The project's configured notes home, or an existing `_dev/notes/` when the manifest is silent.
+    Adoption suggests `_dev/notes/` only after checking for existing operator conventions, and the operator confirms the home.
+  - **Weight and context:** The lowest-weight exploratory memory.
+    It may hold failed experiments, branch-specific code, development artifacts, research, and background, but it authorizes nothing and is not a shared decision or work record.
+    Notes are local and uncommitted by default, and general document listings and searches omit them.
 - Code, tests, runtime
   - **Location:** The repository and its running systems
   - **Weight and context:** Decisive for what exists.
@@ -76,10 +82,11 @@ Code, tests, and runtime evidence are **reality**.
 
 A project may use other file names, including `memory/` or `architecture/` instead of `overviews/`, if its agent entry point, e.g., `AGENTS.md`, says where each type lives or points to `.agents/seams.json` as the record of those homes.
 When repo-level `docs/` is unavailable, the default design root is `.agents/design/`, with the same canon files and `overviews/` folder.
-An existing home for the same kind of documentation wins over the default.
+An existing home for the same kind of statement wins over the default.
 
 Canon and design overviews start with YAML frontmatter that provides a `title` and a short `description` of when to read the document.
 Proposals and plans also include `status` and `created`, and proposals may include `source`.
+Notes do not require frontmatter or a status.
 Documents do not repeat these fields in their body text.
 The metadata supports document listings and does not change the document's authority.
 
@@ -121,6 +128,10 @@ The agent doesn't choose an answer silently.
 Agents share work through the tracker, repository files, and commits.
 They don't depend on talking to each other directly, and they don't depend on memory of an earlier session.
 A decision made in a conversation is recorded in full on the work item or the proposal, not as a pointer to the conversation.
+
+Local notes are not coordination artifacts.
+When shared work relies on information from a note, the proposal, work item, repository file, or commit records the needed content in full.
+A link to an uncommitted note may provide optional background, but it cannot be the only record of a decision, scope, acceptance criterion, or evidence.
 
 ## 9. Only code, tests, and runtime evidence establish what exists
 

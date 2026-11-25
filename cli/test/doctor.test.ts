@@ -15,7 +15,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { after, describe, it } from "node:test";
@@ -357,6 +357,62 @@ describe("seams doctor", () => {
         message: "AGENTS.md points at the documentation home docs/design",
       },
     ]);
+  });
+
+  it("does not treat a notes-only AGENTS.md mention as a documentation home", () => {
+    const env = makeEnv();
+    const cwd = fixtureProject(env, "check-good");
+    writeFileSync(path.join(cwd, "AGENTS.md"), "Local notes live in _dev/notes.\n");
+
+    const { status, json } = runDoctor(cwd, env);
+    assert.equal(status, 0);
+    assert.deepEqual(json.areas[2].lines, [
+      {
+        status: "warning",
+        message: "AGENTS.md mentions no documentation home",
+        hint: "add lines naming where the documentation lives (the homes: docs/design, docs/design/overviews, .agents/proposals, .agents/plans)",
+      },
+    ]);
+  });
+
+  it("treats a missing notes home as fine and never creates it", () => {
+    const env = makeEnv();
+    const cwd = fixtureProject(env, "check-good");
+    writeFileSync(path.join(cwd, "AGENTS.md"), "The canon lives in docs/design.\n");
+
+    const { status, json } = runDoctor(cwd, env);
+    assert.equal(status, 0);
+    assert.deepEqual(json.areas[1].lines, [
+      { status: "ok", message: "every documentation home exists" },
+    ]);
+    assert.equal(existsSync(path.join(cwd, "_dev", "notes")), false);
+  });
+
+  it("takes a notes home from the manifest without warning when it is absent", () => {
+    const env = makeEnv();
+    const cwd = fixtureProject(env, "check-good");
+    mkdirSync(path.join(cwd, ".agents"), { recursive: true });
+    writeFileSync(
+      path.join(cwd, ".agents", "seams.json"),
+      JSON.stringify({
+        schemaVersion: 1,
+        seamsVersion: "0.1.0",
+        paths: {
+          design: "docs/design",
+          overviews: "docs/design/overviews",
+          proposals: ".agents/proposals",
+          plans: ".agents/plans",
+          notes: "_dev/notes",
+        },
+      }) + "\n",
+    );
+
+    const { status, json } = runDoctor(cwd, env);
+    assert.equal(status, 0);
+    assert.deepEqual(json.areas[1].lines, [
+      { status: "ok", message: "every documentation home exists" },
+    ]);
+    assert.equal(existsSync(path.join(cwd, "_dev", "notes")), false);
   });
 
   it("warns, but exits 0, when a configured home is missing", () => {

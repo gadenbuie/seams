@@ -108,3 +108,6 @@ A small proposal whose work is a single clear change can go straight to `seams-w
   If the discussion splits into separate questions, start a second proposal and link them.
 - Record decisions made in conversation in the proposal in full, never as a pointer to the conversation.
   The next agent will only have the file.
+- Temporary research and exploratory material may stay in the project's configured notes home.
+  Agreed decisions and any information the proposal relies on are recorded in full in the proposal.
+  Notes never gain authority by being linked, so a link to a note is never the only record of a decision, its scope, or its evidence.

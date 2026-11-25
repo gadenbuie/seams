@@ -19,7 +19,8 @@ Write `.agents/seams.json` exactly in this shape, with the chosen paths:
     "design": "docs/design",
     "overviews": "docs/design/overviews",
     "proposals": ".agents/proposals",
-    "plans": ".agents/plans"
+    "plans": ".agents/plans",
+    "notes": "_dev/notes"
   },
   "reconcile": {
     "lastReconciledRevision": null
@@ -29,12 +30,15 @@ Write `.agents/seams.json` exactly in this shape, with the chosen paths:
 
 - Set each `paths` entry to the chosen home, relative to the repository root.
   Use the example values when the project uses the default layout.
+- `paths.notes` is optional: set it to the notes home the operator confirmed, as `<skills>/seams-adopt/SKILL.md` describes.
+  When the manifest omits `notes`, the CLI still discovers an existing `_dev/notes/`, and when that folder is absent the project simply has no notes.
 - Set `seamsVersion` to the installed package version when the CLI is available, e.g. from `seams --version`; otherwise leave `0.1.0`.
 - Leave `reconcile.lastReconciledRevision` as `null`.
 - Keep the `$schema` URL as written; editors use it.
 
 The manifest must name any home that differs from the default layout.
 Commands may fall back to the conventional layout when the manifest is absent, so a project with a custom home always needs this file.
+No command creates a directory for any home, and reading never warns about a missing notes directory, whether the home comes from the manifest or from existing-folder detection.
 
 ## Validate
 

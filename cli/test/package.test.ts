@@ -435,6 +435,29 @@ describe("the installed tarball", () => {
     assert.ok(result.stdout.includes("docs/design/vision.md"), "no line for docs/design/vision.md");
   });
 
+  it("supports notes with the shipped schema and CLI", () => {
+    const docs = path.join(ws.dir, "notes-fixture");
+    cpSync(fixtureDir("notes-project"), docs, { recursive: true });
+
+    // The shipped schema accepts the manifest's paths.notes entry.
+    const doctor = runSeams(docs, ["doctor", "--json"], { cli: installedCli(project) });
+    assert.equal(doctor.status, 0, doctor.stderr);
+    const areas = JSON.parse(doctor.stdout).areas as { area: string; lines: { status: string }[] }[];
+    assert.deepEqual(
+      areas.filter((area) => area.area === "manifest" || area.area === "paths").map((area) => area.status),
+      ["ok", "ok"],
+    );
+
+    // The installed CLI lists notes only when asked.
+    const general = runSeams(docs, ["list"], { cli: installedCli(project) });
+    assert.equal(general.status, 0, general.stderr);
+    assert.equal(general.stdout.includes("_dev/notes"), false);
+
+    const notes = runSeams(docs, ["list", "--type", "notes"], { cli: installedCli(project) });
+    assert.equal(notes.status, 0, notes.stderr);
+    assert.match(notes.stdout, /_dev\/notes\/scratch\.md · Scratch pad · \d+ bytes · note \(not authorization\)/);
+  });
+
   it("init --agent --scope project --dry-run reports the plan and writes nothing", () => {
     const result = runSeams(project, ["init", "--agent", "--scope", "project", "--dry-run"]);
     assert.equal(result.status, 0, result.stderr);

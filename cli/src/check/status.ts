@@ -16,6 +16,8 @@ import type { Check, Finding } from "./types.ts";
 const VOCABULARIES: Record<DocType, readonly string[]> = {
   canon: [],
   overview: [],
+  // Notes carry no status: they are local memory, not tracked work.
+  note: [],
   proposal: ["draft", "accepted", "rejected", "deferred", "withdrawn"],
   plan: ["draft", "active", "done", "abandoned"],
 };
