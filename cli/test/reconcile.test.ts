@@ -261,7 +261,7 @@ describe("seams reconcile", () => {
       groups: { label: string; entries: { path: string }[] }[];
     };
     const { json } = reconcileJson(["--since", "HEAD~1"], cwd);
-    const groupOfIndex = (groups: { label: string; entries: { path: string } }[]): string => {
+    const groupOfIndex = (groups: { label: string; entries: { path: string }[] }[]): string => {
       const labels = groups
         .filter((group) => group.entries.some((entry) => entry.path === "docs/design/index.md"))
         .map((group) => group.label);
