@@ -30,6 +30,12 @@ Each reader should receive the smallest set of statements its role and task need
 An implementer doesn't need unselected ideas, and a reviewer shouldn't read the implementer's notes, because the notes would weaken an independent review.
 Point to files instead of copying them, so each fact keeps one home.
 
+## Make room for scratchpads
+
+Experiments, research, and background can be useful without becoming plans or maintained documentation.
+Give these low-friction notes their own home and keep them out of general listings and searches.
+Move any content that informs a decision or selected work into the artifact that owns it.
+
 ## Settle consequential decisions before the work, and leave the rest
 
 Decide product behavior, persistent data, public or shared interfaces, safety, and acceptance before an implementer starts.
