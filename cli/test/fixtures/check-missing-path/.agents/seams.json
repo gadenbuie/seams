@@ -1,0 +1,11 @@
+{
+  "$schema": "https://pkg.garrickadenbuie.com/seams/schemas/v1/seams.schema.json",
+  "schemaVersion": 1,
+  "seamsVersion": "0.1.0",
+  "paths": {
+    "design": "docs/design",
+    "overviews": "docs/design/overviews",
+    "proposals": ".agents/proposals",
+    "plans": ".agents/plans"
+  }
+}

@@ -17,6 +17,10 @@ In an existing project, the main risk is turning old notes into rules or old pla
 Read the project's own instructions and its actual files before editing anything.
 Preserve uncommitted work that isn't yours.
 
+Your session may have started with `npx @grrrck/seams init`, which installs the seams skills and hands adoption to you.
+Continue with the steps below.
+The CLI is optional: every step also works with ordinary file edits.
+
 ## Choose the design root
 
 1. Keep a useful existing home for the same kind of documentation.
@@ -62,6 +66,11 @@ Don't create an overview for every file, feature, or unit of work.
 If the project already keeps these things under other names, keep its names and record where each type lives in `AGENTS.md`.
 The types and their limits matter, and the file names do not.
 
+## The project manifest
+
+After the operator chooses the documentation homes, write `.agents/seams.json` as the machine-readable record of where each type lives, and record it in `AGENTS.md`.
+Follow `<skills>/seams-adopt/references/manifest.md` for the manifest shape and validation, and for migrating frontmatter in an existing project.
+
 ## AGENTS.md
 
 `AGENTS.md` is read in every session, so every line should change how an agent behaves.
@@ -72,6 +81,7 @@ Include:
 - where canon lives, and the rule that only the operator changes it;
 - where design overviews and user documentation live;
 - where proposals and plans live, and that they authorize nothing until accepted;
+- the manifest `.agents/seams.json` as the machine-readable record of the documentation homes;
 - the tracker, and the `seams-track` reference to use;
 - setup and check commands;
 - safety limits, e.g., what agents must never run or touch.
@@ -90,6 +100,7 @@ Leave out feature lists, architecture essays, and anything already in canon.
 1. Choose a tracker with the operator.
    An existing tracker wins over introducing a second one.
 1. Write `AGENTS.md`.
+1. Write `.agents/seams.json` as `<skills>/seams-adopt/references/manifest.md` says.
 1. Create `.agents/proposals/` and `.agents/plans/`.
 1. Pick the first piece of work with the operator.
    Use `seams-propose` if it needs discussion, or `seams-work` if it is a clear change.
@@ -135,6 +146,7 @@ Do not turn old ideas into active items.
    Keep canon and design overviews physically separate.
    Give each rule, contract, and status one owning home.
    Let design overviews repeat enough context to explain connections, with links to the owning documents.
+1. Write `.agents/seams.json` and migrate frontmatter as `<skills>/seams-adopt/references/manifest.md` says.
 1. Update `AGENTS.md` and every affected link in the same change.
 1. Name one active status source for each piece of work, and stop updating any other.
 
@@ -152,5 +164,5 @@ Report unresolved conflicts and any check you could not run.
 
 ## Output
 
-Report the tracker, the design root, the canon files and overview index created, what was moved and where, the cutover point, the paths you checked, and the decisions still waiting for the operator.
+Report the tracker, the design root, the manifest, the canon files and overview index created, what was moved and where, the cutover point, the paths you checked, and the decisions still waiting for the operator.
 Installing the seams skills in an agent harness is a separate step from adopting the conventions.

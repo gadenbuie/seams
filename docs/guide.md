@@ -201,6 +201,9 @@ Each unit goes into the tracker with its scope, what it must prove, and what it 
 A unit is ready only when no consequential decision is left for the implementer to make silently.
 A consequential decision is one about product behavior, persistent data, public interfaces, safety, or acceptance.
 
+A plan document records its status in its frontmatter, and the status takes four values. `draft` means the planner has written the plan and you have not yet confirmed its outline and read-back.
+A draft authorizes nothing, and search tools that skip drafts will not find it. `active` means you confirmed the plan, and the planner sets it. `done` means every unit in the plan has landed, and when the plan document is the tracker, a closing unit in the plan sets it. `abandoned` means you dropped the work or the plan was replaced, and the planner sets it and says why in the plan body.
+
 You don't need to read the units.
 Before creating them, the planner shows you a short outline and a **read-back**.
 A read-back says, in your terms, what the implementers will build, what they may not do, and when they will stop and ask.
@@ -286,6 +289,30 @@ Canon holds the accepted direction, and documentation holds maintained explanati
 Any tracker works if agents can read and write it from the command line.
 The `seams-track` skill has notes for kata, GitHub issues, Markdown files, and other trackers.
 
+## The optional command line tool
+
+seams ships an optional command line tool, the npm package `@grrrck/seams`.
+An agent uses it to find and read the project's documents without loading all of them, and to install the skills.
+The conventions do not require it: every step in seams also works with ordinary file edits.
+
+A project records where its documents live in a manifest, the file `.agents/seams.json` that `seams-adopt` writes after you choose the documentation homes.
+The manifest records the home of each document type: canon, design overviews, proposals, and plans.
+When the manifest is absent, the tool looks in the conventional layout instead: `docs/design/` for canon and design overviews, and `.agents/proposals/` and `.agents/plans/` for proposals and plans.
+A project with a custom home always needs the manifest, because otherwise the tool looks in the default places.
+
+The reading commands help an agent start work without reading everything:
+
+| Command                         | What it shows                                                                                                   |
+| :------------------------------ | :-------------------------------------------------------------------------------------------------------------- |
+| `seams list`                    | The documents in the documentation homes, one line each with its path, title, size, authority, and description. |
+| `seams find "<text>"`           | The places the text appears, with a short excerpt and the document and heading around it.                       |
+| `seams read <document>`         | A whole document, one section with `--section <heading>`, or a line range with `--lines <a-b>`.                 |
+| `seams read outline <document>` | The document's headings with their line ranges and sizes, so the agent can choose what to read.                 |
+
+The examples write the command as `seams`.
+When the tool is not installed as a command, run the same commands through npx, e.g., `npx @grrrck/seams list`.
+The README describes how to install the skills and start a project with the CLI.
+
 ## Setting up seams in a project
 
 The `seams-adopt` skill sets up a new project or moves an existing one to seams.
@@ -306,6 +333,7 @@ docs/design/
     flow_<flow-slug>.md      optional standalone flow
 .agents/proposals/   proposals
 .agents/plans/       working notes and plans, e.g., notes for a proposal in progress
+.agents/seams.json   the manifest that records where each document type lives
 <tracker>            work items, e.g., kata, GitHub issues, or Markdown files
 ```
 

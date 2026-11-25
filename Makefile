@@ -2,11 +2,11 @@ MD_PATHS := README.md AGENTS.md docs skills
 MDFORMAT := uvx --from mdformat==1.0.0 --with mdformat-gfm==1.0.0 --with mdformat-frontmatter==2.2.0 --with mdformat-sembr==0.2.0 mdformat
 SKILLS_VALIDATE := uvx --from skills-ref==0.1.1 agentskills validate
 
-.PHONY: all check check-format check-links check-design check-skills format docs-install docs-build docs-dev help
+.PHONY: all check check-format check-links check-design check-skills check-cli format docs-install docs-build docs-dev help
 
 all: check help ## Run all checks, then show available commands
 
-check: check-format check-links check-design check-skills ## Run all checks
+check: check-format check-links check-design check-skills check-cli ## Run all checks
 
 check-format: ## Check Markdown formatting
 	$(MDFORMAT) --check --wrap keep $(MD_PATHS)
@@ -30,6 +30,9 @@ check-skills: ## Validate every skill in skills/
 		[ -d "$$skill" ] || continue; \
 		$(SKILLS_VALIDATE) "$$skill"; \
 	done
+
+check-cli: ## Build the CLI package and run its tests
+	cd cli && npm ci && npm run build && npm test
 
 format: ## Format Markdown files
 	$(MDFORMAT) --wrap keep $(MD_PATHS)

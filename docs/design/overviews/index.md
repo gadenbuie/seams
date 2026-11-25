@@ -1,3 +1,8 @@
+---
+title: Design overviews
+description: Read before writing or updating a design overview, and to understand the current design.
+---
+
 # Design overviews
 
 Design overviews explain how the current system fits together and why its difficult parts work that way.
@@ -8,6 +13,11 @@ An overview is maintained memory, not canon.
 It has descriptive weight when a reader wants to understand the current design, but it does not authorize work or override the operator's accepted direction.
 Code, tests, and runtime evidence establish what exists.
 An overview guides readers to that reality through exact references; it never replaces the need to check them.
+
+## Overviews in this project
+
+- [The seams CLI](npm-cli.md) explains how the optional `seams` commands find, read, and check project documentation, how skill installation keeps its identity, and what each command refuses to do.
+  Read it when maintaining the CLI or deciding what a command may change.
 
 ## Design overviews serve fresh readers and operator review
 
@@ -111,6 +121,11 @@ The files must be tracked and discoverable through `AGENTS.md`.
 The index should say when to read each document so an agent can select relevant material instead of loading the whole collection.
 Reading the index is preparation, not a substitute for reading the relevant overview.
 Add a catalog script, a large frontmatter schema, or other navigation tooling only when a simple index is no longer enough.
+
+The seams CLI can also help an agent navigate the collection. `seams list` names every document with the title and description from its frontmatter, `seams find` searches the documents for text, and `seams read outline` prints a document's headings with their line ranges so the agent can read one section instead of the whole file.
+The CLI is optional, and an agent without it navigates with the index and ordinary file reads.
+Keep the frontmatter title and description of each document current either way, because the index and the CLI both show them.
+The index stays a reading guide that says when to read each document, not a catalog that restates them.
 
 ## Overviews absorb lasting explanations as implementation proceeds
 

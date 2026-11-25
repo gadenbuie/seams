@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "seamsVersion": "0.1.0",
+  "paths": {
+    "design": "handbook/design",
+    "proposals": "ideas",
+    "plans": "roadmaps"
+  }
+}

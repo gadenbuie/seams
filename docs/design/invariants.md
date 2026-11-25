@@ -1,3 +1,8 @@
+---
+title: Invariants
+description: Read before planning or reviewing work, for the rules every project using seams keeps.
+---
+
 # Invariants
 
 An invariant is a rule that must hold.
@@ -69,9 +74,14 @@ When `invariants.md` becomes an index to `invariants/`, each invariant lives in 
 Design overviews, user documentation, and the other statements in the list are **memory**.
 Code, tests, and runtime evidence are **reality**.
 
-A project may use other file names, including `memory/` or `architecture/` instead of `overviews/`, if its agent entry point, e.g., `AGENTS.md`, says where each type lives.
+A project may use other file names, including `memory/` or `architecture/` instead of `overviews/`, if its agent entry point, e.g., `AGENTS.md`, says where each type lives or points to `.agents/seams.json` as the record of those homes.
 When repo-level `docs/` is unavailable, the default design root is `.agents/design/`, with the same canon files and `overviews/` folder.
 An existing home for the same kind of documentation wins over the default.
+
+Canon and design overviews start with YAML frontmatter that provides a `title` and a short `description` of when to read the document.
+Proposals and plans also include `status` and `created`, and proposals may include `source`.
+Documents do not repeat these fields in their body text.
+The metadata supports document listings and does not change the document's authority.
 
 ## 2. Only the operator changes canon
 

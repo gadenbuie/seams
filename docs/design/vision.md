@@ -1,8 +1,13 @@
+---
+title: Vision
+description: Read when starting work on seams, to learn what it is for and what it does not try to do.
+---
+
 # Vision
 
 ## Purpose
 
-seams is a set of conventions and agent skills for people who build software with coding agents.
+seams is a set of conventions, agent skills, and a command line tool for people who build software with coding agents.
 In seams, the person who decides what to build is called the operator. seams helps the operator and an agent agree on what to build.
 Once they agree, agents plan and carry out the work with little further help from the operator.
 
@@ -26,6 +31,7 @@ A project can reach a finished product before the operator has used any part of 
 - The operator spends their time deciding what to build and accepting changes to canon.
   They don't need to supervise each task.
 - An agent can tell which statements bind it, which statements only inform it, and which statements describe what exists.
+- Agents can find relevant canon, memory, proposals, and plans through selective reads that preserve each statement's authority.
 - Agents can use written criteria from the operator to assess whether a feature fits, how valuable it is, and which parts deserve priority.
   They don't have to infer value from code or effort.
 - The operator and fresh agents can read maintained design overviews to understand how the current system fits together without reconstructing the design from code or implementation history.

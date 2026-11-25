@@ -1,12 +1,12 @@
 # AGENTS.md
 
 seams is a set of conventions and agent skills for building software with coding agents.
-In this repository, the documents and skills are the product.
+In this repository, the documents, the skills, and the CLI package are the product.
 
 ## Where things live
 
 seams uses its own process on itself, so some files do double duty.
-For example, [`docs/design/overviews/index.md`](docs/design/overviews/index.md) explains what design overviews look like, and this repository has no system that needs an overview yet.
+For example, [`docs/design/overviews/index.md`](docs/design/overviews/index.md) explains what design overviews look like, and [`docs/design/overviews/npm-cli.md`](docs/design/overviews/npm-cli.md) is the design overview of the CLI.
 
 - **Canon:**\*\* [`docs/design/`](docs/design/index.md) holds seams' vision, principles, and invariants.
   These files also define the framework for every project that uses seams.
@@ -19,6 +19,8 @@ For example, [`docs/design/overviews/index.md`](docs/design/overviews/index.md) 
 - **Agent procedures:** [`skills/seams-*/`](skills/) hold everything agents follow.
   Human docs explain, and skills instruct.
   Do not put agent procedures in the docs, or explanations for humans in the skills.
+- **Command line tool:** [`cli/`](cli/) is the optional `@grrrck/seams` npm package, which provides the `seams` command, for projects that use seams.
+  Its TypeScript sources are in `cli/src/` and its tests are in `cli/test/`.
 - **Memory:** `.agents/proposals/` holds proposals.
   A proposal authorizes nothing until its status is accepted.
 - **Work:** tracked in kata when a plan moves to implementation.
@@ -47,6 +49,7 @@ For example, [`docs/design/overviews/index.md`](docs/design/overviews/index.md) 
 make check
 ```
 
-`make check` needs [`uv`](https://docs.astral.sh/uv/).
-It checks Markdown formatting, local links and anchors, the design indexes and overview coverage, and the layout and frontmatter of each skill. `make format` applies the formatting rules.
+`make check` needs [`uv`](https://docs.astral.sh/uv/) and Node.js 22.20 or later.
+It checks Markdown formatting, local links and anchors, the design indexes and overview coverage, and the layout and frontmatter of each skill, and it builds `cli/` and runs its tests.
+To build the CLI on its own, run `cd cli && npm install && npm run build`, and run its tests with `cd cli && npm test`. `make format` applies the formatting rules.
 These checks don't show that seams works in another project, so also read the diff and walk the reading paths you changed.
