@@ -739,11 +739,12 @@ html[data-theme="dark"] .home-button-primary:hover {
 }
 
 /* The thread the stages hang on. The operator's thread runs in the accent,
-   like the steps the operator owns. */
+   like the steps the operator owns. The top puts the line's center on the
+   circle centers, half its 2.5px stroke above the circle midline. */
 .home-loop::before {
     content: "";
     position: absolute;
-    top: 1.15rem;
+    top: calc(1.2rem - 1.25px);
     left: 1.2rem;
     right: 1.2rem;
     border-top: 2.5px dashed var(--home-accent);
@@ -779,11 +780,106 @@ html[data-theme="dark"] .home-button-primary:hover {
     color: var(--home-accent);
 }
 
+/* The thread between the stages runs as the same conveyor stitch as
+   the wordmark's, drawn by home-layout.js, and moves toward stage
+   five. Each stitch holds for three quarters of its slice, then slides
+   a full stitch (twelve units, a seven dash and a five gap) over the
+   last quarter, so the pause between stitches is the long part.
+   Eighteen moves cover 216px, eighteen whole periods, so the loop
+   restarts on the stitch it ended on. The dashed border underneath
+   stays for narrow screens, where the thread runs vertical and the
+   line does not animate. */
+.home-loop-thread {
+    position: absolute;
+    top: calc(1.2rem - 1.25px);
+    left: 1.2rem;
+    height: 2.5px;
+    /* An svg is a replaced element: left and right alone leave it at
+       its intrinsic 300px, so the width states the span outright. */
+    width: calc(100% - 2.4rem);
+}
+
+.home-loop-thread path,
+.home-loop-thread-v path {
+    stroke: var(--home-accent);
+}
+
+@keyframes home-loop-thread-run {
+    0%, 4.167% { transform: translateX(0); }
+    5.556%, 9.723% { transform: translateX(12px); }
+    11.111%, 15.278% { transform: translateX(24px); }
+    16.667%, 20.834% { transform: translateX(36px); }
+    22.222%, 26.389% { transform: translateX(48px); }
+    27.778%, 31.945% { transform: translateX(60px); }
+    33.333%, 37.5% { transform: translateX(72px); }
+    38.889%, 43.056% { transform: translateX(84px); }
+    44.444%, 48.611% { transform: translateX(96px); }
+    50%, 54.167% { transform: translateX(108px); }
+    55.556%, 59.723% { transform: translateX(120px); }
+    61.111%, 65.278% { transform: translateX(132px); }
+    66.667%, 70.834% { transform: translateX(144px); }
+    72.222%, 76.389% { transform: translateX(156px); }
+    77.778%, 81.945% { transform: translateX(168px); }
+    83.333%, 87.5% { transform: translateX(180px); }
+    88.889%, 93.056% { transform: translateX(192px); }
+    94.444%, 98.611% { transform: translateX(204px); }
+    100% { transform: translateX(216px); }
+}
+
+@keyframes home-loop-thread-drop {
+    0%, 4.167% { transform: translateY(0); }
+    5.556%, 9.723% { transform: translateY(12px); }
+    11.111%, 15.278% { transform: translateY(24px); }
+    16.667%, 20.834% { transform: translateY(36px); }
+    22.222%, 26.389% { transform: translateY(48px); }
+    27.778%, 31.945% { transform: translateY(60px); }
+    33.333%, 37.5% { transform: translateY(72px); }
+    38.889%, 43.056% { transform: translateY(84px); }
+    44.444%, 48.611% { transform: translateY(96px); }
+    50%, 54.167% { transform: translateY(108px); }
+    55.556%, 59.723% { transform: translateY(120px); }
+    61.111%, 65.278% { transform: translateY(132px); }
+    66.667%, 70.834% { transform: translateY(144px); }
+    72.222%, 76.389% { transform: translateY(156px); }
+    77.778%, 81.945% { transform: translateY(168px); }
+    83.333%, 87.5% { transform: translateY(180px); }
+    88.889%, 93.056% { transform: translateY(192px); }
+    94.444%, 98.611% { transform: translateY(204px); }
+    100% { transform: translateY(216px); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .home-loop-thread path {
+        animation: home-loop-thread-run 10.8s ease-out 1;
+    }
+
+    .home-loop-thread-v path {
+        animation: home-loop-thread-drop 10.8s ease-out 1;
+    }
+
+    .home-loop:hover .home-loop-thread path,
+    .home-loop:hover .home-loop-thread-v path {
+        animation-iteration-count: infinite;
+    }
+}
+
+.home-loop.thread-animated::before {
+    display: none;
+}
+
+/* The vertical twin waits on wide screens, where the stages lie along
+   a row and only the horizontal thread runs. */
+.home-loop .home-loop-thread-v {
+    display: none;
+}
+
 .home-loop-who {
     display: block;
     font-family: var(--home-mono);
     font-size: 0.66rem;
     font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     color: var(--home-muted);
     margin-bottom: 0.35rem;
 }
@@ -809,17 +905,34 @@ html[data-theme="dark"] .home-button-primary:hover {
 
 .home-loop-record {
     display: block;
-    margin-top: 0.7rem;
+    position: relative;
+    margin-top: 0.9rem;
     font-size: 0.78rem;
     color: var(--home-ink);
     background: var(--home-surface);
     border: 1px dashed color-mix(in srgb, var(--home-accent) 40%, transparent);
     border-radius: 7px;
-    padding: 0.45rem 0.6rem;
+    padding: 0.6rem 0.6rem 0.45rem;
 }
 
-.home-loop-record b {
-    font-weight: 600;
+/* The label sits on the top border like a fieldset legend, its own
+   background knocking the dash out where it crosses. The gradient
+   splits at the border line so the top half matches the paper behind
+   the box and the bottom half the box's surface. */
+.home-loop-record-label {
+    position: absolute;
+    top: 0;
+    left: 0.55rem;
+    transform: translateY(-50%);
+    font-family: var(--home-mono);
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1;
+    color: var(--home-muted);
+    background: linear-gradient(to bottom, var(--home-paper) 50%, var(--home-surface) 50%);
+    padding: 0 0.4rem;
 }
 
 .home-loop-return {
@@ -1128,10 +1241,34 @@ html[data-theme="dark"] .home-button-primary:hover {
         margin-left: 1.15rem;
     }
 
+    /* The animated threads split by direction: the stages lie along a
+       row on wide screens and stack on narrow ones, so the horizontal
+       thread steps aside for the vertical twin, which flows downward
+       from the first circle toward the fifth. */
+    .home-loop.thread-animated::before {
+        display: none;
+    }
+
+    .home-loop .home-loop-thread {
+        display: none;
+    }
+
+    .home-loop .home-loop-thread-v {
+        display: block;
+        position: absolute;
+        top: calc(1.2rem - 1.25px);
+        left: calc(1.2rem - 1.25px);
+        width: 2.5px;
+        /* One replaced height, stated outright: the loop minus the
+           circle midline at the top and the 1.15rem breathing room at
+           the bottom. */
+        height: calc(100% - 2.35rem + 1.25px);
+    }
+
     .home-loop::before {
-        top: 1.15rem;
+        top: calc(1.2rem - 1.25px);
         bottom: 1.15rem;
-        left: 1.2rem;
+        left: calc(1.2rem - 1.25px);
         right: auto;
         border-top: none;
         border-left: 2.5px dashed var(--home-accent);
@@ -1145,9 +1282,12 @@ html[data-theme="dark"] .home-button-primary:hover {
         padding-bottom: 0.2rem;
     }
 
+    /* The circles sit centered on the thread: the line's center runs
+       1.2rem into the loop, and a 2.4rem circle whose left edge is the
+       loop's own edge centers on exactly that. */
     .home-loop-num {
         position: absolute;
-        left: -1.15rem;
+        left: 0;
         top: 0;
         margin-bottom: 0;
     }

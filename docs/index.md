@@ -45,36 +45,36 @@ description: "A set of conventions and agent skills for building software with c
 <span class="home-loop-num" aria-hidden="true">1</span>
 <span class="home-loop-who">Operator + agent</span>
 <span class="home-loop-what">Discuss an idea</span>
-<span class="home-loop-how">talk it through until you agree</span>
-<span class="home-loop-record"><b>Leaves:</b> a proposal</span>
+<span class="home-loop-how">Talk it through until you agree</span>
+<span class="home-loop-record"><span class="home-loop-record-label">Outcome</span>A proposal</span>
 </li>
 <li class="home-loop-step">
 <span class="home-loop-num" aria-hidden="true">2</span>
 <span class="home-loop-who">Operator</span>
 <span class="home-loop-what">Accept it</span>
-<span class="home-loop-how">you decide what the proposal means</span>
-<span class="home-loop-record"><b>Leaves:</b> an accepted proposal</span>
+<span class="home-loop-how">You decide what the proposal means</span>
+<span class="home-loop-record"><span class="home-loop-record-label">Outcome</span>An accepted proposal</span>
 </li>
 <li class="home-loop-step">
 <span class="home-loop-num" aria-hidden="true">3</span>
 <span class="home-loop-who">Planner</span>
 <span class="home-loop-what">Write the work items</span>
-<span class="home-loop-how">small units a fresh agent can run</span>
-<span class="home-loop-record"><b>Leaves:</b> the plan</span>
+<span class="home-loop-how">Small units a fresh agent can run</span>
+<span class="home-loop-record"><span class="home-loop-record-label">Outcome</span>The plan</span>
 </li>
 <li class="home-loop-step">
 <span class="home-loop-num" aria-hidden="true">4</span>
 <span class="home-loop-who">Agents</span>
 <span class="home-loop-what">Build and review</span>
-<span class="home-loop-how">implement, check each other, land the work</span>
-<span class="home-loop-record"><b>Leaves:</b> code, tests, and a design overview</span>
+<span class="home-loop-how">Implement, check each other, land the work</span>
+<span class="home-loop-record"><span class="home-loop-record-label">Outcome</span>Code, tests, and a design overview</span>
 </li>
 <li class="home-loop-step">
 <span class="home-loop-num" aria-hidden="true">5</span>
 <span class="home-loop-who">Operator</span>
 <span class="home-loop-what">Try the software</span>
-<span class="home-loop-how">judge the result, correct course</span>
-<span class="home-loop-record"><b>Leaves:</b> corrections or a new direction</span>
+<span class="home-loop-how">Judge the result, correct course</span>
+<span class="home-loop-record"><span class="home-loop-record-label">Outcome</span>Corrections or a new direction</span>
 </li>
 </ol>
 <p class="home-loop-return"><svg width="150" height="26" viewBox="0 0 150 26" aria-hidden="true"><path d="M146 20 C 110 26, 45 24, 8 10" fill="none" stroke-width="2" stroke-dasharray="6 5" stroke-linecap="round"/><path d="M16 6 L 7 9.5 L 12 16" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Corrections or a new direction start the loop again.</p>

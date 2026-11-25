@@ -26,6 +26,7 @@
             fixMdLinks();
             wireCopyButtons();
             wireSeams();
+            wireLoopThread();
         }
     };
 
@@ -86,6 +87,32 @@
         document.querySelectorAll('.home-button-primary, .home-install').forEach(function (btn) {
             if (btn.querySelector('.home-seam')) return;
             btn.insertAdjacentHTML('beforeend', seamSvg);
+        });
+    };
+
+    // The stages thread is the same conveyor stitch as the wordmark's,
+    // drawn as an SVG line that home.css positions along the row and
+    // animates. The dashed border on .home-loop::before stays as the
+    // no-JS and narrow-screen thread; injecting the SVG adds a class
+    // that hides it where the animated thread replaces it. The path runs
+    // 216px past the left end so stitches enter from there as the line
+    // advances toward stage five.
+    var threadSvg = '<svg class="home-loop-thread" aria-hidden="true" focusable="false">' +
+        '<path d="M-216 1.25 H 1400" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="7 5"/></svg>';
+
+    // The narrow-screen twin runs downward instead, so stitches enter at
+    // the top and feed toward stage five. It spans the loop's full
+    // height with a long path that the svg clips, since the height is
+    // whatever the five stages add up to.
+    var threadSvgV = '<svg class="home-loop-thread-v" aria-hidden="true" focusable="false">' +
+        '<path d="M1.25 -216 V 2600" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="7 5"/></svg>';
+
+    var wireLoopThread = function () {
+        document.querySelectorAll('.home-loop').forEach(function (loop) {
+            if (loop.classList.contains('thread-animated')) return;
+            loop.classList.add('thread-animated');
+            loop.insertAdjacentHTML('afterbegin', threadSvg);
+            loop.insertAdjacentHTML('afterbegin', threadSvgV);
         });
     };
 
