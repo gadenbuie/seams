@@ -15,7 +15,10 @@ export const MANIFEST_RELATIVE_PATH = path.join(".agents", "seams.json");
 /** The manifest path as a repo-relative string with forward slashes. */
 export const MANIFEST_REPO_PATH = MANIFEST_RELATIVE_PATH.split(path.sep).join("/");
 
-export const PATH_KEYS = ["design", "overviews", "proposals", "plans"] as const;
+export const SHARED_PATH_KEYS = ["design", "overviews", "proposals", "plans"] as const;
+
+/** Every home the CLI can read, the shared documentation homes plus notes. */
+export const PATH_KEYS = [...SHARED_PATH_KEYS, "notes"] as const;
 
 export type PathKey = (typeof PATH_KEYS)[number];
 
@@ -92,7 +95,11 @@ export function findRoot(cwd: string): string {
   return path.resolve(cwd);
 }
 
-/** Conventional homes relative to the root, with the `.agents/design` fallback. */
+/**
+ * Conventional homes relative to the root, with the `.agents/design` fallback.
+ * The notes path is a candidate, never an assumed home: nothing creates the
+ * directory, and discovery uses it only when it already exists.
+ */
 function conventionalPaths(root: string): Record<PathKey, string> {
   const useAgentsDesign =
     !existsSync(path.join(root, "docs", "design")) &&
@@ -103,6 +110,7 @@ function conventionalPaths(root: string): Record<PathKey, string> {
     overviews: path.join(design, "overviews"),
     proposals: path.join(".agents", "proposals"),
     plans: path.join(".agents", "plans"),
+    notes: path.join("_dev", "notes"),
   };
 }
 

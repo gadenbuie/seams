@@ -80,6 +80,7 @@ describe("loadProject, conventional layout", () => {
       overviews: "docs/design/overviews",
       proposals: ".agents/proposals",
       plans: ".agents/plans",
+      notes: "_dev/notes",
     });
   });
 
@@ -92,6 +93,7 @@ describe("loadProject, conventional layout", () => {
       overviews: ".agents/design/overviews",
       proposals: ".agents/proposals",
       plans: ".agents/plans",
+      notes: "_dev/notes",
     });
   });
 });
@@ -106,6 +108,7 @@ describe("loadProject, manifest", () => {
       overviews: "docs/design/overviews",
       proposals: ".agents/proposals",
       plans: ".agents/plans",
+      notes: "_dev/notes",
     });
     assert.equal(loaded.manifest?.reconcile?.lastReconciledRevision, null);
   });
@@ -119,6 +122,29 @@ describe("loadProject, manifest", () => {
       overviews: "handbook/design/overviews",
       proposals: ".agents/proposals",
       plans: ".agents/plans",
+      notes: "_dev/notes",
+    });
+  });
+
+  it("accepts a manifest paths.notes that overrides the notes home", () => {
+    const project = copyFixture("custom");
+    mkdirSync(path.join(project, "scratch", "pad"), { recursive: true });
+    writeFileSync(
+      path.join(project, MANIFEST_RELATIVE_PATH),
+      JSON.stringify({
+        schemaVersion: 1,
+        seamsVersion: "0.1.0",
+        paths: { notes: "scratch/pad" },
+      }),
+    );
+    const loaded = loadProject(project);
+    assert.equal(loaded.source, "manifest");
+    assert.deepEqual(relative(loaded), {
+      design: "docs/design",
+      overviews: "docs/design/overviews",
+      proposals: ".agents/proposals",
+      plans: ".agents/plans",
+      notes: "scratch/pad",
     });
   });
 
@@ -204,6 +230,54 @@ describe("loadProject, manifest", () => {
       assert.equal(error.message.match(/paths[.\/]design/g)?.length, 1);
       assert.equal(error.message.match(/paths[.\/]overviews/g)?.length, 1);
       assert.equal(error.message.match(/paths[.\/]proposals/g)?.length, 1);
+      return true;
+    });
+  });
+
+  it("rejects an invalid notes path with the same path messages", () => {
+    const project = tempProject();
+    mkdirSync(path.join(project, ".agents"), { recursive: true });
+    writeFileSync(
+      path.join(project, MANIFEST_RELATIVE_PATH),
+      JSON.stringify({
+        schemaVersion: 1,
+        seamsVersion: "0.1.0",
+        paths: { notes: "/etc/notes" },
+      }),
+    );
+    assert.throws(() => loadProject(project), (error: unknown) => {
+      assert.ok(error instanceof ManifestError);
+      assert.match(error.message, /paths\.notes must be a relative path/);
+      return true;
+    });
+
+    rmSync(path.join(project, MANIFEST_RELATIVE_PATH));
+    writeFileSync(
+      path.join(project, MANIFEST_RELATIVE_PATH),
+      JSON.stringify({
+        schemaVersion: 1,
+        seamsVersion: "0.1.0",
+        paths: { notes: "scratch\\pad" },
+      }),
+    );
+    assert.throws(() => loadProject(project), (error: unknown) => {
+      assert.ok(error instanceof ManifestError);
+      assert.match(error.message, /paths\.notes must use "\/" separators/);
+      return true;
+    });
+
+    rmSync(path.join(project, MANIFEST_RELATIVE_PATH));
+    writeFileSync(
+      path.join(project, MANIFEST_RELATIVE_PATH),
+      JSON.stringify({
+        schemaVersion: 1,
+        seamsVersion: "0.1.0",
+        paths: { notes: "../outside" },
+      }),
+    );
+    assert.throws(() => loadProject(project), (error: unknown) => {
+      assert.ok(error instanceof ManifestError);
+      assert.match(error.message, /paths\.notes must not contain a "\.\." segment/);
       return true;
     });
   });

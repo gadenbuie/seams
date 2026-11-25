@@ -27,7 +27,8 @@
         "design": { "$ref": "#/$defs/relativePath" },
         "overviews": { "$ref": "#/$defs/relativePath" },
         "proposals": { "$ref": "#/$defs/relativePath" },
-        "plans": { "$ref": "#/$defs/relativePath" }
+        "plans": { "$ref": "#/$defs/relativePath" },
+        "notes": { "$ref": "#/$defs/relativePath" }
       }
     },
     "reconcile": {
