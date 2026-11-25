@@ -16,6 +16,8 @@ An overview guides readers to that reality through exact references; it never re
 
 ## Overviews in this project
 
+- [The seams brand](brand.md) explains the site's visual identity: the paper, ink, and thread palette, the type, the stitch motif, and the motion rules.
+  Read it when changing how the site looks or making anything that should look like seams.
 - [The seams CLI](npm-cli.md) explains how the optional `seams` commands find, read, and check project documentation, how skill installation keeps its identity, and what each command refuses to do.
   Read it when maintaining the CLI or deciding what a command may change.
 
