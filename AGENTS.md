@@ -6,7 +6,7 @@ In this repository, the documents, the skills, and the CLI package are the produ
 ## Where things live
 
 seams uses its own process on itself, so some files do double duty.
-For example, [`docs/design/overviews/index.md`](docs/design/overviews/index.md) explains what design overviews look like, and this repository has no system that needs an overview yet.
+For example, [`docs/design/overviews/index.md`](docs/design/overviews/index.md) explains what design overviews look like, and [`docs/design/overviews/npm-cli.md`](docs/design/overviews/npm-cli.md) is the design overview of the CLI.
 
 - **Canon:**\*\* [`docs/design/`](docs/design/index.md) holds seams' vision, principles, and invariants.
   These files also define the framework for every project that uses seams.

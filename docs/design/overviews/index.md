@@ -14,6 +14,11 @@ It has descriptive weight when a reader wants to understand the current design, 
 Code, tests, and runtime evidence establish what exists.
 An overview guides readers to that reality through exact references; it never replaces the need to check them.
 
+## Overviews in this project
+
+- [The seams CLI](npm-cli.md) explains how the optional `seams` commands find, read, and check project documentation, how skill installation keeps its identity, and what each command refuses to do.
+  Read it when maintaining the CLI or deciding what a command may change.
+
 ## Design overviews serve fresh readers and operator review
 
 A useful collection of design overviews lets a reader start with a small map, choose the documents relevant to a task, and understand the important parts without loading the whole project's history.
