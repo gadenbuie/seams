@@ -89,7 +89,7 @@ It never deletes a file. `cli/test/skills-install.test.ts` and `cli/test/skills-
 - `new` never overwrites an existing file, never creates or edits canon, stops at a slug that resembles an open proposal unless `--force` is given, and touches the overviews index only with `--update-index`.
 - `impact` reports candidate documents, never a verdict; the reader judges whether a document is stale.
 - `reconcile` never edits a document and never advances `lastReconciledRevision`; it writes only the file `--manifest-out` names.
-- `check` runs only the mechanical checks in `cli/src/check/index.ts` (frontmatter, numbering, status, manifest, links, index coverage, skill references); the frontmatter and manifest checks leave the optional notes home alone, requiring no note metadata and warning about no missing notes directory; formatting and project-specific checks stay with the project's own tooling.
+- `check` runs only the mechanical checks in `cli/src/check/index.ts` (frontmatter, numbering, status, manifest, links, index coverage, skill references); the frontmatter and manifest checks leave the optional notes home alone, requiring no note metadata and warning about no missing notes directory, while the links check scans notes like any other home; formatting and project-specific checks stay with the project's own tooling.
 - `doctor` reports and never writes, and never claims that a harness loaded a skill or that documentation agrees with code.
 - `init` in agent mode never prompts, never scaffolds canon, and never writes the manifest; adoption is the `seams-adopt` skill's work.
 - `skills install` and `skills update` always pass an explicit agent selection, from `--agent` or from detection, and never overwrite a modified, untracked, or divergent copy.
