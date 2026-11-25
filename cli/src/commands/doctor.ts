@@ -294,12 +294,14 @@ export async function skillsArea(cwd: string, sourceDir?: string): Promise<Docto
       const report = await checkSkills({ cwd, scope, sourceDir });
       lines.push(scopeLine(scope, report.entries));
     } catch (error) {
-      // A metadata file that cannot be read is broken state, not an
-      // incomplete installation: it also stops `skills check` and `update`.
+      // A scope that cannot be checked is broken state, not an incomplete
+      // installation: whatever stopped it also stops `skills check` and
+      // `update`. The message carries the underlying error; a metadata file
+      // that cannot be parsed is the usual cause.
       lines.push({
         status: "error",
         message: `the ${scope} scope could not be checked: ${error instanceof Error ? error.message : String(error)}`,
-        hint: "fix or remove that metadata file, then run `seams skills install` to reinstall the skills",
+        hint: `fix the path the message names, then run \`seams skills install --scope ${scope}\` to reinstall the skills`,
       });
     }
   }

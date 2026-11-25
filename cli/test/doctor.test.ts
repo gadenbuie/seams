@@ -409,21 +409,48 @@ describe("seams doctor", () => {
     assert.equal(json.errors, 0);
   });
 
-  it("writes nothing", async () => {
+  it("writes nothing, in the project or in the home it checks", async () => {
     const env = makeEnv();
     const cwd = fixtureProject(env, "check-good");
     writeManifest(cwd);
     writeFileSync(path.join(cwd, "AGENTS.md"), "Homes in .agents/seams.json.\n");
     await installFixtureV1(cwd);
 
-    const before = snapshot(cwd);
+    const beforeProject = snapshot(cwd);
+    const beforeHome = snapshot(env.home);
     const plain = run(cwd, env, ["doctor"]);
     const asJson = run(cwd, env, ["doctor", "--json"]);
     // Only warnings: the fixture skills are outdated against the running
     // package, and warnings do not fail the doctor.
     assert.equal(plain.status, 0);
     assert.equal(asJson.status, 0);
-    assert.deepEqual(snapshot(cwd), before);
+    assert.deepEqual(snapshot(cwd), beforeProject);
+    assert.deepEqual(snapshot(env.home), beforeHome);
+  });
+
+  it("reports a scope that cannot be checked as an error, exiting 1", () => {
+    const env = makeEnv();
+    const cwd = fixtureProject(env, "check-good");
+    // Project metadata that cannot be parsed stops the project scope's
+    // check; the global scope is unaffected.
+    mkdirSync(path.join(cwd, ".agents"), { recursive: true });
+    writeFileSync(path.join(cwd, ".agents", "seams-skills.json"), "{ not json");
+
+    const { status, json } = runDoctor(cwd, env);
+    assert.equal(status, 1);
+    const skills = json.areas[4];
+    assert.equal(skills.status, "error");
+    const project = skills.lines.find((line) =>
+      line.message.startsWith("the project scope could not be checked:"),
+    );
+    assert.equal(project?.status, "error");
+    assert.match(project?.message ?? "", /seams-skills\.json/);
+    assert.match(
+      project?.hint ?? "",
+      /seams skills install --scope project/,
+    );
+    assert.equal(skills.lines[1].status, "ok");
+    assert.equal(json.errors, 1);
   });
 
   it("rejects arguments the command does not take", () => {
