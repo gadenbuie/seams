@@ -2,8 +2,25 @@
   "name": "@grrrck/seams",
   "version": "0.1.0",
   "description": "The seams CLI: optional commands for navigating and checking seams documentation.",
+  "keywords": [
+    "seams",
+    "cli",
+    "coding-agents",
+    "agent-skills",
+    "documentation"
+  ],
   "type": "module",
   "license": "MIT",
+  "author": "Garrick Aden-Buie (https://garrickadenbuie.com)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gadenbuie/seams.git",
+    "directory": "cli"
+  },
+  "bugs": {
+    "url": "https://github.com/gadenbuie/seams/issues"
+  },
+  "homepage": "https://pkg.garrickadenbuie.com/seams/",
   "bin": {
     "seams": "dist/cli.js"
   },
