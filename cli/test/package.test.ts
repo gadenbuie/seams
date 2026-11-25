@@ -378,7 +378,7 @@ describe("the packed tarball", () => {
       relativeFiles(REPO_SKILLS).map((file) => `skills/${file}`),
       "the tarball's skills are not exactly the repository's skills",
     );
-    assert.ok(SKILL_FOLDERS.length >= 9, "expected the nine seams skills or more");
+    assert.ok(SKILL_FOLDERS.length >= 10, "expected the ten seams skills or more");
     for (const name of SKILL_FOLDERS) {
       assert.ok(entries.includes(`skills/${name}/SKILL.md`), `tarball is missing ${name}/SKILL.md`);
     }

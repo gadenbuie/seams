@@ -16,10 +16,11 @@ import { packageRoot } from "../src/config.ts";
 const CLI = path.resolve(import.meta.dirname, "..", "src", "cli.ts");
 const SCRIPT = path.resolve(import.meta.dirname, "..", "scripts", "bundle-skills.mjs");
 
-/** All nine seams skills, in name order. */
+/** All ten seams skills, in name order. */
 const SKILL_NAMES = [
   "seams-adopt",
   "seams-orient",
+  "seams-overview",
   "seams-plan",
   "seams-propose",
   "seams-reconcile",
@@ -54,7 +55,7 @@ describe("bundled skills directory", () => {
 });
 
 describe("listBundledSkills", () => {
-  it("lists all nine seams skills with descriptions", () => {
+  it("lists all ten seams skills with descriptions", () => {
     const skills = listBundledSkills();
     assert.deepEqual(
       skills.map((skill) => skill.name),
@@ -130,7 +131,7 @@ describe("seams skills list", () => {
   const dir = mkdtempSync(path.join(tmpdir(), "seams-list-"));
   after(() => rmSync(dir, { recursive: true, force: true }));
 
-  it("returns all nine skills with descriptions and installation state in JSON", () => {
+  it("returns all ten skills with descriptions and installation state in JSON", () => {
     const result = run(["--json", "skills", "list"], { cwd: dir });
     assert.equal(result.status, 0);
     const envelope = JSON.parse(result.stdout);

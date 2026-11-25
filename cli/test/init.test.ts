@@ -273,7 +273,7 @@ describe("seams init (agent mode)", () => {
 
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /Agents detected: pi/);
-    assert.match(result.stdout, /Installed 9, unchanged 0, skipped 0, failed 0\./);
+    assert.match(result.stdout, /Installed 10, unchanged 0, skipped 0, failed 0\./);
     assert.ok(
       existsSync(path.join(env.project, ".agents", "skills", "seams-adopt", "SKILL.md")),
       "the skills are installed",
@@ -443,7 +443,7 @@ describe("seams init (agent mode)", () => {
     assert.equal(report.install.scope, "project");
     assert.equal(report.install.mode, "copy");
     assert.deepEqual(report.install.agents, ["pi"]);
-    assert.equal(report.install.targets.length, 9);
+    assert.equal(report.install.targets.length, 10);
     for (const target of report.install.targets) {
       assert.equal(target.action, "install");
     }

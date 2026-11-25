@@ -101,13 +101,13 @@ describe("seams install", () => {
     assert.equal(report.mode, "copy");
     assert.deepEqual(report.agents, ["pi"]);
     assert.equal(report.detected, false);
-    assert.equal(report.targets.length, 9);
+    assert.equal(report.targets.length, 10);
     assert.ok(report.targets.every((target: { action: string }) => target.action === "install"));
 
     const meta = JSON.parse(
       readFileSync(path.join(env.project, ".agents", "seams-skills.json"), "utf8"),
     );
-    assert.equal(Object.keys(meta.skills).length, 9);
+    assert.equal(Object.keys(meta.skills).length, 10);
     assert.ok(
       existsSync(path.join(env.project, ".agents", "skills", "seams-adopt", "SKILL.md")),
       "the skill copy exists",
@@ -120,7 +120,7 @@ describe("seams install", () => {
     const result = run(env, ["install"]);
     assert.equal(result.status, 0);
     assert.match(result.stdout, /seams install currently does exactly `seams skills install`/);
-    assert.match(result.stdout, /Installed 9, unchanged 0, skipped 0, failed 0\./);
+    assert.match(result.stdout, /Installed 10, unchanged 0, skipped 0, failed 0\./);
   });
 
   it("detects agents when none is given and targets only the detected set", () => {
@@ -130,7 +130,7 @@ describe("seams install", () => {
 
     assert.equal(report.detected, true);
     assert.deepEqual(report.agents, ["claude-code", "codex", "pi"]);
-    assert.equal(report.targets.length, 27);
+    assert.equal(report.targets.length, 30);
     assert.ok(
       existsSync(path.join(env.project, ".claude", "skills", "seams-adopt", "SKILL.md")),
     );
@@ -169,7 +169,7 @@ describe("seams install", () => {
     const report = runJson(env, ["--json", "install", "--agent", "pi", "--dry-run"]);
 
     assert.equal(report.dryRun, true);
-    assert.equal(report.targets.length, 9);
+    assert.equal(report.targets.length, 10);
     assert.ok(report.targets.every((target: { action: string }) => target.action === "install"));
     assert.deepEqual(readdirSync(env.project).sort(), []);
   });

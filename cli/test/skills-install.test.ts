@@ -182,12 +182,12 @@ describe("seams skills install", () => {
     );
 
     // Every bundled skill is installed for every detected agent.
-    assert.equal(report.targets.length, 27);
+    assert.equal(report.targets.length, 30);
     for (const target of report.targets) {
       assert.equal(target.action, "install");
     }
     const meta = JSON.parse(readFileSync(path.join(env.project, ".agents", "seams-skills.json"), "utf8"));
-    assert.equal(Object.keys(meta.skills).length, 9);
+    assert.equal(Object.keys(meta.skills).length, 10);
     assert.deepEqual(meta.skills["seams-work"].agents, ["claude-code", "codex", "pi"]);
   });
 
@@ -496,7 +496,7 @@ describe("install layer internals", () => {
         agents: ["pi"],
       });
       assert.equal(report.source, bundledSkillsDir());
-      assert.equal(report.targets.length, 9);
+      assert.equal(report.targets.length, 10);
       assert.equal(report.detected, false);
       for (const target of report.targets) {
         assert.ok(existsSync(path.join(target.path, "SKILL.md")), target.path);
