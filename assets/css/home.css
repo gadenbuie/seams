@@ -4,7 +4,7 @@
    body.no-sidebar, which assets/js/home-layout.js sets on load and on
    SPA navigation. */
 
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
 
 /* ---------------------------------------------------------------------------
    Tokens. The site paints a paper-and-ink palette on top of the docmd
@@ -238,25 +238,22 @@ body.no-sidebar .next-page {
     padding-bottom: 0;
 }
 
-/* A seam between sections: quiet, solid, and aligned with the text column. */
+/* docmd prints the contents heading in uppercase; the site keeps its
+   labels in sentence case. */
+.toc-sidebar .toc-title {
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+/* A seam between sections: quiet, dashed, and aligned with the text column. */
 .home .home-section {
-    border-top: 1px solid var(--home-border);
+    border-top: 1px dashed var(--home-border);
     padding-top: 3.5rem;
     margin-top: 3.5rem;
 }
 
 .home-section-head {
     max-width: 46rem;
-}
-
-.home-kicker {
-    font-family: var(--home-mono);
-    font-size: 0.72rem;
-    font-weight: 500;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--home-muted);
-    margin: 0 0 0.9rem;
 }
 
 .home-section-head h2 {
@@ -307,16 +304,6 @@ body.no-sidebar .next-page {
 
 .home-hero-text .home-notline {
     display: block;
-}
-
-.home-eyebrow {
-    font-family: var(--home-mono);
-    font-size: 0.78rem;
-    font-weight: 500;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--home-muted);
-    margin: 0 0 1.2rem;
 }
 
 .home-wordmark {
@@ -418,8 +405,6 @@ html[data-theme="dark"] .home-button-primary:hover {
 .home-install-hint {
     font-family: var(--home-mono);
     font-size: 0.7rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
     color: var(--home-muted);
 }
 
@@ -461,7 +446,7 @@ html[data-theme="dark"] .home-button-primary:hover {
 .home-tree {
     margin: 0.6rem 0 0;
     background: var(--home-surface);
-    border: 1px solid var(--home-border-strong);
+    border: 1px dashed var(--home-border-strong);
     border-radius: 12px;
     overflow: hidden;
 }
@@ -472,7 +457,7 @@ html[data-theme="dark"] .home-button-primary:hover {
     color: var(--home-muted);
     margin: 0;
     padding: 0.7rem 1.2rem;
-    border-bottom: 1px solid var(--home-border);
+    border-bottom: 1px dashed var(--home-border);
 }
 
 .home-tree-title code {
@@ -537,17 +522,15 @@ html[data-theme="dark"] .home-button-primary:hover {
     font-family: var(--home-mono);
     font-size: 0.68rem;
     font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
     color: var(--home-muted);
     text-align: left;
     padding: 0.6rem 1rem 0.6rem 0;
-    border-bottom: 1px solid var(--home-border-strong);
+    border-bottom: 1px dashed var(--home-border-strong);
 }
 
 .home-perm td {
     padding: 0.9rem 1rem 0.9rem 0;
-    border-bottom: 1px solid var(--home-border);
+    border-bottom: 1px dashed var(--home-border);
     font-size: 0.92rem;
     vertical-align: top;
 }
@@ -581,7 +564,7 @@ html[data-theme="dark"] .home-button-primary:hover {
 .home-excerpt {
     margin: 2.5rem 0 0;
     max-width: 44rem;
-    border: 1px solid var(--home-border-strong);
+    border: 1px dashed var(--home-border-strong);
     border-left: 3px solid var(--home-accent);
     border-radius: 10px;
     background: var(--home-surface);
@@ -594,7 +577,7 @@ html[data-theme="dark"] .home-button-primary:hover {
     color: var(--home-muted);
     margin: 0;
     padding: 0.75rem 1.3rem;
-    border-bottom: 1px solid var(--home-border);
+    border-bottom: 1px dashed var(--home-border);
 }
 
 .home-excerpt-path code {
@@ -706,8 +689,6 @@ html[data-theme="dark"] .home-button-primary:hover {
     font-family: var(--home-mono);
     font-size: 0.66rem;
     font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
     color: var(--home-muted);
     margin-bottom: 0.35rem;
 }
@@ -775,11 +756,11 @@ html[data-theme="dark"] .home-button-primary:hover {
     justify-content: space-between;
     gap: 1.5rem;
     padding: 0.85rem 0;
-    border-bottom: 1px solid var(--home-border);
+    border-bottom: 1px dashed var(--home-border);
 }
 
 .home-path:first-child {
-    border-top: 1px solid var(--home-border);
+    border-top: 1px dashed var(--home-border);
 }
 
 .home-path-want {
@@ -818,7 +799,7 @@ html[data-theme="dark"] .home-button-primary:hover {
 
 .home-install-strip {
     background: var(--home-surface);
-    border: 1px solid var(--home-border-strong);
+    border: 1px dashed var(--home-border-strong);
     border-radius: 12px;
     padding: 2rem 2.2rem;
 }
@@ -860,6 +841,63 @@ html[data-theme="dark"] .home-button-primary:hover {
 
 .home-meta a {
     color: var(--home-muted);
+}
+
+/* ---------------------------------------------------------------------------
+   Seams. The page level hairlines run as dashed lines, so every border
+   reads as a stitched seam: the header and menubar rules, the sidebar
+   edge, the heading rules, tables, code blocks, callouts, and the footer.
+   Controls like buttons and inputs keep their solid borders.
+   Each rule restates the whole border, not just its style. docmd turns
+   some of these borders off with a shorthand elsewhere, and a rule that
+   only set the style would bring those back at default width and color.
+   --------------------------------------------------------------------------- */
+
+.page-header {
+    border-bottom: 1px dashed var(--header-border);
+}
+
+.docmd-menubar {
+    border-bottom: 1px dashed var(--menubar-border);
+}
+
+.sidebar {
+    border-right: 1px dashed var(--border-color);
+}
+
+.content-area h2 {
+    border-bottom: 1px dashed var(--border-color);
+}
+
+/* The home page draws its seams between sections and no rules under
+   its headings. */
+.content-area .home h2 {
+    border-bottom: none;
+}
+
+.content-area table th,
+.content-area table td,
+.table-wrapper table th,
+.table-wrapper table td {
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.docmd-code-block-header {
+    border-bottom: 1px dashed var(--border-color-codeblock);
+}
+
+.content-area pre:not(.home-excerpt-frontmatter),
+.docmd-code-block-wrapper,
+.docmd-code-block {
+    border: 1px dashed var(--border-color-codeblock);
+}
+
+.docmd-container {
+    border-style: dashed;
+}
+
+.page-footer {
+    border-top: 1px dashed var(--border-color);
 }
 
 /* ---------------------------------------------------------------------------

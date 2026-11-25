@@ -7,9 +7,8 @@ description: "A set of conventions and agent skills for building software with c
 <section class="home-hero">
 <div class="home-hero-grid">
 <div class="home-hero-text">
-<p class="home-eyebrow">Conventions and agent skills for coding agents</p>
 <h1 class="home-wordmark">seams<svg class="home-stitch" viewBox="0 0 220 12" aria-hidden="true" focusable="false"><path d="M3 6 H 217" fill="none" stroke-linecap="round" stroke-width="3" stroke-dasharray="7 5"/></svg></h1>
-<p class="home-lede">A working method for building software with coding agents. Each kind of project information gets a home, and any agent that opens the project can tell which statements bind it.</p>
+<p class="home-lede">A set of conventions and agent skills for building software with coding agents. Each kind of project information gets a home, and any agent that opens the project can tell which statements bind it.</p>
 <div class="home-actions">
 <a class="home-button-primary" href="guide.md">Read the guide</a>
 <button class="home-install" type="button" data-copy="npx @grrrck/seams init" aria-label="Copy the install command: npx @grrrck/seams init"><code>npx @grrrck/seams init</code><span class="home-install-hint" data-idle="copy" data-copied="copied">copy</span></button>
@@ -35,7 +34,6 @@ description: "A set of conventions and agent skills for building software with c
 </section>
 <section class="home-section home-flow">
 <div class="home-section-head">
-<p class="home-kicker">How work moves</p>
 <h2>Every hand-off leaves a record the next stage can read.</h2>
 <p class="home-section-intro">A proposal carries your decisions into planning, and work items carry the plan into implementation. As agents build, they move the lasting explanation into a design overview, so a fresh session picks the work up from the repository instead of another agent&rsquo;s memory.</p>
 </div>
@@ -80,7 +78,6 @@ description: "A set of conventions and agent skills for building software with c
 </section>
 <section class="home-section home-model">
 <div class="home-section-head">
-<p class="home-kicker">What the conventions say</p>
 <h2>Each kind of information carries its own permission.</h2>
 <p class="home-section-intro">An agent can read an abandoned plan and an accepted rule without knowing which one should guide its work. The seams separate them.</p>
 </div>
@@ -110,7 +107,6 @@ description: "A set of conventions and agent skills for building software with c
 </section>
 <section class="home-section home-proof">
 <div class="home-section-head">
-<p class="home-kicker">The conventions in use</p>
 <h2>This repository runs on seams.</h2>
 </div>
 <figure class="home-excerpt">
@@ -127,7 +123,6 @@ source:  a planning conversation between the operator and Claude</code></pre>
 </section>
 <section class="home-section home-start">
 <div class="home-section-head">
-<p class="home-kicker">Start here</p>
 <h2>Pick the path that matches your question.</h2>
 </div>
 <ul class="home-paths">

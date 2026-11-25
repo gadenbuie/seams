@@ -21,10 +21,23 @@
         var isHome = rest === '' || rest === '/';
         document.body.classList.toggle('no-sidebar', isHome);
         applyTitlebarMark();
+        fixTocTitle();
         if (isHome) {
             fixMdLinks();
             wireCopyButtons();
         }
+    };
+
+    // docmd ships the contents heading as "On This Page"; the site keeps
+    // its labels in sentence case, so the text is rewritten on each page.
+    var fixTocTitle = function () {
+        document.querySelectorAll('.toc-title').forEach(function (title) {
+            Array.prototype.forEach.call(title.childNodes, function (node) {
+                if (node.nodeType === 3 && node.textContent.trim() === 'On This Page') {
+                    node.textContent = 'On this page';
+                }
+            });
+        });
     };
 
     // The titlebar mark is an inline SVG whose colors read from CSS
