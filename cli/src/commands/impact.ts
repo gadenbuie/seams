@@ -26,8 +26,15 @@ const USAGE = "Usage: seams impact <path> [paths...] | seams impact --git-diff [
 
 const NOTE = "These are candidates for review, not proof that a document is stale.";
 
-/** The authority groups, in report order. */
-const GROUP_ORDER = ["Canon", "Overviews", "Accepted proposals", "Other proposals", "Plans"];
+/** The authority groups, in report order. Navigation comes last. */
+const GROUP_ORDER = [
+  "Canon",
+  "Overviews",
+  "Accepted proposals",
+  "Other proposals",
+  "Plans",
+  "Navigation",
+];
 
 /** One referencing document, in the shape both outputs carry. */
 interface ImpactEntry {
@@ -49,6 +56,11 @@ function usageError(message: string): number {
 
 /** The authority group a document belongs to. */
 function groupOf(doc: DocumentReferences): string {
+  // A home's index.md is a navigation page, not a document of its home's
+  // type. It folds into the existing group of its home, except the canon
+  // home's index, which is navigation rather than canon, so no existing
+  // group fits and it takes the navigation group.
+  if (doc.index === true && doc.type === "canon") return "Navigation";
   switch (doc.type) {
     case "canon":
       return "Canon";

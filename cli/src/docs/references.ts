@@ -44,6 +44,11 @@ export interface DocumentReferences {
   /** Frontmatter status, or null for canon and overviews. */
   status: string | null;
   authority: string;
+  /**
+   * True for a home's own index.md, which discovery scans as a navigation
+   * page rather than a document of its home's type.
+   */
+  index?: boolean;
   /** The referencing lines, in line order. */
   lines: ReferenceLine[];
 }
@@ -292,7 +297,9 @@ function scanDocument(
  */
 export function findReferences(project: Project, paths: string[]): ReferencesResult {
   const targets = expandTargets(project, normalizeInputs(paths));
-  const { documents, warnings } = discoverDocuments(project);
+  // Each home's index.md joins the scanned documents, so links from the
+  // navigation indexes are reported like links from any other document.
+  const { documents, warnings } = discoverDocuments(project, { includeIndexes: true });
 
   const found: DocumentReferences[] = [];
   for (const doc of documents) {
@@ -311,6 +318,7 @@ export function findReferences(project: Project, paths: string[]): ReferencesRes
       type: doc.type,
       status: doc.status ?? null,
       authority: doc.authority,
+      ...(doc.index === true ? { index: true } : {}),
       lines,
     });
   }

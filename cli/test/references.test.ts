@@ -25,6 +25,7 @@ describe("findReferences", () => {
       result.documents.map((doc) => doc.path),
       [
         "docs/design/canon.md",
+        "docs/design/index.md",
         "docs/design/overviews/system.md",
         ".agents/proposals/0001-accepted.md",
         ".agents/proposals/0002-draft.md",
@@ -33,6 +34,8 @@ describe("findReferences", () => {
     );
     // Line 9 names the path twice and as text; one entry covers the line.
     assert.deepEqual(linesOf(result, "docs/design/canon.md"), [[9, "text"]]);
+    // The canon home's index names the path as text, so it is scanned too.
+    assert.deepEqual(linesOf(result, "docs/design/index.md"), [[9, "text"]]);
     // A relative link and a text mention inside a code span, with an anchor.
     assert.deepEqual(linesOf(result, "docs/design/overviews/system.md"), [
       [7, "link"],
@@ -63,6 +66,25 @@ describe("findReferences", () => {
     assert.equal(byPath.get(".agents/proposals/0001-accepted.md")?.status, "accepted");
     assert.equal(byPath.get(".agents/proposals/0002-draft.md")?.authority, "draft proposal (not authorization)");
     assert.equal(byPath.get(".agents/plans/plan-done.md")?.type, "plan");
+    // The canon home's index keeps its home's type but is navigation, not
+    // canon, and carries no status.
+    assert.deepEqual(byPath.get("docs/design/index.md"), {
+      path: "docs/design/index.md",
+      type: "canon",
+      status: null,
+      authority: "navigation",
+      index: true,
+      lines: [{ line: 9, text: "The parser lives at src/a/b.ts.", kind: "text" }],
+    });
+  });
+
+  it("scans each home's index.md for links", () => {
+    const cwd = copyFixture("impact-project");
+    const project = loadProject(findRoot(cwd));
+    const designIndex = findReferences(project, ["docs/design/canon.md"]);
+    assert.deepEqual(linesOf(designIndex, "docs/design/index.md"), [[7, "link"]]);
+    const overviewsIndex = findReferences(project, ["docs/design/overviews/system.md"]);
+    assert.deepEqual(linesOf(overviewsIndex, "docs/design/overviews/index.md"), [[7, "link"]]);
   });
 
   it("treats a trailing slash like a bare directory name", () => {

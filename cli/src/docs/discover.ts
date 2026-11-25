@@ -31,6 +31,12 @@ export interface DocumentMeta {
   status?: string | null;
   /** Present for proposals and plans only. */
   created?: string | null;
+  /**
+   * Present for a home's own index.md when discovery was asked to include
+   * the indexes it would otherwise skip. The index is a navigation page,
+   * not a document of the home's type.
+   */
+  index?: boolean;
   authority: string;
   problems: string[];
 }
@@ -38,6 +44,17 @@ export interface DocumentMeta {
 export interface DiscoveryResult {
   documents: DocumentMeta[];
   warnings: string[];
+}
+
+export interface DiscoveryOptions {
+  /**
+   * Also read the index.md of each home that skips it (canon and overviews).
+   * The indexes of the other homes are ordinary documents and are read
+   * either way. Index documents keep their home's type and carry `index`;
+   * the canon home's index gets the `navigation` authority, because canon is
+   * the one home whose index is not a document of the home's kind.
+   */
+  includeIndexes?: boolean;
 }
 
 /** A home to walk: its config key, the document type it holds, and its mode. */
@@ -198,7 +215,10 @@ function repoRelative(project: Project, dir: string): string {
  * A home folder that does not exist contributes no documents and one warning.
  * Canon, proposals, and plans list the top level of their home; overviews nest.
  */
-export function discoverDocuments(project: Project): DiscoveryResult {
+export function discoverDocuments(
+  project: Project,
+  options: DiscoveryOptions = {},
+): DiscoveryResult {
   const documents: DocumentMeta[] = [];
   const warnings: string[] = [];
 
@@ -218,7 +238,15 @@ export function discoverDocuments(project: Project): DiscoveryResult {
 
     const files = home.recursive ? walkMarkdownFiles(dir) : topLevelMarkdownFiles(dir);
     for (const file of files) {
-      if (home.skipIndex && path.basename(file) === "index.md") continue;
+      if (home.skipIndex && path.basename(file) === "index.md") {
+        if (options.includeIndexes === true) {
+          const doc = readDocument(project, file, home.type);
+          doc.index = true;
+          if (home.type === "canon") doc.authority = "navigation";
+          documents.push(doc);
+        }
+        continue;
+      }
       documents.push(readDocument(project, file, home.type));
     }
   }
