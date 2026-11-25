@@ -35,3 +35,5 @@ Router only:
 - **Integration branch:** record it at the top of the file or index.
 - **Done:** set `Status: done` on a unit after it lands, with the merge commit.
   Close the root the same way only when the operator asks you to finish the outcome.
+  When the tracker is a plan document from `seams-plan`, also set its frontmatter `status` to `done` once every unit has landed on the integration branch. `done` there means the units landed on the integration branch, not that the work reached the target branch.
+  Set it to `abandoned` instead when the operator dropped the work or the plan was replaced, and say why in the plan body.
