@@ -10,6 +10,8 @@ import { newCommand } from "./new.ts";
 import { impactCommand } from "./impact.ts";
 import { checkCommand } from "./check.ts";
 import { reconcileCommand } from "./reconcile.ts";
+import { initCommand } from "./init.ts";
+import { installCommand } from "./install.ts";
 import { skillsCommand } from "./skills.ts";
 
 export interface CommandContext {
@@ -34,5 +36,7 @@ export const commands: Record<string, Command> = {
   impact: impactCommand,
   check: checkCommand,
   reconcile: reconcileCommand,
+  init: initCommand,
+  install: installCommand,
   skills: skillsCommand,
 };
