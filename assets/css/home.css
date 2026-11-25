@@ -1,5 +1,87 @@
-/* Layout balancing for docmd containers.
-   Colors and spacing stay in the default theme. */
+/* Home page design for the seams site.
+   Everything here is scoped to the home page under body.no-sidebar,
+   which assets/js/home-layout.js sets on load and on SPA navigation.
+   Other pages keep the default docmd theme. */
+
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
+
+/* ---------------------------------------------------------------------------
+   Tokens. The home page paints its own paper-and-ink palette on top of the
+   docmd theme, in light and dark. The accent red carries one meaning:
+   a decision only the operator can make.
+   --------------------------------------------------------------------------- */
+
+body.no-sidebar {
+    --home-paper: #fafaf9;
+    --home-surface: #ffffff;
+    --home-ink: #141414;
+    --home-muted: #5f5f5c;
+    --home-border: #e2e2df;
+    --home-border-strong: #cbcac6;
+    --home-accent: #c93a1d;
+    --home-accent-strong: #a02f16;
+    --home-wash: #f7e8e3;
+    --home-stitch: #b4b2ac;
+    --home-display: "Fraunces", "Iowan Old Style", Georgia, serif;
+    --home-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --home-mono: "JetBrains Mono", SFMono-Regular, Consolas, Menlo, monospace;
+
+    --bg-color: var(--home-paper);
+    --header-bg: rgba(250, 250, 249, 0.85);
+    --text-color: var(--home-ink);
+    --text-heading: var(--home-ink);
+    --text-muted: var(--home-muted);
+    --border-color: var(--home-border);
+    --link-color: var(--home-accent);
+    --link-color-hover: var(--home-accent-strong);
+    --code-bg: rgba(20, 20, 20, 0.05);
+    --code-text: var(--home-ink);
+
+    /* The menubar resolves its colors at :root, so redeclare them here
+       for the subtree it actually inherits from. */
+    --menubar-bg: var(--home-paper);
+    --menubar-text: var(--home-ink);
+}
+
+html[data-theme="dark"] body.no-sidebar {
+    --home-paper: #171717;
+    --home-surface: #202020;
+    --home-ink: #ececea;
+    --home-muted: #a0a09c;
+    --home-border: #333330;
+    --home-border-strong: #47464a;
+    --home-accent: #ff7a54;
+    --home-accent-strong: #ff9a7c;
+    --home-wash: #2a211e;
+    --home-stitch: #47464a;
+    --bg-color: var(--home-paper);
+    --header-bg: rgba(23, 23, 23, 0.85);
+    --text-color: var(--home-ink);
+    --text-heading: var(--home-ink);
+    --text-muted: var(--home-muted);
+    --border-color: var(--home-border);
+    --link-color: var(--home-accent);
+    --link-color-hover: var(--home-accent-strong);
+    --code-bg: rgba(236, 236, 234, 0.08);
+    --code-text: var(--home-ink);
+}
+
+/* The canvas. The menubar reads the same tokens, so it sits on the paper. */
+body.no-sidebar {
+    background-color: var(--home-paper);
+    font-family: var(--home-body);
+}
+
+body.no-sidebar .content-area {
+    max-width: 70rem;
+    padding: 0 1.5rem 3rem;
+}
+
+/* docmd paints a blue radial wash on the content area in dark mode;
+   the home page has its own palette. */
+body.no-sidebar .content-area::before {
+    display: none;
+}
 
 /* The menubar carries the site name, so the sidebar title is redundant.
    Keep the header itself; it holds the mobile menu button. */
@@ -7,8 +89,7 @@
     display: none;
 }
 
-/* Hide the sidebar on the home page; assets/js/home-layout.js toggles
-   the body class on load and on SPA navigation. */
+/* Hide the sidebar on the home page. */
 body.no-sidebar .sidebar {
     display: none;
 }
@@ -17,14 +98,12 @@ body.no-sidebar .main-content-wrapper {
     margin-left: 0;
 }
 
-/* The home page header would only repeat the menubar brand and show a
-   sidebar toggle that has nothing to toggle. */
+/* The home page header would only repeat the menubar brand. */
 body.no-sidebar .page-header {
     display: none;
 }
 
-/* The landing page needs neither the table of contents nor the
-   Home breadcrumb. */
+/* The landing page needs neither the table of contents nor breadcrumbs. */
 body.no-sidebar .toc-sidebar {
     display: none;
 }
@@ -33,32 +112,823 @@ body.no-sidebar .docmd-breadcrumbs-row {
     display: none;
 }
 
-/* Keep the landing content just wide enough for the three-card row:
-   the card grid is 60rem wide, plus the content padding. */
-body.no-sidebar .content-area {
-    max-width: 64rem;
-}
-
-/* Hero call-to-action buttons on one row instead of one per line. */
-.docmd-hero .hero-content > br {
+/* The guide link at the bottom repeats the hero call to action. */
+body.no-sidebar .next-page {
     display: none;
 }
 
-/* Equal-height cards: stretch each card to its grid row and pin its
-   call-to-action button to the bottom of the card. */
-.grids .grid-item .card {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
+/* ---------------------------------------------------------------------------
+   Shared pieces
+   --------------------------------------------------------------------------- */
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
 }
 
-.card .card-content {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
+.home {
+    color: var(--home-ink);
+    font-size: 1rem;
+    line-height: 1.6;
 }
 
-.card .card-content .docmd-button {
-    margin-top: auto;
-    align-self: flex-start;
+/* docmd underlines headings; the home page uses its own hairlines. */
+.home h2 {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+/* A seam between sections: quiet, solid, and aligned with the text column. */
+.home .home-section {
+    border-top: 1px solid var(--home-border);
+    padding-top: 3.5rem;
+    margin-top: 3.5rem;
+}
+
+.home-section-head {
+    max-width: 46rem;
+}
+
+.home-kicker {
+    font-family: var(--home-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--home-muted);
+    margin: 0 0 0.9rem;
+}
+
+.home-section-head h2 {
+    font-family: var(--home-display);
+    font-size: clamp(1.55rem, 3vw, 2.1rem);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    margin: 0 0 1.1rem;
+    color: var(--home-ink);
+}
+
+.home-section-intro {
+    color: var(--home-muted);
+    font-size: 1.02rem;
+    margin: 0;
+}
+
+.home-footnote {
+    color: var(--home-muted);
+    font-size: 0.86rem;
+    max-width: 46rem;
+    margin: 1.4rem 0 0;
+}
+
+.home code {
+    font-family: var(--home-mono);
+    font-size: 0.86em;
+    background: var(--code-bg);
+    border-radius: 5px;
+    padding: 0.1em 0.4em;
+}
+
+/* ---------------------------------------------------------------------------
+   Hero
+   --------------------------------------------------------------------------- */
+
+.home-hero {
+    padding: clamp(3.5rem, 9vh, 6rem) 0 4rem;
+}
+
+.home-hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    gap: 3.5rem;
+    align-items: start;
+}
+
+.home-hero-text .home-notline {
+    display: block;
+}
+
+.home-eyebrow {
+    font-family: var(--home-mono);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--home-muted);
+    margin: 0 0 1.2rem;
+}
+
+.home-wordmark {
+    font-family: var(--home-display);
+    font-weight: 600;
+    font-size: clamp(4.2rem, 11vw, 7.5rem);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    color: var(--home-ink);
+    margin: 0;
+}
+
+.home-stitch {
+    display: block;
+    width: clamp(9rem, 22vw, 15rem);
+    height: 12px;
+    margin: 0.9rem 0 0 0.25rem;
+    overflow: visible;
+}
+
+.home-stitch path {
+    stroke: var(--home-accent);
+}
+
+/* The stitch draws itself once, like a seam being run. */
+@keyframes home-stitch-run {
+    from { stroke-dashoffset: 200; }
+    to { stroke-dashoffset: 0; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .home-stitch path {
+        stroke-dashoffset: 200;
+        animation: home-stitch-run 900ms ease-out 200ms forwards;
+    }
+}
+
+.home-lede {
+    font-size: clamp(1.1rem, 2vw, 1.3rem);
+    line-height: 1.55;
+    max-width: 40rem;
+    color: var(--home-ink);
+    margin: 1.6rem 0 0;
+}
+
+.home-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.9rem;
+    margin-top: 2rem;
+}
+
+.home-button-primary {
+    display: inline-block;
+    background: var(--home-accent);
+    color: #fdfbf4;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    padding: 0.65rem 1.3rem;
+    border-radius: 8px;
+    border: 1px solid transparent;
+}
+
+.home-button-primary:hover {
+    background: var(--home-accent-strong);
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .home-button-primary,
+html[data-theme="dark"] .home-button-primary:hover {
+    color: #171717;
+}
+
+/* Alternate palette: ink & leaf. Swap the two token blocks above for these
+   to try it; every other rule in this file reads the same tokens.
+
+body.no-sidebar {
+    --home-paper: #f2f4ef;
+    --home-surface: #fbfcf9;
+    --home-ink: #1d241e;
+    --home-muted: #5c675c;
+    --home-border: #d7dccf;
+    --home-border-strong: #bfc8b5;
+    --home-accent: #2f6b4a;
+    --home-accent-strong: #235239;
+    --home-wash: #e4ecdf;
+    --home-stitch: #a9b5a0;
+    --code-bg: rgba(29, 36, 30, 0.06);
+}
+
+html[data-theme="dark"] body.no-sidebar {
+    --home-paper: #141814;
+    --home-surface: #1c221b;
+    --home-ink: #e4ebe2;
+    --home-muted: #98a697;
+    --home-border: #2d352c;
+    --home-border-strong: #3f4a3d;
+    --home-accent: #8fc7a6;
+    --home-accent-strong: #abd9bd;
+    --home-wash: #222b21;
+    --home-stitch: #3f4a3d;
+    --code-bg: rgba(228, 235, 226, 0.08);
+}
+*/
+
+.home-install {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    font: inherit;
+    background: var(--home-surface);
+    color: var(--home-ink);
+    border: 1px solid var(--home-border-strong);
+    border-radius: 8px;
+    padding: 0.6rem 0.9rem;
+    cursor: pointer;
+}
+
+.home-install:hover {
+    border-color: var(--home-accent);
+}
+
+.home-install code {
+    background: none;
+    padding: 0;
+    font-size: 0.88rem;
+}
+
+.home-install-hint {
+    font-family: var(--home-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--home-muted);
+}
+
+.home-install-hint.is-copied {
+    color: var(--home-accent);
+}
+
+.home-link-quiet {
+    color: var(--home-muted);
+    font-size: 0.92rem;
+    text-decoration: none;
+    margin-left: 0.4rem;
+}
+
+.home-link-quiet:hover {
+    color: var(--home-ink);
+    text-decoration: underline;
+}
+
+.home-ext-mark {
+    font-size: 0.8em;
+    margin-left: 0.2rem;
+}
+
+.home-notline {
+    color: var(--home-muted);
+    font-size: 0.92rem;
+    max-width: 44rem;
+    margin: 2.2rem 0 0;
+    padding-top: 1.1rem;
+    border-top: 1px dashed var(--home-stitch);
+    display: inline-block;
+}
+
+/* ---------------------------------------------------------------------------
+   The annotated repo tree
+   --------------------------------------------------------------------------- */
+
+.home-tree {
+    margin: 0.6rem 0 0;
+    background: var(--home-surface);
+    border: 1px solid var(--home-border-strong);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.home-tree-title {
+    font-family: var(--home-mono);
+    font-size: 0.78rem;
+    color: var(--home-muted);
+    margin: 0;
+    padding: 0.7rem 1.2rem;
+    border-bottom: 1px solid var(--home-border);
+}
+
+.home-tree-title code {
+    background: none;
+    padding: 0;
+}
+
+.home-tree-body {
+    padding: 1.1rem 1.2rem 1.2rem;
+    font-family: var(--home-mono);
+    font-size: 0.82rem;
+}
+
+.home-tree-line {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    margin: 0;
+    line-height: 2.05;
+    white-space: pre;
+}
+
+.home-tree-line i {
+    font-style: normal;
+    color: var(--home-muted);
+}
+
+.home-tree-note {
+    font-family: var(--home-body);
+    font-size: 0.8rem;
+    color: var(--home-muted);
+    margin-left: auto;
+    padding-left: 1.5rem;
+    white-space: normal;
+    text-align: right;
+}
+
+.home-tree-canon .home-tree-note,
+.home-tree-canon .home-tree-note b {
+    color: var(--home-accent);
+}
+
+.home-tree-caption {
+    font-size: 0.86rem;
+    color: var(--home-muted);
+    padding: 0.9rem 1.2rem;
+    border-top: 1px solid var(--home-border);
+}
+
+/* ---------------------------------------------------------------------------
+   The model: canon, memory, reality
+   --------------------------------------------------------------------------- */
+
+.home-perm {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 2rem;
+    max-width: 56rem;
+}
+
+.home-perm thead th {
+    font-family: var(--home-mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--home-muted);
+    text-align: left;
+    padding: 0.6rem 1rem 0.6rem 0;
+    border-bottom: 1px solid var(--home-border-strong);
+}
+
+.home-perm td {
+    padding: 0.9rem 1rem 0.9rem 0;
+    border-bottom: 1px solid var(--home-border);
+    font-size: 0.92rem;
+    vertical-align: top;
+}
+
+.home-perm-kind {
+    font-family: var(--home-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    text-align: left;
+    padding: 0.9rem 1rem 0.9rem 0;
+    border-bottom: 1px solid var(--home-border);
+    color: var(--home-ink);
+    background: none;
+}
+
+.home-perm-canon {
+    color: var(--home-accent);
+}
+
+.home-perm-where {
+    font-family: var(--home-mono);
+    font-size: 0.78rem;
+    color: var(--home-muted);
+    white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------------
+   Proof: a real record from this repository
+   --------------------------------------------------------------------------- */
+
+.home-excerpt {
+    margin: 2.5rem 0 0;
+    max-width: 44rem;
+    border: 1px solid var(--home-border-strong);
+    border-left: 3px solid var(--home-accent);
+    border-radius: 10px;
+    background: var(--home-surface);
+    overflow: hidden;
+}
+
+.home-excerpt-path {
+    font-family: var(--home-mono);
+    font-size: 0.78rem;
+    color: var(--home-muted);
+    margin: 0;
+    padding: 0.75rem 1.3rem;
+    border-bottom: 1px solid var(--home-border);
+}
+
+.home-excerpt-path code {
+    background: none;
+    padding: 0;
+}
+
+.home-excerpt-body {
+    padding: 1.2rem 1.3rem 1.4rem;
+}
+
+.home-excerpt-frontmatter {
+    margin: 0;
+    font-family: var(--home-mono);
+    font-size: 0.8rem;
+    line-height: 1.7;
+    color: var(--home-muted);
+    background: none;
+    border: none;
+    padding: 0;
+    overflow-x: auto;
+}
+
+.home-excerpt-frontmatter code {
+    background: none;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+}
+
+.home-excerpt-quote {
+    margin: 1.1rem 0 0;
+    padding: 0;
+}
+
+.home-excerpt-quote p {
+    font-family: var(--home-display);
+    font-style: italic;
+    font-size: 1.25rem;
+    line-height: 1.45;
+    color: var(--home-ink);
+    margin: 0;
+}
+
+.home-excerpt-caption {
+    font-size: 0.86rem;
+    color: var(--home-muted);
+    padding: 0.9rem 1.3rem;
+    border-top: 1px dashed var(--home-stitch);
+}
+
+/* ---------------------------------------------------------------------------
+   How work moves
+   --------------------------------------------------------------------------- */
+
+.home-loop {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    margin: 2.5rem 0 0;
+    padding: 0;
+    position: relative;
+}
+
+/* The thread the stages hang on. */
+.home-loop::before {
+    content: "";
+    position: absolute;
+    top: 1.15rem;
+    left: 1.2rem;
+    right: 1.2rem;
+    border-top: 2.5px dashed var(--home-stitch);
+}
+
+.home-loop-step {
+    position: relative;
+    padding: 0 1.4rem 0 0;
+    min-width: 0;
+}
+
+.home-loop-num {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    margin-bottom: 1rem;
+    font-family: var(--home-mono);
+    font-size: 0.85rem;
+    color: var(--home-muted);
+    background: var(--home-paper);
+    border: 2px solid var(--home-border-strong);
+    border-radius: 50%;
+}
+
+/* The steps the operator owns sit in the accent color. */
+.home-loop-step:nth-child(2) .home-loop-num,
+.home-loop-step:nth-child(5) .home-loop-num {
+    border-color: var(--home-accent);
+    color: var(--home-accent);
+}
+
+.home-loop-who {
+    display: block;
+    font-family: var(--home-mono);
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--home-muted);
+    margin-bottom: 0.35rem;
+}
+
+.home-loop-step:nth-child(2) .home-loop-who,
+.home-loop-step:nth-child(5) .home-loop-who {
+    color: var(--home-accent);
+}
+
+.home-loop-what {
+    display: block;
+    font-weight: 600;
+    font-size: 1.05rem;
+    line-height: 1.3;
+}
+
+.home-loop-how {
+    display: block;
+    font-size: 0.86rem;
+    color: var(--home-muted);
+    margin-top: 0.3rem;
+}
+
+.home-loop-record {
+    display: block;
+    margin-top: 0.7rem;
+    font-size: 0.78rem;
+    color: var(--home-ink);
+    background: var(--home-wash);
+    border: 1px dashed var(--home-border-strong);
+    border-radius: 7px;
+    padding: 0.45rem 0.6rem;
+}
+
+.home-loop-record b {
+    font-weight: 600;
+}
+
+.home-loop-return {
+    font-size: 0.88rem;
+    color: var(--home-muted);
+    margin: 1.8rem 0 0;
+}
+
+.home-loop-return::before {
+    content: "\21B6";
+    margin-right: 0.45rem;
+    color: var(--home-accent);
+}
+
+/* ---------------------------------------------------------------------------
+   Start here
+   --------------------------------------------------------------------------- */
+
+.home-paths {
+    list-style: none;
+    margin: 2rem 0 0;
+    padding: 0;
+    max-width: 46rem;
+}
+
+.home-path {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--home-border);
+}
+
+.home-path:first-child {
+    border-top: 1px solid var(--home-border);
+}
+
+.home-path-want {
+    font-size: 0.96rem;
+}
+
+.home-path-links {
+    display: flex;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.home-path-link {
+    color: var(--home-accent);
+    font-weight: 500;
+    font-size: 0.92rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.home-path-link:hover {
+    color: var(--home-accent-strong);
+    text-decoration: underline;
+}
+
+.home-path-link::after {
+    content: "\2192";
+    margin-left: 0.35rem;
+    color: var(--home-muted);
+}
+
+/* ---------------------------------------------------------------------------
+   Start a project
+   --------------------------------------------------------------------------- */
+
+.home-install-strip {
+    background: var(--home-surface);
+    border: 1px solid var(--home-border-strong);
+    border-radius: 12px;
+    padding: 2rem 2.2rem;
+}
+
+.home-install-text h2 {
+    font-family: var(--home-display);
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin: 0 0 0.8rem;
+}
+
+.home-install-text p {
+    margin: 0;
+    max-width: 44rem;
+}
+
+.home-install-note {
+    margin-top: 0.8rem !important;
+    font-size: 0.88rem;
+    color: var(--home-muted);
+}
+
+/* ---------------------------------------------------------------------------
+   Colophon
+   --------------------------------------------------------------------------- */
+
+.home .home-meta {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 3rem;
+}
+
+.home-meta p {
+    font-size: 0.86rem;
+    color: var(--home-muted);
+    max-width: 46rem;
+    margin: 0;
+}
+
+.home-meta a {
+    color: var(--home-muted);
+}
+
+/* ---------------------------------------------------------------------------
+   Narrow screens
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 60rem) {
+    .home-hero-grid {
+        grid-template-columns: 1fr;
+        gap: 2.2rem;
+    }
+
+    .home-loop {
+        grid-template-columns: 1fr;
+        margin-left: 1.15rem;
+    }
+
+    .home-loop::before {
+        top: 1.15rem;
+        bottom: 1.15rem;
+        left: 1.2rem;
+        right: auto;
+        border-top: none;
+        border-left: 2.5px dashed var(--home-stitch);
+    }
+
+    .home-loop-step {
+        padding: 0 0 2.2rem 0;
+    }
+
+    .home-loop-step:last-child {
+        padding-bottom: 0.2rem;
+    }
+
+    .home-loop-num {
+        position: absolute;
+        left: -1.15rem;
+        top: 0;
+        margin-bottom: 0;
+    }
+
+    .home-loop-what,
+    .home-loop-how,
+    .home-loop-who,
+    .home-loop-record {
+        margin-left: 3rem;
+    }
+
+    .home-perm,
+    .home-perm tbody,
+    .home-perm tr,
+    .home-perm td,
+    .home-perm th {
+        display: block;
+    }
+
+    .home-perm thead {
+        display: none;
+    }
+
+    .home-perm th {
+        background: none;
+        border-bottom: none;
+    }
+
+    .home-perm tr {
+        padding: 0.9rem 0;
+        border-bottom: 1px solid var(--home-border);
+    }
+
+    .home-perm td {
+        padding: 0.2rem 0;
+    }
+
+    .home-perm-where {
+        white-space: normal;
+    }
+
+    .home-path {
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+
+    .home-path-links {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 40rem) {
+    .content-area {
+        padding: 0 1.1rem 2.5rem !important;
+    }
+
+    .home-hero {
+        padding-top: 2.5rem;
+    }
+
+    .home-actions {
+        gap: 0.7rem;
+    }
+
+    .home-install {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .home-tree-body {
+        font-size: 0.74rem;
+    }
+
+    .home-tree-line {
+        white-space: normal;
+    }
+
+    .home-tree-note {
+        display: block;
+        margin-left: 0;
+        padding-left: 0;
+        text-align: left;
+    }
+
+    .home-excerpt-body {
+        padding: 1rem 1rem 1.1rem;
+    }
+
+    .home-excerpt-frontmatter {
+        font-size: 0.72rem;
+    }
+}
+
+/* Keyboard focus stays visible on the paper. */
+.home a:focus-visible,
+.home button:focus-visible {
+    outline: 2px solid var(--home-accent);
+    outline-offset: 3px;
+    border-radius: 4px;
 }

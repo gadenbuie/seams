@@ -3,127 +3,149 @@ title: "seams"
 description: "A set of conventions and agent skills for building software with coding agents."
 ---
 
-::: hero glow:true
-# seams
-A set of conventions and agent skills for building software with coding agents.
-
-::: button title:"Read the guide" url:"guide.md" color:blue
-::: button title:"GitHub" url:"external:https://github.com/gadenbuie/seams" color:gray
-::: /hero
-
-::: grids
-  ::: grid
-    ::: card title:"Guide" icon:book-open
-    How seams works, from a first idea to reviewed work.
-    ::: button title:"Read the guide" url:"guide.md"
-    ::: /card
-  ::: /grid
-  ::: grid
-    ::: card title:"Design" icon:pen-tool
-    The vision, principles, and invariants that every seams project shares.
-    ::: button title:"Read the design" url:"design/index.md"
-    ::: /card
-  ::: /grid
-  ::: grid
-    ::: card title:"Supporting evidence" icon:quote
-    Where each idea comes from, and where the comparison to agent-assisted coding stops.
-    ::: button title:"Read the evidence" url:"supporting-evidence.md"
-    ::: /card
-  ::: /grid
-::: /grids
-
-seams isn't an application, an agent harness, or a work tracker.
-You put the conventions in your repository and install the skills in your agent harness.
-You and your agents then invoke the skills when you discuss a feature, plan work, implement it, or review it.
-No seams service runs in the background, and no skill acts until you or an agent invokes it.
-You keep using your preferred coding agent, tracker, and review tools.
-
-## Why use seams
-
-A project that uses coding agents collects ideas, plans, notes, rules, task records, and summaries.
-An agent can read an abandoned plan and an accepted rule without knowing which one should guide its work.
-You can find the mistake only after the agent has built the wrong thing.
-
-seams gives each kind of information a home and says what an agent may do with it.
-The conventions also keep your decisions separate from the agent's working notes and from evidence about what the code actually does.
-
-| Information                                     | Where it lives                                  | What an agent may do with it                                                              |
-| :---------------------------------------------- | :---------------------------------------------- | :---------------------------------------------------------------------------------------- |
-| Vision, principles, and invariants you accepted | Named files in `docs/design/`                   | Follow them. Only you can accept a change.                                                |
-| Design overviews and user documentation         | `docs/design/overviews/` and your documentation | Use them to understand the system, and verify their claims against code and tests.        |
-| Proposals, plans, notes, and work items         | `.agents/` and your tracker                     | Use them for the work they describe. A proposal authorizes work only after you accept it. |
-| Code, tests, and the running system             | Your repository and running services            | Use them as evidence of what exists.                                                      |
-
-The names **canon**, **memory**, and **reality** refer to these three kinds of information.
-They aren't names of software components, and a project can use different file paths when its agent instructions name those paths.
-Memory has no single shape or home, and keeping it clear takes deliberate maintenance.
-
-## What using seams looks like
-
-You start by discussing an idea with an agent.
-For work that needs discussion, you run `/seams-propose` and decide what the proposal means.
-You then run `/seams-plan` to turn the accepted proposal into tracked units of work, and `/seams-route` to send those units to agents.
-Small, clear changes can go straight to an agent without a proposal or a detailed plan.
-
-```mermaid
-flowchart TD
-    A["You and an agent talk"] --> B["You have an idea"]
-    B -->|"Accepted proposal"| D1["Planner writes the work item"]
-    D1 --> D["Agents implement and review the work"]
-    D -->|"Code, tests, and documentation"| E["You review the code, docs, and test the software"]
-    D -->|"Questions that change scope"| A
-    E -->|"Corrections or a new direction"| A
-    A --> R["Records hold what happened and what you decided"]
-```
-
-Each stage leaves information for the next stage.
-A proposal carries your decisions into planning, and work items carry the plan into implementation.
-Agents update design overviews and user documentation as the system changes.
-Only you can accept changes to canon.
-
-Especially in greenfield work, information flows from **proposals to plans to design overviews**.
-The proposal holds the selected direction, and the plan organizes execution.
-As agents implement the design, they move the lasting explanation into an overview.
-The proposal and plan remain history, while the overview describes the current system.
-Not every unit needs an overview.
-
-Markdown files and tracker records carry information between stages and fresh agent sessions.
-Agents read the records from earlier stages instead of relying on another agent's session memory.
-
-The skills tell agents how to record decisions, ask you questions, continue work in a fresh session, and report what you can try.
-Agents do the planning, implementation, and review.
-You make the product decisions, accept changes to the project's rules, and judge whether the finished work matches what you wanted.
-
-You don't need every convention or skill on the first day.
-A new project can start with a short `AGENTS.md`, a few lines of vision, and a tracker.
-The [guide](guide.md) explains the stages, the information types, and the skills in more detail.
-
-## Start here
-
-| I want to                                | Read                                                                                                                              |
-| :--------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------- |
-| Understand how seams works               | [The guide](guide.md)                                                                                                             |
-| Start a project with the CLI             | Ask your agent to run `npx @grrrck/seams init`                                                                                    |
-| Set up seams in a project                | [The guide's setup section](guide.md#setting-up-seams-in-a-project) and the [`seams-adopt`](../skills/seams-adopt/SKILL.md) skill |
-| See which skills exist and who runs them | [The guide's skills section](guide.md#the-skills)                                                                                 |
-| See the rules seams keeps                | [Vision](design/vision.md), [principles](design/principles.md), and [invariants](design/invariants.md)                            |
-| Read what agents follow                  | [The skills](../skills/)                                                                                                          |
-| Know where the ideas come from           | [Supporting evidence](supporting-evidence.md)                                                                                     |
-
-## Install the skills and adopt the conventions
-
-To start a project, ask your agent to run `npx @grrrck/seams init` in the project.
-The command installs the seams skills for the agent harnesses it detects, then hands the rest of the setup to the `seams-adopt` skill.
-The CLI is optional: every step also works with ordinary file edits.
-
-Installing the skills and adopting the conventions are separate steps.
-Without the CLI, copy or link the whole `skills/` folder into your agent harness's skill directory, because the skills refer to each other's files.
-Then run `/seams-adopt` in your project to set up the conventions.
-The skill reads your existing files and asks before moving or rewriting them.
-
-## Work on seams itself
-
-The canon for seams lives in [`docs/design/`](design/index.md), its proposals live in `.agents/proposals/`, and its work is tracked in kata.
-The [`AGENTS.md`](../AGENTS.md) file is the entry point for agents working on seams itself.
-
-Use the parts that fit your project.
+<div class="home">
+<section class="home-hero">
+<div class="home-hero-grid">
+<div class="home-hero-text">
+<p class="home-eyebrow">Conventions and agent skills for coding agents</p>
+<h1 class="home-wordmark">seams<svg class="home-stitch" viewBox="0 0 220 12" aria-hidden="true" focusable="false"><path d="M3 6 H 217" fill="none" stroke-linecap="round" stroke-width="3" stroke-dasharray="7 5"/></svg></h1>
+<p class="home-lede">A working method for building software with coding agents. Each kind of project information gets a home, and any agent that opens the project can tell which statements bind it.</p>
+<div class="home-actions">
+<a class="home-button-primary" href="guide.md">Read the guide</a>
+<button class="home-install" type="button" data-copy="npx @grrrck/seams init" aria-label="Copy the install command: npx @grrrck/seams init"><code>npx @grrrck/seams init</code><span class="home-install-hint" data-idle="copy" data-copied="copied">copy</span></button>
+<a class="home-link-quiet" href="https://github.com/gadenbuie/seams">GitHub<span class="home-ext-mark" aria-hidden="true">&#8599;</span><span class="visually-hidden"> (opens in a new tab)</span></a>
+</div>
+<p class="home-notline">Not an application, not an agent harness, not a work tracker. You keep your coding agent, your tracker, and your review tools.</p>
+</div>
+<figure class="home-tree">
+<p class="home-tree-title"><code>your-project/ after seams-adopt</code></p>
+<div class="home-tree-body">
+<p class="home-tree-line"><span>your-project/</span></p>
+<p class="home-tree-line"><span>├─ <i>AGENTS.md</i></span><span class="home-tree-note">tells agents where the seams are</span></p>
+<p class="home-tree-line home-tree-canon"><span>├─ <i>docs/design/</i></span><span class="home-tree-note"><b>canon</b> · what you accepted</span></p>
+<p class="home-tree-line"><span>│&nbsp;&nbsp; ├─ vision.md</span></p>
+<p class="home-tree-line"><span>│&nbsp;&nbsp; ├─ principles.md</span></p>
+<p class="home-tree-line"><span>│&nbsp;&nbsp; └─ overviews/</span><span class="home-tree-note">how the system works now</span></p>
+<p class="home-tree-line"><span>├─ <i>.agents/</i></span><span class="home-tree-note">proposals, plans, and notes</span></p>
+<p class="home-tree-line"><span>└─ <i>src/</i></span><span class="home-tree-note">code and tests: what exists</span></p>
+</div>
+<figcaption class="home-tree-caption">seams adds no service and no build step. It adds files like these, and rules about what an agent may do with each of them.</figcaption>
+</figure>
+</div>
+</section>
+<section class="home-section home-flow">
+<div class="home-section-head">
+<p class="home-kicker">How work moves</p>
+<h2>Every hand-off leaves a record the next stage can read.</h2>
+<p class="home-section-intro">A proposal carries your decisions into planning, and work items carry the plan into implementation. As agents build, they move the lasting explanation into a design overview, so a fresh session picks the work up from the repository instead of another agent&rsquo;s memory.</p>
+</div>
+<ol class="home-loop">
+<li class="home-loop-step">
+<span class="home-loop-num" aria-hidden="true">1</span>
+<span class="home-loop-who">Operator + agent</span>
+<span class="home-loop-what">Discuss an idea</span>
+<span class="home-loop-how">talk it through until you agree</span>
+<span class="home-loop-record"><b>Leaves:</b> a proposal</span>
+</li>
+<li class="home-loop-step">
+<span class="home-loop-num" aria-hidden="true">2</span>
+<span class="home-loop-who">Operator</span>
+<span class="home-loop-what">Accept it</span>
+<span class="home-loop-how">you decide what the proposal means</span>
+<span class="home-loop-record"><b>Leaves:</b> an accepted proposal</span>
+</li>
+<li class="home-loop-step">
+<span class="home-loop-num" aria-hidden="true">3</span>
+<span class="home-loop-who">Planner</span>
+<span class="home-loop-what">Write the work items</span>
+<span class="home-loop-how">small units a fresh agent can run</span>
+<span class="home-loop-record"><b>Leaves:</b> the plan</span>
+</li>
+<li class="home-loop-step">
+<span class="home-loop-num" aria-hidden="true">4</span>
+<span class="home-loop-who">Agents</span>
+<span class="home-loop-what">Build and review</span>
+<span class="home-loop-how">implement, check each other, land the work</span>
+<span class="home-loop-record"><b>Leaves:</b> code, tests, and a design overview</span>
+</li>
+<li class="home-loop-step">
+<span class="home-loop-num" aria-hidden="true">5</span>
+<span class="home-loop-who">Operator</span>
+<span class="home-loop-what">Try the software</span>
+<span class="home-loop-how">judge the result, correct course</span>
+<span class="home-loop-record"><b>Leaves:</b> corrections or a new direction</span>
+</li>
+</ol>
+<p class="home-loop-return"><svg width="150" height="26" viewBox="0 0 150 26" aria-hidden="true"><path d="M146 20 C 110 26, 45 24, 8 10" fill="none" stroke-width="2" stroke-dasharray="6 5" stroke-linecap="round"/><path d="M16 6 L 7 9.5 L 12 16" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Corrections or a new direction start the loop again.</p>
+</section>
+<section class="home-section home-model">
+<div class="home-section-head">
+<p class="home-kicker">What the conventions say</p>
+<h2>Each kind of information carries its own permission.</h2>
+<p class="home-section-intro">An agent can read an abandoned plan and an accepted rule without knowing which one should guide its work. The seams separate them.</p>
+</div>
+<table class="home-perm">
+<thead>
+<tr><th scope="col">Kind</th><th scope="col">Where it lives</th><th scope="col">What an agent may do</th></tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row" class="home-perm-kind home-perm-canon">canon</th>
+<td class="home-perm-where"><code>docs/design/</code></td>
+<td>Follow it. Only you can accept a change to it.</td>
+</tr>
+<tr>
+<th scope="row" class="home-perm-kind">memory</th>
+<td class="home-perm-where"><code>.agents/</code> · <code>docs/design/overviews/</code> · your tracker</td>
+<td>Use it for the work it describes. A proposal authorizes nothing until you accept it.</td>
+</tr>
+<tr>
+<th scope="row" class="home-perm-kind">reality</th>
+<td class="home-perm-where">your repository and running services</td>
+<td>Use it as evidence of what is true today.</td>
+</tr>
+</tbody>
+</table>
+<p class="home-footnote">These names are not software components. A project can use different paths when its agent instructions name them. Memory has no single shape or home, and keeping it clear takes deliberate maintenance.</p>
+</section>
+<section class="home-section home-proof">
+<div class="home-section-head">
+<p class="home-kicker">The conventions in use</p>
+<h2>This repository runs on seams.</h2>
+</div>
+<figure class="home-excerpt">
+<p class="home-excerpt-path"><code>.agents/proposals/0001-unified-framework.md</code></p>
+<div class="home-excerpt-body">
+<pre class="home-excerpt-frontmatter"><code>title:   seams as a unified framework for operators and coding agents
+status:  accepted
+created: 2026-11-23
+source:  a planning conversation between the operator and Claude</code></pre>
+<blockquote class="home-excerpt-quote"><p>&ldquo;Nothing in this proposal authorizes changes to the docs until the operator accepts it.&rdquo;</p></blockquote>
+</div>
+<figcaption class="home-excerpt-caption">A real proposal from this repository. The record shows when it was written, who agreed, and that nothing it describes happened until the operator accepted it.</figcaption>
+</figure>
+</section>
+<section class="home-section home-start">
+<div class="home-section-head">
+<p class="home-kicker">Start here</p>
+<h2>Pick the path that matches your question.</h2>
+</div>
+<ul class="home-paths">
+<li class="home-path"><span class="home-path-want">Understand how seams works</span><a class="home-path-link" href="guide.md">The guide</a></li>
+<li class="home-path"><span class="home-path-want">Start a project with the CLI</span><a class="home-path-link" href="guide.md#setting-up-seams-in-a-project">Setup in the guide</a></li>
+<li class="home-path"><span class="home-path-want">See which skills exist and who runs them</span><a class="home-path-link" href="guide.md#the-skills">The skills</a></li>
+<li class="home-path"><span class="home-path-want">See the rules seams keeps</span><span class="home-path-links"><a class="home-path-link" href="design/vision.md">Vision</a><a class="home-path-link" href="design/principles.md">Principles</a><a class="home-path-link" href="design/invariants.md">Invariants</a></span></li>
+<li class="home-path"><span class="home-path-want">Know where the ideas come from</span><a class="home-path-link" href="supporting-evidence.md">Supporting evidence</a></li>
+</ul>
+</section>
+<section class="home-section home-install-strip">
+<div class="home-install-text">
+<h2>Start a project</h2>
+<p>Ask your agent to run <code>npx @grrrck/seams init</code>. It installs the skills for the harnesses it detects, then hands the rest to the <code>seams-adopt</code> skill, which reads your existing files and asks before moving or rewriting anything.</p>
+<p class="home-install-note">The CLI is optional. Without it, copy or link the whole <code>skills/</code> folder into your agent&rsquo;s skill directory, because the skills refer to each other&rsquo;s files.</p>
+</div>
+</section>
+<section class="home-section home-meta">
+<p>The canon for seams lives in <a href="design/index.md">docs/design/</a>, and the <a href="https://github.com/gadenbuie/seams/blob/main/AGENTS.md">AGENTS.md</a> file is the entry point for agents working on seams itself. Use the parts that fit your project.</p>
+</section>
+</div>
