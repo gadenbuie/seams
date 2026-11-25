@@ -202,7 +202,7 @@ A unit is ready only when no consequential decision is left for the implementer 
 A consequential decision is one about product behavior, persistent data, public interfaces, safety, or acceptance.
 
 A plan document records its status in its frontmatter, and the status takes four values. `draft` means the planner has written the plan and you have not yet confirmed its outline and read-back.
-A draft authorizes nothing, and search tools that skip drafts will not find it. `active` means you confirmed the plan, and the planner sets it. `done` means every unit in the plan has landed, and a closing unit in the plan sets it. `abandoned` means you dropped the work or the plan was replaced, and the planner sets it and says why in the plan body.
+A draft authorizes nothing, and search tools that skip drafts will not find it. `active` means you confirmed the plan, and the planner sets it. `done` means every unit in the plan has landed, and when the plan document is the tracker, a closing unit in the plan sets it. `abandoned` means you dropped the work or the plan was replaced, and the planner sets it and says why in the plan body.
 
 You don't need to read the units.
 Before creating them, the planner shows you a short outline and a **read-back**.

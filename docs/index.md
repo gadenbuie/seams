@@ -103,7 +103,7 @@ The [guide](guide.md) explains the stages, the information types, and the skills
 | I want to                                | Read                                                                                                                              |
 | :--------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------- |
 | Understand how seams works               | [The guide](guide.md)                                                                                                             |
-| Start a project with the CLI             | Ask your agent to run `npx @grrrck/seams init`                                                                                      |
+| Start a project with the CLI             | Ask your agent to run `npx @grrrck/seams init`                                                                                    |
 | Set up seams in a project                | [The guide's setup section](guide.md#setting-up-seams-in-a-project) and the [`seams-adopt`](../skills/seams-adopt/SKILL.md) skill |
 | See which skills exist and who runs them | [The guide's skills section](guide.md#the-skills)                                                                                 |
 | See the rules seams keeps                | [Vision](design/vision.md), [principles](design/principles.md), and [invariants](design/invariants.md)                            |

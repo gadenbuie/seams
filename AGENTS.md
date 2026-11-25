@@ -19,7 +19,7 @@ For example, [`docs/design/overviews/index.md`](docs/design/overviews/index.md) 
 - **Agent procedures:** [`skills/seams-*/`](skills/) hold everything agents follow.
   Human docs explain, and skills instruct.
   Do not put agent procedures in the docs, or explanations for humans in the skills.
-- **Command line tool:** [`cli/`](cli/) is the optional `seams` npm package for projects that use seams.
+- **Command line tool:** [`cli/`](cli/) is the optional `@grrrck/seams` npm package, which provides the `seams` command, for projects that use seams.
   Its TypeScript sources are in `cli/src/` and its tests are in `cli/test/`.
 - **Memory:** `.agents/proposals/` holds proposals.
   A proposal authorizes nothing until its status is accepted.
