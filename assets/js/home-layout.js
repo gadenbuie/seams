@@ -20,10 +20,42 @@
         var rest = base !== '/' && slug.indexOf(base) === 0 ? slug.slice(base.length) : slug;
         var isHome = rest === '' || rest === '/';
         document.body.classList.toggle('no-sidebar', isHome);
+        applyTitlebarMark();
         if (isHome) {
             fixMdLinks();
             wireCopyButtons();
         }
+    };
+
+    // The titlebar mark is an inline SVG whose colors read from CSS
+    // variables (see the titlebar section of home.css), so the light and
+    // dark switch happens in the browser's cascade. External SVG images
+    // cannot inherit the page's variables, which is why the mark is
+    // inlined here instead of loaded from a file.
+    var markSvg = '<svg class="menubar-mark" viewBox="0 0 32 32" width="20" height="20" aria-hidden="true" focusable="false">' +
+        '<rect class="mark-square" width="32" height="32" rx="6"/>' +
+        '<path class="mark-stitch" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-dasharray="3.1 2.3"' +
+        ' d="M24 27.5 H8.5 A4 4 0 0 1 4.5 23.5 V8.5 A4 4 0 0 1 8.5 4.5 H23.5 A4 4 0 0 1 27.5 8.5 V23.5"/>' +
+        '<g transform="rotate(-7 16 16)"><path class="mark-s" d="M16.40 23.47Q17.53 23.47 18.19 22.88Q18.85 22.30 18.85 21.35Q18.85 20.68 18.54 20.14Q18.24 19.60 17.49 19.15Q16.75 18.69 15.46 18.28Q13.55 17.64 12.45 16.89Q11.35 16.13 10.89 15.19Q10.43 14.25 10.43 13.06Q10.43 11.02 11.81 9.91Q13.20 8.80 15.51 8.80Q16.51 8.80 17.15 8.99Q17.79 9.18 18.13 9.37Q18.47 9.56 18.57 9.56Q18.73 9.56 19.14 9.37Q19.55 9.18 19.95 8.99Q20.35 8.80 20.47 8.80Q20.53 8.80 20.59 8.83Q20.65 8.86 20.67 8.98L21.54 13.68Q21.57 13.81 21.55 13.88Q21.53 13.96 21.48 14.00Q21.43 14.01 21.39 13.99Q21.34 13.97 21.30 13.91Q20.36 12.10 19.48 11.04Q18.60 9.99 17.68 9.54Q16.75 9.09 15.67 9.09Q14.44 9.09 13.77 9.70Q13.09 10.32 13.09 11.35Q13.09 12.03 13.41 12.59Q13.72 13.15 14.54 13.61Q15.35 14.08 16.85 14.51Q18.57 15.00 19.61 15.73Q20.65 16.45 21.11 17.39Q21.57 18.32 21.57 19.46Q21.57 20.79 20.93 21.76Q20.29 22.73 19.19 23.27Q18.09 23.80 16.70 23.80Q15.81 23.80 15.15 23.55Q14.50 23.29 14.10 23.04Q13.71 22.78 13.61 22.78Q13.52 22.78 13.17 23.02Q12.82 23.25 12.46 23.48Q12.09 23.72 11.95 23.72Q11.88 23.72 11.80 23.64Q11.72 23.57 11.69 23.40L10.97 19.37Q10.96 19.20 10.97 19.12Q10.99 19.04 11.05 19.01Q11.08 18.98 11.12 19.01Q11.16 19.04 11.20 19.10Q12.51 21.49 13.82 22.48Q15.13 23.47 16.40 23.47Z"/></g>' +
+        '</svg>';
+
+    // The stitch gradient lives in one shared defs block so several marks
+    // can reference it without duplicate ids.
+    var applyTitlebarMark = function () {
+        if (!document.getElementById('seams-mark-stitch')) {
+            var holder = document.createElement('div');
+            holder.innerHTML = '<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">' +
+                '<defs><linearGradient id="seams-mark-stitch" x1="0" y1="0" x2="1" y2="1">' +
+                '<stop offset="0" class="mark-stitch-from"/>' +
+                '<stop offset="0.55" class="mark-stitch-mid"/>' +
+                '<stop offset="1" class="mark-stitch-to"/>' +
+                '</linearGradient></defs></svg>';
+            document.body.appendChild(holder.firstChild);
+        }
+        document.querySelectorAll('.menubar-brand').forEach(function (brand) {
+            if (brand.querySelector('.menubar-mark')) return;
+            brand.insertAdjacentHTML('afterbegin', markSvg);
+        });
     };
 
     // docmd rewrites links written in markdown, but links written as raw HTML

@@ -129,6 +129,62 @@ body.no-sidebar .content-area {
     display: none;
 }
 
+/* ---------------------------------------------------------------------------
+   The titlebar mark. docmd's menubar brand renders lucide icon names only
+   (its light/dark image feature, config.logo, reaches the sidebar header
+   but not the menubar), so home-layout.js inlines the seams mark as an SVG
+   whose colors read from the variables below. The light and dark switch
+   happens in the browser's cascade, on docmd's data-theme attribute.
+   The tab favicon stays a static file: an <img> cannot inherit the page's
+   variables.
+   --------------------------------------------------------------------------- */
+
+:root {
+    --mark-square: #f3eee2;
+    --mark-s: #2a1a24;
+    --mark-stitch-from: #e5794e;
+    --mark-stitch-mid: #c9541f;
+    --mark-stitch-to: #a83e0e;
+}
+
+html[data-theme="dark"] {
+    --mark-square: #1f1311;
+    --mark-s: #f3eee2;
+    --mark-stitch-from: #f5a884;
+    --mark-stitch-mid: #e5794e;
+    --mark-stitch-to: #c9541f;
+}
+
+.menubar-brand .menubar-mark {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.menubar-mark .mark-square {
+    fill: var(--mark-square);
+}
+
+.menubar-mark .mark-s {
+    fill: var(--mark-s);
+}
+
+.menubar-mark .mark-stitch {
+    stroke: url(#seams-mark-stitch);
+}
+
+#seams-mark-stitch .mark-stitch-from {
+    stop-color: var(--mark-stitch-from);
+}
+
+#seams-mark-stitch .mark-stitch-mid {
+    stop-color: var(--mark-stitch-mid);
+}
+
+#seams-mark-stitch .mark-stitch-to {
+    stop-color: var(--mark-stitch-to);
+}
+
 /* Hide the sidebar on the home page. */
 body.no-sidebar .sidebar {
     display: none;
