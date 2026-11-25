@@ -12,6 +12,11 @@
  * missing, untracked, outdated, or divergent) and exits 1 when anything is
  * not ok. `skills update` refreshes the outdated and missing copies, leaving
  * modified, untracked, and divergent copies for manual reconciliation.
+ *
+ * The install report lines, JSON payload, and exit codes are shared with
+ * `seams install` and `seams init` (./install.ts exports them), and the
+ * text `skills get` prints is the same formatter `seams init` inlines
+ * (./init.ts exports it), so the commands cannot drift apart.
  */
 import { parseArgs } from "node:util";
 import { listBundledSkills, readBundledSkill } from "../skills/bundled.ts";
@@ -21,6 +26,8 @@ import { UnsupportedAgentError, installSkills, installationStatuses } from "../s
 import type { AgentId, InstallMode, Scope } from "../skills/install.ts";
 import { jsonEnvelope, printJson, printText } from "../output.ts";
 import type { Command, CommandContext } from "./index.ts";
+import { formatBundledSkill } from "./init.ts";
+import { installExitCode, installPayload, installReportLines } from "./install.ts";
 
 /** One `skills` subcommand. Later units add entries to the map. */
 interface Subcommand {
@@ -129,15 +136,10 @@ function runGet(ctx: CommandContext, args: string[]): number {
     return 0;
   }
 
-  // Text mode prints SKILL.md first, then each reference and asset under a
+  // Text mode prints exactly what `seams init` inlines: the shared
+  // formatter prints SKILL.md first, then each reference and asset under a
   // header naming its path relative to the skill's folder.
-  for (const file of skill.files) {
-    if (file.path !== "SKILL.md") {
-      process.stdout.write(`\n=== ${file.path} ===\n`);
-    }
-    process.stdout.write(file.content);
-    if (!file.content.endsWith("\n")) process.stdout.write("\n");
-  }
+  process.stdout.write(formatBundledSkill(skill));
   return 0;
 }
 
@@ -193,52 +195,12 @@ async function runInstall(ctx: CommandContext, args: string[]): Promise<number> 
   }
 
   if (ctx.json) {
-    printJson(
-      jsonEnvelope("skills install", {
-        scope: report.scope,
-        mode: report.mode,
-        agents: report.agents,
-        detected: report.detected,
-        dryRun: report.dryRun,
-        source: report.source,
-        metaPath: report.metaPath,
-        warnings: report.warnings,
-        targets: report.targets,
-      }),
-    );
-    // A skipped or failed target means the requested install did not fully
-    // happen; report it as a finding.
-    const incomplete = report.targets.some(
-      (target) =>
-        target.action === "skipped" ||
-        target.action === "skipped (modified)" ||
-        target.action === "failed",
-    );
-    return report.dryRun || !incomplete ? 0 : 1;
+    printJson(jsonEnvelope("skills install", installPayload(report)));
+    return installExitCode(report);
   }
 
-  if (report.detected) {
-    printText(`Agents detected: ${report.agents.join(", ")}`);
-  }
-  for (const target of report.targets) {
-    const detail = target.reason === undefined ? "" : ` (${target.reason})`;
-    printText(`  ${target.skill} → ${target.agent}: ${target.action} ${target.path}${detail}`);
-  }
-  if (report.dryRun) {
-    printText("Dry run: nothing written.");
-    return 0;
-  }
-  const counts = { install: 0, unchanged: 0, skipped: 0, failed: 0 };
-  for (const target of report.targets) {
-    if (target.action === "install") counts.install += 1;
-    else if (target.action === "unchanged") counts.unchanged += 1;
-    else if (target.action === "failed") counts.failed += 1;
-    else counts.skipped += 1;
-  }
-  printText(
-    `Installed ${counts.install}, unchanged ${counts.unchanged}, skipped ${counts.skipped}, failed ${counts.failed}.`,
-  );
-  return counts.skipped > 0 || counts.failed > 0 ? 1 : 0;
+  for (const line of installReportLines(report)) printText(line);
+  return installExitCode(report);
 }
 
 const CHECK_OPTIONS = {

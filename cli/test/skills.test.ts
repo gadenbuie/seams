@@ -9,6 +9,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { after, describe, it } from "node:test";
 import { contentHash, listBundledSkills, readBundledSkill } from "../src/skills/bundled.ts";
+import { formatBundledSkill } from "../src/commands/init.ts";
 import { bundledSkillsDir } from "../src/skills/bundled.ts";
 import { packageRoot } from "../src/config.ts";
 
@@ -169,6 +170,16 @@ describe("seams skills get", () => {
       assert.ok(result.stdout.includes(`=== ${file.path} ===`), file.path);
       assert.ok(result.stdout.includes(file.content.trimEnd()), file.path);
     }
+  });
+
+  it("prints exactly the shared formatter's text, the same content `seams init` inlines", () => {
+    // `seams init` agent mode inlines formatBundledSkill("seams-adopt"); this
+    // locks the command's text output byte for byte to that shared formatter.
+    const result = run(["skills", "get", "seams-adopt"]);
+    assert.equal(result.status, 0, result.stderr);
+    const skill = readBundledSkill("seams-adopt");
+    assert.ok(skill);
+    assert.equal(result.stdout, formatBundledSkill(skill));
   });
 
   it("returns the skill's files with paths and contents in JSON", () => {
