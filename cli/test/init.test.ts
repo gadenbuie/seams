@@ -168,6 +168,26 @@ describe("init mode selection", () => {
   });
 });
 
+describe("formatBundledSkill", () => {
+  it("prints SKILL.md first and each other file under a header, ending every file with a newline", () => {
+    // The shared formatter behind `seams skills get` and the inlined skill
+    // text in `seams init` agent mode. The second file has no trailing
+    // newline, so the formatter must add one.
+    const text = formatBundledSkill({
+      name: "demo",
+      files: [
+        { path: "SKILL.md", absolutePath: "/skills/demo/SKILL.md", content: "# Demo skill\n" },
+        { path: "reference.md", absolutePath: "/skills/demo/reference.md", content: "no trailing newline" },
+        { path: "assets/x.md", absolutePath: "/skills/demo/assets/x.md", content: "trailing newline\n" },
+      ],
+    });
+    assert.equal(
+      text,
+      "# Demo skill\n\n=== reference.md ===\nno trailing newline\n\n=== assets/x.md ===\ntrailing newline\n",
+    );
+  });
+});
+
 describe("seams init (agent mode)", () => {
   it("installs the skills for the detected harnesses and hands adoption to the agent", () => {
     const env = makeEnv();
