@@ -5,7 +5,8 @@
  *
  * A document is a repo-relative path, or a path inside any configured home.
  * A repo-relative path that exists is the document; a bare name that then
- * matches several homes is ambiguous, and the command exits 1 listing them.
+ * matches several shared homes is ambiguous, and the command exits 1 listing
+ * them, while the notes home matches only when no shared home does.
  * A resolution that leaves the repository root, directly or through a symlink,
  * is rejected. Every output carries the document's path, its authority label,
  * and the exact line range returned, so a later read can target the same
@@ -14,7 +15,7 @@
 import { readFileSync, realpathSync, statSync } from "node:fs";
 import { parseArgs } from "node:util";
 import path from "node:path";
-import { findRoot, loadProject, PATH_KEYS, type Project } from "../config.ts";
+import { findRoot, loadProject, PATH_KEYS, SHARED_PATH_KEYS, type Project } from "../config.ts";
 import { authorityOf, type DocType } from "../docs/discover.ts";
 import { parseFrontmatter } from "../docs/frontmatter.ts";
 import { outline, type DocLine, type Heading } from "../docs/outline.ts";
@@ -86,15 +87,22 @@ export function resolveDocuments(project: Project, input: string): string[] {
   const directReal = asFile(direct);
   if (directReal !== null) return [directReal];
 
-  const matches: string[] = [];
-  for (const key of PATH_KEYS) {
+  // Bare names resolve in the shared homes first, and the notes home is a
+  // fallback only: a note that happens to share a name with a shared
+  // document never makes that document ambiguous, because notes appear only
+  // when asked for.
+  const shared: string[] = [];
+  for (const key of SHARED_PATH_KEYS) {
     const real = asFile(path.resolve(project.paths[key], input));
-    if (real !== null && !matches.includes(real)) matches.push(real);
+    if (real !== null && !shared.includes(real)) shared.push(real);
   }
-  if (matches.length === 0) {
+  if (shared.length > 0) return shared;
+
+  const note = asFile(path.resolve(project.paths.notes, input));
+  if (note === null) {
     throw new Error(`Document not found: ${input}`);
   }
-  return matches;
+  return [note];
 }
 
 /**

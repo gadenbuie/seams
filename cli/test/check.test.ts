@@ -235,6 +235,18 @@ describe("seams check, notes", () => {
     assert.deepEqual(json.findings, []);
   });
 
+  it("does not flag a dangling link in an uncommitted note", () => {
+    const cwd = copyFixture("notes-project");
+    writeFileSync(
+      path.join(cwd, "_dev", "notes", "branch-experiment.md"),
+      "An experiment on another branch links to [gone](../gone-branch-file.md).\n",
+    );
+    const result = run(["check"], cwd);
+    assert.equal(result.status, 0);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(lines(result.stdout), ["No findings."]);
+  });
+
   it("stays clean when the notes home is absent, and never creates it", () => {
     const cwd = copyFixture("notes-project");
     rmSync(path.join(cwd, "_dev", "notes"), { recursive: true, force: true });

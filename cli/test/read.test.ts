@@ -384,6 +384,25 @@ describe("seams read, notes", () => {
     assert.match(out[1], /  1-4 · \d+ bytes · # Scratch pad/);
   });
 
+  it("prefers the shared home when a note shares its name", () => {
+    const cwd = copyFixture("notes-project");
+    writeFileSync(
+      path.join(cwd, "_dev", "notes", "vision.md"),
+      "# Scratch vision\n\nA note, not canon.\n",
+    );
+
+    const shared = run(["read", "vision.md"], cwd);
+    assert.equal(shared.status, 0);
+    assert.ok(shared.stdout.startsWith("docs/design/vision.md · canon ·"));
+
+    // The note itself still reads explicitly.
+    const note = run(["read", "_dev/notes/vision.md"], cwd);
+    assert.equal(note.status, 0);
+    assert.ok(
+      note.stdout.startsWith("_dev/notes/vision.md · note (not authorization) ·"),
+    );
+  });
+
   it("still rejects a path that leaves the repository root", () => {
     const cwd = copyFixture("notes-project");
     const result = run(["read", "../../outside.md"], cwd);
