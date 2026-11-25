@@ -55,6 +55,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { after, before, describe, it } from "node:test";
 import { fixtureDir } from "./helpers.ts";
+import { insideAgentSignals } from "../src/commands/init.ts";
 import { skillFolderHash } from "../src/skills/hash.ts";
 
 const CLI_DIR = path.resolve(import.meta.dirname, "..");
@@ -215,9 +216,14 @@ function markers(agents: { claude?: boolean; codex?: boolean; pi?: boolean }): v
   if (agents.pi) mkdirSync(path.join(ws.home, ".pi", "agent"), { recursive: true });
 }
 
-/** The seams child-process environment: temporary home and the network block. */
+/** The seams child-process environment: temporary home and the network block.
+ *
+ * The runner itself may be an agent run, so its running-inside signal
+ * variables are stripped: a child that reaches the TTY branch (the pty test
+ * below) must see no inside signal, or it would take agent mode.
+ */
 function seamsEnv(): NodeJS.ProcessEnv {
-  return {
+  const env: NodeJS.ProcessEnv = {
     ...process.env,
     HOME: ws.home,
     CLAUDE_CONFIG_DIR: path.join(ws.home, ".claude"),
@@ -226,6 +232,8 @@ function seamsEnv(): NodeJS.ProcessEnv {
     DISABLE_TELEMETRY: "1",
     NODE_OPTIONS: `--import ${ws.preloadUrl}`,
   };
+  for (const name of insideAgentSignals(process.env)) delete env[name];
+  return env;
 }
 
 /**
@@ -473,9 +481,9 @@ describe("the installed tarball", () => {
   // follow their prompts, like the unit's scripted dialog: input written to
   // the pty before readline starts is lost when readline switches the pty
   // to raw mode, and closing script's stdin sends ^D, which ends the
-  // dialog. It is the suite's last use of the shared install project's
-  // environment: the pi marker must not exist, or detection would pick agent
-  // mode before the prompts appear. script refuses the socketpair stdio
+  // dialog. Installed-harness markers no longer pick agent mode on a TTY,
+  // so only the runner's inside-signal variables could, and seamsEnv strips
+  // them. script refuses the socketpair stdio
   // Node's child pipes use on macOS and hides the child's exit status, so
   // the answers are paced through a real pipe, and the assertions rest on
   // the printed dialog and the written files.
@@ -484,13 +492,10 @@ describe("the installed tarball", () => {
     {
       skip:
         process.platform === "darwin" && existsSync("/usr/bin/script")
-          ? existsSync("/etc/codex")
-            ? "this machine has /etc/codex: init detects codex and never asks"
-            : false
+          ? false
           : "no macOS /usr/bin/script to provide a pseudo-terminal (the command uses the BSD script form)",
     },
     async () => {
-      rmSync(path.join(ws.home, ".pi"), { recursive: true, force: true });
       const humanProject = newProject("human");
       // Node's child pipes are socketpairs on macOS, and script refuses them
       // (tcgetattr), so `cat |` hands script a real pipe created by the shell.
