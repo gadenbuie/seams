@@ -25,6 +25,7 @@
         if (isHome) {
             fixMdLinks();
             wireCopyButtons();
+            wireSeams();
         }
     };
 
@@ -68,6 +69,23 @@
         document.querySelectorAll('.menubar-brand').forEach(function (brand) {
             if (brand.querySelector('.menubar-mark')) return;
             brand.insertAdjacentHTML('afterbegin', markSvg);
+        });
+    };
+
+    // The hero buttons carry an inset seam, a dashed stroke on a rect
+    // inset 5px from the edge. CSS fades it in on hover and runs the
+    // stitches while the button is pressed; see the hero buttons section
+    // of home.css. The rect uses width and height of 100% so one shape
+    // fits both buttons at their rendered sizes. The 3px corner radius
+    // follows the nested radius rule: the 8px outer radius minus the
+    // 5px inset.
+    var seamSvg = '<svg class="home-seam" aria-hidden="true" focusable="false">' +
+        '<rect x="0" y="0" width="100%" height="100%" rx="3"/></svg>';
+
+    var wireSeams = function () {
+        document.querySelectorAll('.home-button-primary, .home-install').forEach(function (btn) {
+            if (btn.querySelector('.home-seam')) return;
+            btn.insertAdjacentHTML('beforeend', seamSvg);
         });
     };
 
