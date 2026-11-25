@@ -3,7 +3,12 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "cli"
+  ],
   "scripts": {
+    "build": "npm run build --workspace cli",
+    "test": "npm test --workspace cli",
     "docs:build": "docmd build",
     "docs:dev": "docmd dev"
   },

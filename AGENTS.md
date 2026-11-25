@@ -51,5 +51,6 @@ make check
 
 `make check` needs [`uv`](https://docs.astral.sh/uv/) and Node.js 22.20 or later.
 It checks Markdown formatting, local links and anchors, the design indexes and overview coverage, and the layout and frontmatter of each skill, and it builds `cli/` and runs its tests.
-To build the CLI on its own, run `cd cli && npm install && npm run build`, and run its tests with `cd cli && npm test`. `make format` applies the formatting rules.
+The `cli/` package is an npm workspace of the root package, so one `npm install` at the repository root installs everything.
+Build the CLI with `npm run build`, and run its tests with `npm test`. `make format` applies the formatting rules.
 These checks don't show that seams works in another project, so also read the diff and walk the reading paths you changed.

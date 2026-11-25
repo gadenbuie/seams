@@ -32,7 +32,7 @@ check-skills: ## Validate every skill in skills/
 	done
 
 check-cli: ## Build the CLI package and run its tests
-	cd cli && npm ci && npm run build && npm test
+	npm ci && npm run build && npm test
 
 format: ## Format Markdown files
 	$(MDFORMAT) --wrap keep $(MD_PATHS)
