@@ -12,10 +12,12 @@
  * `npm install` fetches the package's dependencies from the registry; that is
  * npm's own network use, pointed at a temporary cache and home. Seams' own
  * code may make no network call: every seams process this suite spawns
- * directly runs with a preload that makes `fetch` and `http(s).request` throw,
- * so a call fails the test loudly instead of silently succeeding. (The one
- * `npx` run omits the preload: it would also block npx's own node process,
- * and the same seams entry point runs guarded everywhere else.)
+ * directly runs with a preload that makes every outbound entry point throw
+ * — `fetch`, the `http(s)` request entry points, and the raw `net` and `tls`
+ * connection entry points, for default and named imports alike — so a call
+ * fails the test loudly instead of silently succeeding. (The one `npx` run
+ * omits the preload: it would also block npx's own node process, and the
+ * same seams entry point runs guarded everywhere else.)
  *
  * The operator's real agent settings are snapshotted before and after the
  * suite, read-only: `~/.agents` in full, the top level of each agent root
@@ -28,10 +30,10 @@
  *
  * Human-mode `init` needs a terminal to choose its mode, so that test runs
  * the installed CLI under a pseudo-terminal from `/usr/bin/script` and
- * answers each prompt as it appears. The test skips itself when no pty
- * helper is available, or when this machine has `/etc/codex` (then codex is
- * detected even in an empty home and `init` chooses agent mode instead of
- * asking).
+ * answers each prompt as it appears. The test skips itself off macOS (the
+ * command uses the BSD `script` argument form) or when this machine has
+ * `/etc/codex` (then codex is detected even in an empty home and `init`
+ * chooses agent mode instead of asking).
  */
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
@@ -111,16 +113,25 @@ before(() => {
     preload,
     [
       "// Test preload: seams' own code must make no network call.",
-      "// Any fetch or http(s) request throws, so a call fails the test loudly.",
+      "// Every outbound entry point throws, for default and named imports",
+      "// alike, so a call fails the test loudly.",
       "const blocked = (where) => () => {",
       "  throw new Error(`network disabled in seams package test (${where})`);",
       "};",
       "globalThis.fetch = blocked(\"fetch\");",
       "const http = (await import(\"node:http\")).default;",
       "const https = (await import(\"node:https\")).default;",
-      "for (const [name, mod] of [[\"http\", http], [\"https\", https]]) {",
-      "  mod.request = mod.get = blocked(`${name}.request`);",
-      "}",
+      "const net = (await import(\"node:net\")).default;",
+      "const tls = (await import(\"node:tls\")).default;",
+      "const block = (mod, names) => { for (const name of names) mod[name] = blocked(name); };",
+      "block(http, [\"request\", \"get\"]);",
+      "block(https, [\"request\", \"get\"]);",
+      "block(net, [\"connect\", \"createConnection\"]);",
+      "block(tls, [\"connect\", \"createConnection\"]);",
+      "// Named imports resolve against the builtin ESM namespace, which takes",
+      "// its snapshot at import time: without this call they would keep the",
+      "// original functions.",
+      "(await import(\"node:module\")).default.syncBuiltinESMExports();",
       "",
     ].join("\n"),
   );
@@ -131,12 +142,14 @@ before(() => {
 });
 
 after(() => {
+  // Cleanup first: a snapshot mismatch must fail the suite, but it must not
+  // also leak the workspace with its npm cache and installed node_modules.
+  rmSync(ws.dir, { recursive: true, force: true });
   assert.deepEqual(
     snapshotAgentSettings(),
     homeBefore,
     "the operator's real agent settings changed during the package tests",
   );
-  rmSync(ws.dir, { recursive: true, force: true });
 });
 
 /** npm's environment: temporary home, cache, and user config, quiet. */
@@ -264,6 +277,56 @@ function tarEntries(tgz: string): string[] {
     .filter(Boolean)
     .map((entry) => entry.replace(/^package\//, ""));
 }
+
+describe("the network block", () => {
+  it("makes every outbound entry point throw, for default and named imports alike", () => {
+    // The guard itself is under test here, at the lowest layer: every entry
+    // point the preload blocks is called through a named import (the form
+    // easiest to miss), and only the preload's own error counts as blocked —
+    // a connection refused by the outside world must not pass as success.
+    const probe = path.join(ws.dir, "network-probe.mjs");
+    writeFileSync(
+      probe,
+      [
+        "import { request as httpRequest } from \"node:http\";",
+        "import { get as httpsGet } from \"node:https\";",
+        "import { createConnection } from \"node:net\";",
+        "import { connect as tlsConnect } from \"node:tls\";",
+        "const results = [];",
+        "const check = (name, call) => {",
+        "  try {",
+        "    call();",
+        '    results.push(name + ": NOT blocked");',
+        "  } catch (error) {",
+        '    results.push(name + ": " + String(error instanceof Error ? error.message : error));',
+        "  }",
+        "};",
+        "check(\"fetch\", () => globalThis.fetch(\"http://example.com\"));",
+        "check(\"http.request\", () => httpRequest(\"http://example.com\"));",
+        "check(\"https.get\", () => httpsGet(\"https://example.com\"));",
+        "check(\"net.createConnection\", () => createConnection(80, \"example.com\"));",
+        "check(\"tls.connect\", () => tlsConnect(443, \"example.com\"));",
+        'console.log(results.join("\\n"));',
+        "",
+      ].join("\n"),
+    );
+    const result = spawnSync(process.execPath, ["--import", ws.preloadUrl, probe], {
+      encoding: "utf8",
+      timeout: 60_000,
+    });
+    assert.equal(result.status, 0, `the probe crashed:\n${result.stderr}`);
+    assert.deepEqual(
+      result.stdout.trim().split("\n").sort(),
+      [
+        "fetch: network disabled in seams package test (fetch)",
+        "http.request: network disabled in seams package test (request)",
+        "https.get: network disabled in seams package test (get)",
+        "net.createConnection: network disabled in seams package test (createConnection)",
+        "tls.connect: network disabled in seams package test (connect)",
+      ],
+    );
+  });
+});
 
 describe("the packed tarball", () => {
   it("ships the built dist, the schema, and every bundled skill, and nothing else", () => {
@@ -420,11 +483,11 @@ describe("the installed tarball", () => {
     "init in human mode asks and installs for the chosen agent",
     {
       skip:
-        existsSync("/usr/bin/script")
+        process.platform === "darwin" && existsSync("/usr/bin/script")
           ? existsSync("/etc/codex")
             ? "this machine has /etc/codex: init detects codex and never asks"
             : false
-          : "no /usr/bin/script to provide a pseudo-terminal",
+          : "no macOS /usr/bin/script to provide a pseudo-terminal (the command uses the BSD script form)",
     },
     async () => {
       rmSync(path.join(ws.home, ".pi"), { recursive: true, force: true });
@@ -434,10 +497,10 @@ describe("the installed tarball", () => {
       const command = [
         "cat |",
         "/usr/bin/script -q /dev/null",
-        process.execPath,
+        `"${process.execPath}"`,
         "--import",
-        ws.preloadUrl,
-        installedCli(project),
+        `"${ws.preloadUrl}"`,
+        `"${installedCli(project)}"`,
         "init",
       ].join(" ");
       const child = spawn("/bin/sh", ["-c", command], {
@@ -472,7 +535,9 @@ describe("the installed tarball", () => {
           child.kill("SIGKILL");
           resolve(null);
         }, 120_000);
-        child.on("exit", (code: number | null) => {
+        // `close`, not `exit`: the last pty output can still be in flight when
+        // the process exits, and the assertions read that output.
+        child.on("close", (code: number | null) => {
           clearTimeout(timer);
           resolve(code);
         });
@@ -513,9 +578,7 @@ describe("skills update across two package versions", () => {
     mkdirSync(copy);
     for (const item of ["dist", "skills", "schemas", "scripts", "package.json"]) {
       const source = path.join(CLI_DIR, item);
-      cpSync(source, path.join(copy, item), {
-        recursive: existsSync(source) && lstatSync(source).isDirectory(),
-      });
+      cpSync(source, path.join(copy, item), { recursive: lstatSync(source).isDirectory() });
     }
     const manifest = JSON.parse(readFileSync(path.join(copy, "package.json"), "utf8")) as { version: string };
     manifest.version = "0.2.0";
