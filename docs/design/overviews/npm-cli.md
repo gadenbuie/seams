@@ -72,7 +72,8 @@ Everything it cannot do safely is seams' own preflight in `cli/src/skills/instal
 - The library is only called with an explicit `agents` array from the supported allowlist in `SUPPORTED_AGENTS`, because with none detected it targets every supported agent and creates their directories.
   Telemetry is disabled with `DISABLE_TELEMETRY` before the lazy library import in `library()`.
 - Dry run is the preflight alone: it prints what would be written and changes nothing.
-- The metadata is written only after the library resolves, so an interrupted write surfaces as `modified` or `missing` in `skills check`, and `skills update` repairs it.
+- The metadata is written only after the library resolves, so an interrupted write never looks like a successful install: `skills check` reports the destination as `missing` when the copy is absent, or as `modified` when a partial copy differs from the record. `skills update` repairs the `missing` copies.
+  A `modified` copy needs manual reconciliation, because update cannot tell a partial copy from a user's edit.
 
 `skills check` classifies every recorded destination through an explicit table in `cli/src/skills/check.ts`: `ok`, `modified`, `missing`, `untracked`, `outdated`, or `divergent`. `skills update` replaces only `outdated` and `missing` copies, exactly the ones that are absent or still byte-identical to what seams last wrote, so no user edit can be lost.
 It never deletes a file. `cli/test/skills-install.test.ts` and `cli/test/skills-check.test.ts` cover modified copies, dry runs, interrupted writes, and updates between package versions.
