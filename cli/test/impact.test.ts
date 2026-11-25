@@ -94,7 +94,7 @@ describe("seams impact", () => {
     assert.deepEqual(json.paths, ["src/a/b.ts"]);
     assert.deepEqual(
       json.groups.map((group) => group.label),
-      ["Canon", "Overviews", "Accepted proposals", "Other proposals", "Plans"],
+      ["Canon", "Overviews", "Accepted proposals", "Other proposals", "Plans", "Navigation"],
     );
     assert.deepEqual(groupEntries(json, "Canon"), [["docs/design/canon.md", [9]]]);
     assert.deepEqual(groupEntries(json, "Overviews"), [["docs/design/overviews/system.md", [7, 9]]]);
@@ -103,6 +103,9 @@ describe("seams impact", () => {
     ]);
     assert.deepEqual(groupEntries(json, "Other proposals"), [[".agents/proposals/0002-draft.md", [9]]]);
     assert.deepEqual(groupEntries(json, "Plans"), [[".agents/plans/plan-done.md", [9]]]);
+    // The canon home's index is navigation, not canon, so it takes the
+    // navigation group instead of joining canon.md.
+    assert.deepEqual(groupEntries(json, "Navigation"), [["docs/design/index.md", [9]]]);
 
     const entry = json.groups[0].entries[0];
     assert.equal(entry.authority, "canon");
@@ -113,10 +116,30 @@ describe("seams impact", () => {
     assert.equal(draft.authority, "draft proposal (not authorization)");
     assert.equal(draft.status, "draft");
 
-    assert.equal(json.shown, 7);
+    assert.equal(json.shown, 8);
     assert.equal(json.omitted, 0);
     assert.equal(json.note, "These are candidates for review, not proof that a document is stale.");
     assert.deepEqual(json.warnings, []);
+  });
+
+  it("folds a home index into the group its authority fits", () => {
+    const cwd = copyFixture("impact-project");
+    // The canon home's index links canon.md and is navigation, not canon.
+    const designIndex = impactJson(["docs/design/canon.md"], cwd);
+    assert.deepEqual(designIndex.json.groups.map((group) => group.label), ["Navigation"]);
+    assert.deepEqual(groupEntries(designIndex.json, "Navigation"), [["docs/design/index.md", [7]]]);
+    const entry = designIndex.json.groups[0].entries[0];
+    assert.equal(entry.authority, "navigation");
+    assert.equal(entry.status, null);
+    assert.equal(entry.lines[0].kind, "link");
+
+    // The overviews home's index folds into the existing Overviews group.
+    const overviewsIndex = impactJson(["docs/design/overviews/system.md"], cwd);
+    assert.deepEqual(overviewsIndex.json.groups.map((group) => group.label), ["Overviews"]);
+    assert.deepEqual(groupEntries(overviewsIndex.json, "Overviews"), [
+      ["docs/design/overviews/index.md", [7]],
+    ]);
+    assert.equal(overviewsIndex.json.groups[0].entries[0].authority, "memory (verify against code)");
   });
 
   it("looks up several paths at once", () => {
@@ -146,7 +169,7 @@ describe("seams impact", () => {
     const cwd = copyFixture("impact-project");
     const { json } = impactJson(["src/a/b.ts", "--limit", "3"], cwd);
     assert.equal(json.shown, 3);
-    assert.equal(json.omitted, 4);
+    assert.equal(json.omitted, 5);
     // The limit cuts the walk after the overview group: later groups drop out
     // whole, and the note still reports the candidates.
     assert.deepEqual(
@@ -156,7 +179,7 @@ describe("seams impact", () => {
     assert.deepEqual(groupEntries(json, "Overviews"), [["docs/design/overviews/system.md", [7, 9]]]);
 
     const text = run(["impact", "src/a/b.ts", "--limit", "3"], cwd);
-    assert.ok(text.stdout.includes("Showing 3 of 7 references."));
+    assert.ok(text.stdout.includes("Showing 3 of 8 references."));
     assert.ok(text.stdout.trimEnd().endsWith("These are candidates for review, not proof that a document is stale."));
   });
 

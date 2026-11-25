@@ -158,6 +158,24 @@ describe("discoverDocuments", () => {
     assert.equal(paths.some((p) => p.endsWith("notes.txt")), false);
   });
 
+  it("includes the skipped homes' index files only when asked to", () => {
+    const project = loadProject(copyFixture("list-project"));
+    const withIndexes = discoverDocuments(project, { includeIndexes: true });
+    const designIndex = byPath(withIndexes.documents, "docs/design/index.md");
+    // The canon home's index keeps its home's type but is navigation, not
+    // canon, so its authority says navigation.
+    assert.equal(designIndex.type, "canon");
+    assert.equal(designIndex.index, true);
+    assert.equal(designIndex.authority, "navigation");
+    const overviewsIndex = byPath(withIndexes.documents, "docs/design/overviews/index.md");
+    assert.equal(overviewsIndex.type, "overview");
+    assert.equal(overviewsIndex.index, true);
+    assert.equal(overviewsIndex.authority, "memory (verify against code)");
+
+    const withoutIndexes = discoverDocuments(project);
+    assert.equal(withoutIndexes.documents.some((doc) => doc.index === true), false);
+  });
+
   it("warns once for each missing home folder", () => {
     const empty = mkdtempSync(path.join(tmpdir(), "seams-empty-"));
     const { documents, warnings } = discoverDocuments(loadProject(empty));
