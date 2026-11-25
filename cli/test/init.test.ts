@@ -116,7 +116,10 @@ function realHomeListing(dir: string): string[] | null {
  * prompt appears on the output stream, the next answer is written; when the
  * answers run out, the input ends (as Ctrl-D would).
  */
-function scriptedDialog(answers: string[], given?: { scope?: "project" | "global" }) {
+function scriptedDialog(
+  answers: string[],
+  given?: { scope?: "project" | "global"; detected?: string[] },
+) {
   const input = new PassThrough();
   const output = new PassThrough();
   let index = 0;
@@ -170,10 +173,10 @@ describe("init mode selection", () => {
 });
 
 describe("insideAgentSignals", () => {
-  /** The env variable the vendored `skills` library checks for each signal. */
+  /** The env variable the vendored `skills` library checks for each signal,
+   * minus the human-shell variables this list deliberately drops. */
   const CASES: Array<[string, NodeJS.ProcessEnv]> = [
     ["AI_AGENT", { AI_AGENT: " codex " }],
-    ["CURSOR_TRACE_ID", { CURSOR_TRACE_ID: "1" }],
     ["CURSOR_AGENT", { CURSOR_AGENT: "1" }],
     ["CURSOR_EXTENSION_HOST_ROLE", { CURSOR_EXTENSION_HOST_ROLE: "agent-exec" }],
     ["GEMINI_CLI", { GEMINI_CLI: "true" }],
@@ -186,10 +189,6 @@ describe("insideAgentSignals", () => {
     ["OPENCODE_CLIENT", { OPENCODE_CLIENT: "ws://x" }],
     ["CLAUDECODE", { CLAUDECODE: "1" }],
     ["CLAUDE_CODE", { CLAUDE_CODE: "1" }],
-    ["REPL_ID", { REPL_ID: "replid-1" }],
-    ["COPILOT_MODEL", { COPILOT_MODEL: "gpt-4o" }],
-    ["COPILOT_ALLOW_ALL", { COPILOT_ALLOW_ALL: "true" }],
-    ["COPILOT_GITHUB_TOKEN", { COPILOT_GITHUB_TOKEN: "token" }],
   ];
 
   it("matches each running-inside variable the vendored library checks", () => {
@@ -204,6 +203,24 @@ describe("insideAgentSignals", () => {
     assert.deepEqual(insideAgentSignals({ OPENCODE: "0" }), []);
     assert.deepEqual(
       insideAgentSignals({ CLAUDECODE: "", CLAUDE_CODE: "", CODEX_SANDBOX: "" }),
+      [],
+    );
+  });
+
+  it("human-shell variables are not inside signals, unlike the vendored list", () => {
+    // Deliberate divergences from the vendored `skills` library's
+    // `isRunningInAgent` (see insideAgentSignals): Cursor's integrated
+    // terminal sets CURSOR_TRACE_ID for every command, human-typed included;
+    // Replit sets REPL_ID across its workspaces; the COPILOT_* variables are
+    // user-exported Copilot CLI settings, one a credential.
+    assert.deepEqual(
+      insideAgentSignals({
+        CURSOR_TRACE_ID: "trace-1",
+        REPL_ID: "replid-1",
+        COPILOT_MODEL: "gpt-4o",
+        COPILOT_ALLOW_ALL: "true",
+        COPILOT_GITHUB_TOKEN: "token",
+      }),
       [],
     );
   });
@@ -457,7 +474,24 @@ describe("seams init (human mode)", () => {
 
   it("defaults to project and to every supported agent on empty answers", async () => {
     const choices = await scriptedDialog(["", ""]).promise;
-    assert.deepEqual(choices, { scope: "project", agents: ["claude-code", "codex", "pi"] });
+    assert.equal(choices.scope, "project");
+    assert.deepEqual(choices.agents, ["claude-code", "codex", "pi"]);
+  });
+
+  it("defaults the agents answer to the detected harnesses when there are any", async () => {
+    // Human mode now also runs with harnesses installed, so the empty
+    // agents answer defaults to what is installed, not to every harness.
+    const dialog = scriptedDialog(["", ""], { detected: ["claude-code"] });
+    const choices = await dialog.promise;
+    assert.deepEqual(choices.agents, ["claude-code"]);
+    assert.match(dialog.output(), /default: claude-code\)/);
+  });
+
+  it("shows default: all in the agents prompt when nothing is detected", async () => {
+    const dialog = scriptedDialog(["", "pi"]);
+    const choices = await dialog.promise;
+    assert.deepEqual(choices.agents, ["pi"]);
+    assert.match(dialog.output(), /default: all\)/);
   });
 
   it("re-asks after an invalid scope answer", async () => {

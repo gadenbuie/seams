@@ -33,7 +33,7 @@
 import { createInterface } from "node:readline/promises";
 import { parseArgs } from "node:util";
 import { readBundledSkill } from "../skills/bundled.ts";
-import { installSkills, isSupportedAgent, SUPPORTED_AGENTS } from "../skills/install.ts";
+import { installSkills, isSupportedAgent, library, SUPPORTED_AGENTS } from "../skills/install.ts";
 import type { AgentId, InstallReport, Scope } from "../skills/install.ts";
 import { jsonEnvelope, printJson, printText } from "../output.ts";
 import type { Command, CommandContext } from "./index.ts";
@@ -47,12 +47,27 @@ function usageError(message: string): number {
 }
 
 /**
- * The running-inside environment signals the vendored `skills` library's
- * `isRunningInAgent` checks (its `detectAgent`), environment variables only.
- * The library's one non-variable probe, the `/opt/.devin` marker, is left
- * out: it is an installed-harness marker, not a signal that this process is
- * running inside an agent. The matched variable names are returned, in the
- * library's check order, so the mode report can name what decided.
+ * The running-inside environment signals that mean this process is running
+ * inside an agent session, derived from the vendored `skills` library's
+ * `isRunningInAgent` checks (its `detectAgent`) minus the variables a
+ * human's own shell can set, so a human at a terminal keeps interactive
+ * mode:
+ *
+ * - Dropped: `CURSOR_TRACE_ID` (Cursor's integrated terminal sets it for
+ *   every command, including ones a person types), `REPL_ID` (set across
+ *   Replit workspaces, human sessions included), and `COPILOT_MODEL`,
+ *   `COPILOT_ALLOW_ALL`, `COPILOT_GITHUB_TOKEN` (user-exported Copilot CLI
+ *   settings, the last a credential). The library's one non-variable probe,
+ *   the `/opt/.devin` marker, is left out too: it is an installed-harness
+ *   marker, not a signal about this process.
+ * - Kept: the variables agent runtimes set about the running session —
+ *   `AI_AGENT`, `CURSOR_AGENT`, `CURSOR_EXTENSION_HOST_ROLE=agent-exec`,
+ *   `GEMINI_CLI`, `CODEX_SANDBOX`, `CODEX_CI`, `CODEX_THREAD_ID`,
+ *   `ANTIGRAVITY_AGENT`, `AUGMENT_AGENT`, `OPENCODE=1`, `OPENCODE_CLIENT`,
+ *   `CLAUDECODE`, `CLAUDE_CODE`.
+ *
+ * The matched variable names are returned, so the mode report can name what
+ * decided.
  *
  * Pi sets none of these variables (the seams#vd4k review finding), so a Pi
  * run reaches agent mode through the no-TTY fallback, which matches how real
@@ -61,7 +76,6 @@ function usageError(message: string): number {
 export function insideAgentSignals(env: NodeJS.ProcessEnv = process.env): string[] {
   const found: string[] = [];
   if (env.AI_AGENT?.trim()) found.push("AI_AGENT");
-  if (env.CURSOR_TRACE_ID) found.push("CURSOR_TRACE_ID");
   if (env.CURSOR_AGENT) found.push("CURSOR_AGENT");
   if (env.CURSOR_EXTENSION_HOST_ROLE === "agent-exec") found.push("CURSOR_EXTENSION_HOST_ROLE");
   if (env.GEMINI_CLI) found.push("GEMINI_CLI");
@@ -74,15 +88,27 @@ export function insideAgentSignals(env: NodeJS.ProcessEnv = process.env): string
   if (env.OPENCODE_CLIENT) found.push("OPENCODE_CLIENT");
   if (env.CLAUDECODE) found.push("CLAUDECODE");
   if (env.CLAUDE_CODE) found.push("CLAUDE_CODE");
-  if (env.REPL_ID) found.push("REPL_ID");
-  if (env.COPILOT_MODEL) found.push("COPILOT_MODEL");
-  if (env.COPILOT_ALLOW_ALL) found.push("COPILOT_ALLOW_ALL");
-  if (env.COPILOT_GITHUB_TOKEN) found.push("COPILOT_GITHUB_TOKEN");
   return found;
 }
 
-export type InitMode = "agent" | "human";
+/**
+ * The supported harnesses visible in this environment, through the variables
+ * and markers the spike verified (seams#sn2t, "Agent detection and
+ * mapping"), which the library's `detectAgents` checks — claude-code:
+ * `CLAUDE_CONFIG_DIR` names an existing directory, or `~/.claude` exists;
+ * codex: `CODEX_HOME` names an existing directory, or `~/.codex` or
+ * `/etc/codex` exists; pi: `~/.pi/agent` exists (Pi keeps no
+ * config-directory variable). Used in human mode to pick the default
+ * targets; never to choose the mode.
+ */
+export async function detectHarnessAgents(): Promise<AgentId[]> {
+  const lib = await library();
+  const found = await lib.detectAgents({ cwd: process.cwd() });
+  const ids = new Set(found.agents.map((agent) => agent.id));
+  return SUPPORTED_AGENTS.filter((id) => ids.has(id));
+}
 
+export type InitMode = "agent" | "human";
 /** Why a mode was chosen; the JSON report carries it as `modeReason`. */
 export type InitModeReason = "--agent" | "no TTY" | "inside agent" | "interactive";
 
@@ -202,16 +228,17 @@ export interface HumanChoices {
 
 /**
  * Ask a person for the scope and the target harnesses. An empty scope
- * answer defaults to project; an empty agents answer defaults to every
- * supported harness (human mode runs on a TTY with no inside signal, so no
- * harness is auto-selected and the person picks the targets).
+ * answer defaults to project; an empty agents answer defaults to the
+ * detected harnesses, or to every supported harness when none is detected
+ * (human mode runs on a TTY with no inside signal, so harnesses may be
+ * installed and the person still picks the targets).
  * Invalid answers re-ask. When the input ends before the answers are
  * complete, a `PromptAbortedError` is thrown and nothing has been written.
  */
 export async function promptForChoices(
   input: NodeJS.ReadableStream,
   output: NodeJS.WritableStream,
-  given: { scope?: Scope } = {},
+  given: { scope?: Scope; detected?: AgentId[] } = {},
 ): Promise<HumanChoices> {
   const rl = createInterface({ input, output });
   let closed = false;
@@ -264,12 +291,18 @@ export async function promptForChoices(
     }
 
     const valid = SUPPORTED_AGENTS.join(", ");
+    const defaultAgents =
+      given.detected && given.detected.length > 0 ? given.detected : [...SUPPORTED_AGENTS];
+    const defaultLabel =
+      defaultAgents.length === SUPPORTED_AGENTS.length ? "all" : defaultAgents.join(", ");
     let agents: AgentId[];
     for (;;) {
-      const answer = await ask(`Install the skills for which agent harnesses? [${valid}] (comma-separated, default: all) `);
+      const answer = await ask(
+        `Install the skills for which agent harnesses? [${valid}] (comma-separated, default: ${defaultLabel}) `,
+      );
       if (answer.trim() === "") {
         if (closed) throw new PromptAbortedError("agents");
-        agents = [...SUPPORTED_AGENTS];
+        agents = [...defaultAgents];
         break;
       }
       const unique = [...new Set(answer.split(/[\s,]+/).filter(Boolean))];
@@ -332,9 +365,14 @@ export const initCommand: Command = {
     } else {
       let choices: HumanChoices;
       try {
+        // Human mode runs on a TTY with no inside signal, so harnesses may
+        // be installed: the empty agents answer defaults to them, not to
+        // every supported harness.
+        const detected = await detectHarnessAgents();
         // With --json the prompts go to stderr so stdout stays valid JSON.
         choices = await promptForChoices(process.stdin, ctx.json ? process.stderr : process.stdout, {
           scope,
+          detected,
         });
       } catch (error) {
         if (error instanceof PromptAbortedError) {
