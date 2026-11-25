@@ -176,9 +176,11 @@ Over time, reconciliation checks for stale, duplicated, contradictory, and unuse
 It also looks for lasting explanations left behind in finished proposals and plans.
 Superseded material can remain as history outside normal navigation, but old plans should not compete with maintained overviews as descriptions of the present.
 
-## Existing skills carry documentation through the work
+## The skills carry documentation through the work
 
-The existing skills share the documentation work. seams does not need a separate documentation or memory skill.
+The skills share the documentation work.
+When the operator asks to create or refresh an overview on its own, the `seams-overview` skill runs that session: it applies the creation test, scopes the document with the operator, and hands the writing back to the shared procedure.
+It owns that moment only; it is not a general documentation or memory skill, and maintaining overviews inside a unit of work stays with the skills below.
 The common agent procedure lives in [`seams-work/references/documentation.md`](../../../skills/seams-work/references/documentation.md), and the other skills point to it rather than maintaining separate versions.
 
 | Skill                                                         | Support for design overviews                                                                                                                                                                        |
@@ -187,6 +189,7 @@ The common agent procedure lives in [`seams-work/references/documentation.md`](.
 | [`seams-propose`](../../../skills/seams-propose/SKILL.md)     | Reads the affected documents and records which documentation the selected work should update, including whether a new overview is expected. A planned overview is not yet a description of reality. |
 | [`seams-plan`](../../../skills/seams-plan/SKILL.md)           | Carries the affected documents into unit bodies and verification criteria so each implementer receives the documentation responsibility with the work.                                              |
 | [`seams-work`](../../../skills/seams-work/SKILL.md)           | Helps agents discover, create, maintain, and verify overviews in the same unit as the implementation.                                                                                               |
+| [`seams-overview`](../../../skills/seams-overview/SKILL.md)   | Runs the standalone authoring moment at the operator's request: orients, applies the creation test, scopes with the operator, researches, writes through the shared procedure, and verifies claims. |
 | [`seams-route`](../../../skills/seams-route/SKILL.md)         | Passes affected documents to implementers and reviewers, checks documentation reports, and includes documentation in unit and final review.                                                         |
 | [`seams-reconcile`](../../../skills/seams-reconcile/SKILL.md) | Finds documentation drift and unnecessary growth, and proposes corrections to the owning documents.                                                                                                 |
 | [`seams-orient`](../../../skills/seams-orient/SKILL.md)       | Helps agents write for a reader and present documentation to the operator in a form that supports review and decisions.                                                                             |
