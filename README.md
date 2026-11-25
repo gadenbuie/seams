@@ -1,12 +1,31 @@
 # seams
 
 seams is a set of conventions and agent skills for building software with coding agents.
+Each kind of project information gets a home, and any agent that opens the project can tell which statements bind it.
 You put the conventions in your repository and install the skills in your agent harness.
 You and your agents then invoke the skills when you discuss a feature, plan work, implement it, or review it.
 
 seams isn't an application, an agent harness, or a work tracker.
 No seams service runs in the background, and no skill acts until you or an agent invokes it.
 You keep using your preferred coding agent, tracker, and review tools.
+
+## Start a project
+
+Run this in your project:
+
+```sh
+npx @grrrck/seams init
+```
+
+Or paste this into any agent that can reach your project:
+
+```text
+Run npx @grrrck/seams init to set up seams in this project.
+```
+
+The command installs the skills for the harnesses it detects, then hands the rest of the setup to the `seams-adopt` skill.
+That skill reads your existing files and asks before moving or rewriting anything.
+The CLI is optional, and the [setup section below](#install-the-skills-and-adopt-the-conventions) covers the steps without it.
 
 ## Why use seams
 
@@ -28,7 +47,26 @@ The names **canon**, **memory**, and **reality** refer to these three kinds of i
 They aren't names of software components, and a project can use different file paths when its agent instructions name those paths.
 Memory has no single shape or home, and keeping it clear takes deliberate maintenance.
 
-## What using seams looks like
+After `seams-adopt`, a project looks like this:
+
+```text
+your-project/
+├─ AGENTS.md            tells agents where the seams are
+├─ docs/design/         canon: what binds the project
+│  ├─ vision.md         what the project is for
+│  ├─ principles.md     how to decide
+│  ├─ invariants.md     rules that always hold
+│  └─ overviews/        how the system works now
+├─ .agents/
+│  ├─ proposals/        proposals for work
+│  └─ plans/            implementation plans
+└─ ...                  code and tests: what exists
+```
+
+seams adds no service and no build step.
+It adds files like these, and rules about what an agent may do with each of them.
+
+## Every hand-off leaves a record the next stage can read
 
 You start by discussing an idea with an agent.
 For work that needs discussion, you run `/seams-propose` and decide what the proposal means.
@@ -44,6 +82,19 @@ flowchart LR
     D -->|"Questions that change scope"| A
     E -->|"Corrections or a new direction"| A
 ```
+
+Each stage has an owner and leaves a record:
+
+| Stage | Who              | What happens                                     | Record it leaves                   |
+| :---- | :--------------- | :----------------------------------------------- | :--------------------------------- |
+| 1     | You and an agent | Discuss an idea until you agree.                 | A proposal                         |
+| 2     | You              | Accept the proposal, and decide what it means.   | An accepted proposal               |
+| 3     | A planner        | Write small units of work a fresh agent can run. | The plan                           |
+| 4     | Agents           | Implement, check each other, and land the work.  | Code, tests, and a design overview |
+| 5     | You              | Try the software, judge it, and correct course.  | Corrections or a new direction     |
+
+The stages you own are the decisions: what to build, what binds the project, and whether the result is right.
+Corrections or a new direction start the loop again.
 
 Each stage leaves information for the next stage.
 A proposal carries your decisions into planning, and work items carry the plan into implementation.
@@ -72,7 +123,7 @@ The [guide](docs/guide.md) explains the stages, the information types, and the s
 | I want to                                | Read                                                                                                                                |
 | :--------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------- |
 | Understand how seams works               | [The guide](docs/guide.md)                                                                                                          |
-| Start a project with the CLI             | Ask your agent to run `npx @grrrck/seams init`                                                                                      |
+| Start a project with the CLI             | [Start a project](#start-a-project)                                                                                                 |
 | Set up seams in a project                | [The guide's setup section](docs/guide.md#setting-up-seams-in-a-project) and the [`seams-adopt`](skills/seams-adopt/SKILL.md) skill |
 | See which skills exist and who runs them | [The guide's skills section](docs/guide.md#the-skills)                                                                              |
 | See the rules seams keeps                | [Vision](docs/design/vision.md), [principles](docs/design/principles.md), and [invariants](docs/design/invariants.md)               |
@@ -81,10 +132,7 @@ The [guide](docs/guide.md) explains the stages, the information types, and the s
 
 ## Install the skills and adopt the conventions
 
-To start a project, ask your agent to run `npx @grrrck/seams init` in the project.
-The command installs the seams skills for the agent harnesses it detects, then hands the rest of the setup to the `seams-adopt` skill.
-The CLI is optional: every step also works with ordinary file edits.
-
+The [start of this page](#start-a-project) shows the command and the prompt.
 Installing the skills and adopting the conventions are separate steps.
 Without the CLI, copy or link the whole `skills/` folder into your agent harness's skill directory, because the skills refer to each other's files.
 Then run `/seams-adopt` in your project to set up the conventions.
