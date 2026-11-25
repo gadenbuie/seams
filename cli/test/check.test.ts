@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { rmSync } from "node:fs";
+import { existsSync, rmSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { describe, it } from "node:test";
@@ -212,5 +212,36 @@ describe("seams check", () => {
 
   it("exposes the manifest path with forward slashes for finding paths", () => {
     assert.equal(MANIFEST_REPO_PATH, ".agents/seams.json");
+  });
+});
+
+describe("seams check, notes", () => {
+  it("reports no findings for a project with plain notes", () => {
+    const cwd = copyFixture("notes-project");
+    const result = run(["check"], cwd);
+    assert.equal(result.status, 0);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(lines(result.stdout), ["No findings."]);
+  });
+
+  it("does not require frontmatter for notes, including a broken block", () => {
+    const cwd = copyFixture("notes-project");
+    writeFileSync(
+      path.join(cwd, "_dev", "notes", "broken.md"),
+      "---\ntitle: [a, list]\n  - not a mapping shape that matters\nnot-closed\n",
+    );
+    const { status, json } = runJson(cwd);
+    assert.equal(status, 0);
+    assert.deepEqual(json.findings, []);
+  });
+
+  it("stays clean when the notes home is absent, and never creates it", () => {
+    const cwd = copyFixture("notes-project");
+    rmSync(path.join(cwd, "_dev", "notes"), { recursive: true, force: true });
+    const result = run(["check"], cwd);
+    assert.equal(result.status, 0);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(lines(result.stdout), ["No findings."]);
+    assert.equal(existsSync(path.join(cwd, "_dev", "notes")), false);
   });
 });

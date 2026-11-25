@@ -1,12 +1,15 @@
 /**
- * The `frontmatter` check: every document in the documentation homes carries
- * YAML frontmatter with the fields its type requires.
+ * The `frontmatter` check: every document in the shared documentation homes
+ * carries YAML frontmatter with the fields its type requires.
  *
  * Canon and overview documents need a non-empty `title` and `description`;
  * proposals and plans also need `status` and a `created` date that is a valid
  * `YYYY-MM-DD` calendar date. The check walks each home's Markdown files
  * itself, including `index.md` navigation files, because they live in the
  * homes and carry the same frontmatter as the documents around them.
+ *
+ * The notes home is not walked: a note's metadata is optional in full, so no
+ * frontmatter rule applies to notes.
  */
 import { readFileSync, statSync } from "node:fs";
 import path from "node:path";
@@ -30,6 +33,8 @@ interface Home {
 }
 
 const HOMES: readonly Home[] = [
+  // The notes home is not walked: a note's metadata is optional, so no
+  // frontmatter rule applies to notes.
   { key: "design", requiresStatus: false, recursive: false },
   { key: "overviews", requiresStatus: false, recursive: true },
   { key: "proposals", requiresStatus: true, recursive: false },
