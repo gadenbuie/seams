@@ -1,7 +1,8 @@
 /**
  * Tests for `seams init`: agent mode (noninteractive, hands adoption to the
  * agent with the seams-adopt skill inlined), the human-mode prompts, mode
- * detection, the non-TTY fallback, and dry runs.
+ * selection from the running-inside environment signals, the non-TTY
+ * fallback, and dry runs.
  *
  * Every CLI run uses a temporary HOME and a temporary project directory, with
  * the detection variables pointed into the temporary home before the child
@@ -33,6 +34,7 @@ import {
   chooseInitMode,
   formatBundledSkill,
   humanNextSteps,
+  insideAgentSignals,
   promptForChoices,
   PromptAbortedError,
 } from "../src/commands/init.ts";
@@ -136,35 +138,93 @@ function scriptedDialog(answers: string[], given?: { scope?: "project" | "global
 
 describe("init mode selection", () => {
   it("--agent always selects agent mode", () => {
-    assert.deepEqual(chooseInitMode({ agentFlag: true, isTty: true, detected: ["pi"] }), {
+    assert.deepEqual(chooseInitMode({ agentFlag: true, isTty: true, inside: ["CLAUDECODE"] }), {
       mode: "agent",
       reason: "--agent",
-      detected: [],
+      inside: [],
     });
   });
 
   it("without a TTY the command behaves as agent mode", () => {
-    assert.deepEqual(chooseInitMode({ agentFlag: false, isTty: false, detected: ["pi"] }), {
+    assert.deepEqual(chooseInitMode({ agentFlag: false, isTty: false, inside: ["CLAUDECODE"] }), {
       mode: "agent",
       reason: "no TTY",
-      detected: [],
+      inside: [],
     });
   });
 
-  it("a detected harness selects agent mode on a TTY", () => {
-    assert.deepEqual(chooseInitMode({ agentFlag: false, isTty: true, detected: ["pi", "codex"] }), {
-      mode: "agent",
-      reason: "detected",
-      detected: ["pi", "codex"],
-    });
+  it("a running-inside signal selects agent mode on a TTY", () => {
+    assert.deepEqual(
+      chooseInitMode({ agentFlag: false, isTty: true, inside: ["CLAUDECODE", "CODEX_SANDBOX"] }),
+      { mode: "agent", reason: "inside agent", inside: ["CLAUDECODE", "CODEX_SANDBOX"] },
+    );
   });
 
-  it("a TTY with no known harness gets human mode", () => {
-    assert.deepEqual(chooseInitMode({ agentFlag: false, isTty: true, detected: [] }), {
+  it("a TTY with no inside signal gets human mode", () => {
+    assert.deepEqual(chooseInitMode({ agentFlag: false, isTty: true, inside: [] }), {
       mode: "human",
       reason: "interactive",
-      detected: [],
+      inside: [],
     });
+  });
+});
+
+describe("insideAgentSignals", () => {
+  /** The env variable the vendored `skills` library checks for each signal. */
+  const CASES: Array<[string, NodeJS.ProcessEnv]> = [
+    ["AI_AGENT", { AI_AGENT: " codex " }],
+    ["CURSOR_TRACE_ID", { CURSOR_TRACE_ID: "1" }],
+    ["CURSOR_AGENT", { CURSOR_AGENT: "1" }],
+    ["CURSOR_EXTENSION_HOST_ROLE", { CURSOR_EXTENSION_HOST_ROLE: "agent-exec" }],
+    ["GEMINI_CLI", { GEMINI_CLI: "true" }],
+    ["CODEX_SANDBOX", { CODEX_SANDBOX: "1" }],
+    ["CODEX_CI", { CODEX_CI: "1" }],
+    ["CODEX_THREAD_ID", { CODEX_THREAD_ID: "7" }],
+    ["ANTIGRAVITY_AGENT", { ANTIGRAVITY_AGENT: "1" }],
+    ["AUGMENT_AGENT", { AUGMENT_AGENT: "1" }],
+    ["OPENCODE", { OPENCODE: "1" }],
+    ["OPENCODE_CLIENT", { OPENCODE_CLIENT: "ws://x" }],
+    ["CLAUDECODE", { CLAUDECODE: "1" }],
+    ["CLAUDE_CODE", { CLAUDE_CODE: "1" }],
+    ["REPL_ID", { REPL_ID: "replid-1" }],
+    ["COPILOT_MODEL", { COPILOT_MODEL: "gpt-4o" }],
+    ["COPILOT_ALLOW_ALL", { COPILOT_ALLOW_ALL: "true" }],
+    ["COPILOT_GITHUB_TOKEN", { COPILOT_GITHUB_TOKEN: "token" }],
+  ];
+
+  it("matches each running-inside variable the vendored library checks", () => {
+    for (const [name, env] of CASES) {
+      assert.deepEqual(insideAgentSignals(env), [name], `${name} must be an inside signal`);
+    }
+  });
+
+  it("does not count near matches or empty values", () => {
+    assert.deepEqual(insideAgentSignals({ AI_AGENT: "   " }), []);
+    assert.deepEqual(insideAgentSignals({ CURSOR_EXTENSION_HOST_ROLE: "extension" }), []);
+    assert.deepEqual(insideAgentSignals({ OPENCODE: "0" }), []);
+    assert.deepEqual(
+      insideAgentSignals({ CLAUDECODE: "", CLAUDE_CODE: "", CODEX_SANDBOX: "" }),
+      [],
+    );
+  });
+
+  it("installed-harness variables and markers are not inside signals", () => {
+    // The installed-harness detection variables the library's `detectAgents`
+    // reads (seams#sn2t, "Agent detection and mapping") must not force agent
+    // mode on a TTY; the markers (~/.claude, ~/.codex, ~/.pi/agent) are
+    // filesystem state and never reach this function at all.
+    assert.deepEqual(
+      insideAgentSignals({
+        CLAUDE_CONFIG_DIR: "/home/u/.claude",
+        CODEX_HOME: "/home/u/.codex",
+        HOME: "/home/u",
+      }),
+      [],
+    );
+  });
+
+  it("an empty environment has no inside signals", () => {
+    assert.deepEqual(insideAgentSignals({}), []);
   });
 });
 

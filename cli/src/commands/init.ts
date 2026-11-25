@@ -15,17 +15,17 @@
  * `node:readline/promises` (no new dependency), then installs and prints the
  * next step: ask your agent to run the `seams-adopt` skill.
  *
- * Mode selection:
+ * Mode selection (the operator's decision recorded on seams#vd4k): a human
+ * at a terminal always gets interactive mode, even when an installed harness
+ * is detected; agents keep agent mode.
  * - `--agent` always selects agent mode.
  * - Without a TTY, the command behaves as agent mode and says so.
- * - Otherwise the environment shows a known harness: the variables and
- *   markers the spike verified against the `skills` library (seams#sn2t,
- *   "Agent detection and mapping"), which are what the library's
- *   `detectAgents` checks — claude-code: `CLAUDE_CONFIG_DIR` names an
- *   existing directory, or `~/.claude` exists; codex: `CODEX_HOME` names an
- *   existing directory, or `~/.codex` or `/etc/codex` exists; pi:
- *   `~/.pi/agent` exists (Pi keeps no config-directory variable).
- * - With a TTY and no known harness, init runs the interactive human mode.
+ * - On a TTY, agent mode is chosen from the running-inside environment
+ *   signals only: the variables the vendored `skills` library's
+ *   `isRunningInAgent` checks (see `insideAgentSignals` for the list).
+ *   Installed-harness markers (`~/.claude`, `CLAUDE_CONFIG_DIR`, `~/.codex`,
+ *   `~/.pi/agent`, ...) no longer force agent mode on a TTY.
+ * - With a TTY and no inside signal, init runs the interactive human mode.
  *
  * `--dry-run` writes nothing in either mode. `--json` reports the actions
  * and the printed instruction text.
@@ -33,7 +33,7 @@
 import { createInterface } from "node:readline/promises";
 import { parseArgs } from "node:util";
 import { readBundledSkill } from "../skills/bundled.ts";
-import { installSkills, isSupportedAgent, library, SUPPORTED_AGENTS } from "../skills/install.ts";
+import { installSkills, isSupportedAgent, SUPPORTED_AGENTS } from "../skills/install.ts";
 import type { AgentId, InstallReport, Scope } from "../skills/install.ts";
 import { jsonEnvelope, printJson, printText } from "../output.ts";
 import type { Command, CommandContext } from "./index.ts";
@@ -47,43 +47,67 @@ function usageError(message: string): number {
 }
 
 /**
- * The supported harnesses visible in this environment, through the signals
- * listed in the module header (the variables and markers the spike verified,
- * which the library's `detectAgents` checks).
+ * The running-inside environment signals the vendored `skills` library's
+ * `isRunningInAgent` checks (its `detectAgent`), environment variables only.
+ * The library's one non-variable probe, the `/opt/.devin` marker, is left
+ * out: it is an installed-harness marker, not a signal that this process is
+ * running inside an agent. The matched variable names are returned, in the
+ * library's check order, so the mode report can name what decided.
+ *
+ * Pi sets none of these variables (the seams#vd4k review finding), so a Pi
+ * run reaches agent mode through the no-TTY fallback, which matches how real
+ * Pi runs behave (agents run without a TTY).
  */
-export async function detectHarnessAgents(): Promise<AgentId[]> {
-  const lib = await library();
-  const found = await lib.detectAgents({ cwd: process.cwd() });
-  const ids = new Set(found.agents.map((agent) => agent.id));
-  return SUPPORTED_AGENTS.filter((id) => ids.has(id));
+export function insideAgentSignals(env: NodeJS.ProcessEnv = process.env): string[] {
+  const found: string[] = [];
+  if (env.AI_AGENT?.trim()) found.push("AI_AGENT");
+  if (env.CURSOR_TRACE_ID) found.push("CURSOR_TRACE_ID");
+  if (env.CURSOR_AGENT) found.push("CURSOR_AGENT");
+  if (env.CURSOR_EXTENSION_HOST_ROLE === "agent-exec") found.push("CURSOR_EXTENSION_HOST_ROLE");
+  if (env.GEMINI_CLI) found.push("GEMINI_CLI");
+  if (env.CODEX_SANDBOX) found.push("CODEX_SANDBOX");
+  if (env.CODEX_CI) found.push("CODEX_CI");
+  if (env.CODEX_THREAD_ID) found.push("CODEX_THREAD_ID");
+  if (env.ANTIGRAVITY_AGENT) found.push("ANTIGRAVITY_AGENT");
+  if (env.AUGMENT_AGENT) found.push("AUGMENT_AGENT");
+  if (env.OPENCODE === "1") found.push("OPENCODE");
+  if (env.OPENCODE_CLIENT) found.push("OPENCODE_CLIENT");
+  if (env.CLAUDECODE) found.push("CLAUDECODE");
+  if (env.CLAUDE_CODE) found.push("CLAUDE_CODE");
+  if (env.REPL_ID) found.push("REPL_ID");
+  if (env.COPILOT_MODEL) found.push("COPILOT_MODEL");
+  if (env.COPILOT_ALLOW_ALL) found.push("COPILOT_ALLOW_ALL");
+  if (env.COPILOT_GITHUB_TOKEN) found.push("COPILOT_GITHUB_TOKEN");
+  return found;
 }
 
 export type InitMode = "agent" | "human";
 
 /** Why a mode was chosen; the JSON report carries it as `modeReason`. */
-export type InitModeReason = "--agent" | "no TTY" | "detected" | "interactive";
+export type InitModeReason = "--agent" | "no TTY" | "inside agent" | "interactive";
 
 export interface InitModeDecision {
   mode: InitMode;
   reason: InitModeReason;
-  /** The detected harnesses, when detection chose agent mode. */
-  detected: AgentId[];
+  /** The inside signals that matched, when they chose agent mode. */
+  inside: string[];
 }
 
 /**
  * Choose the mode: `--agent` always selects agent mode; without a TTY the
- * command behaves as agent mode; a detected harness selects agent mode;
- * a TTY with no known harness gets interactive human mode.
+ * command behaves as agent mode; on a TTY only a running-inside environment
+ * signal selects agent mode; a TTY with no inside signal gets interactive
+ * human mode, whatever harnesses are installed.
  */
 export function chooseInitMode(input: {
   agentFlag: boolean;
   isTty: boolean;
-  detected: AgentId[];
+  inside: string[];
 }): InitModeDecision {
-  if (input.agentFlag) return { mode: "agent", reason: "--agent", detected: [] };
-  if (!input.isTty) return { mode: "agent", reason: "no TTY", detected: [] };
-  if (input.detected.length > 0) return { mode: "agent", reason: "detected", detected: input.detected };
-  return { mode: "human", reason: "interactive", detected: [] };
+  if (input.agentFlag) return { mode: "agent", reason: "--agent", inside: [] };
+  if (!input.isTty) return { mode: "agent", reason: "no TTY", inside: [] };
+  if (input.inside.length > 0) return { mode: "agent", reason: "inside agent", inside: input.inside };
+  return { mode: "human", reason: "interactive", inside: [] };
 }
 
 /** One skill's full text, formatted exactly as `seams skills get` prints it. */
@@ -179,7 +203,8 @@ export interface HumanChoices {
 /**
  * Ask a person for the scope and the target harnesses. An empty scope
  * answer defaults to project; an empty agents answer defaults to every
- * supported harness (human mode only runs when nothing was detected).
+ * supported harness (human mode runs on a TTY with no inside signal, so no
+ * harness is auto-selected and the person picks the targets).
  * Invalid answers re-ask. When the input ends before the answers are
  * complete, a `PromptAbortedError` is thrown and nothing has been written.
  */
@@ -286,11 +311,11 @@ export const initCommand: Command = {
     const agentFlag = values.agent === true;
     const isTty = process.stdin.isTTY === true;
 
-    // Detection is only needed to choose the mode when a TTY is present:
-    // --agent and the no-TTY fallback decide it without the library, and in
-    // agent mode the install layer runs its own detection for the targets.
-    const detected = !agentFlag && isTty ? await detectHarnessAgents() : [];
-    const decision = chooseInitMode({ agentFlag, isTty, detected });
+    // The inside signals are only read to choose the mode when a TTY is
+    // present: --agent and the no-TTY fallback decide it without them, and
+    // in agent mode the install layer runs its own detection for the targets.
+    const inside = !agentFlag && isTty ? insideAgentSignals() : [];
+    const decision = chooseInitMode({ agentFlag, isTty, inside });
 
     let report: InstallReport;
     if (decision.mode === "agent") {
@@ -338,7 +363,7 @@ export const initCommand: Command = {
         jsonEnvelope("init", {
           mode: decision.mode,
           modeReason: decision.reason,
-          detectedAgents: decision.detected,
+          insideSignals: decision.inside,
           dryRun: report.dryRun,
           install: installPayload(report),
           instructions,
@@ -347,9 +372,9 @@ export const initCommand: Command = {
     } else {
       if (decision.reason === "no TTY") {
         printText("No interactive terminal was detected; continuing in noninteractive agent mode.");
-      } else if (decision.reason === "detected") {
+      } else if (decision.reason === "inside agent") {
         printText(
-          `Agent harness detected: ${decision.detected.join(", ")}; continuing in noninteractive agent mode.`,
+          `Running inside an agent (${decision.inside.join(", ")} set); continuing in noninteractive agent mode.`,
         );
       }
       for (const line of installReportLines(report)) printText(line);
