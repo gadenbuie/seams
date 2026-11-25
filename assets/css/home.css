@@ -1,76 +1,116 @@
-/* Home page design for the seams site.
-   Everything here is scoped to the home page under body.no-sidebar,
-   which assets/js/home-layout.js sets on load and on SPA navigation.
-   Other pages keep the default docmd theme. */
+/* The seams site theme, first drawn for the home page.
+   The tokens below set the palette and type for every page: docmd's own
+   variables read from them. The home page's layout stays scoped under
+   body.no-sidebar, which assets/js/home-layout.js sets on load and on
+   SPA navigation. */
 
 @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
 
 /* ---------------------------------------------------------------------------
-   Tokens. The home page paints its own paper-and-ink palette on top of the
-   docmd theme, in light and dark. The accent red carries one meaning:
-   a decision only the operator can make.
+   Tokens. The site paints a paper-and-ink palette on top of the docmd
+   theme, in light and dark. The accent carries one meaning: a decision only
+   the operator can make.
    --------------------------------------------------------------------------- */
 
-body.no-sidebar {
+:root {
     --home-paper: #fafaf9;
     --home-surface: #ffffff;
-    --home-ink: #141414;
-    --home-muted: #5f5f5c;
-    --home-border: #e2e2df;
-    --home-border-strong: #cbcac6;
-    --home-accent: #c93a1d;
-    --home-accent-strong: #a02f16;
-    --home-wash: #f7e8e3;
-    --home-stitch: #b4b2ac;
+    --home-ink: #2a1a24;
+    --home-muted: #6d5e66;
+    --home-border: #e7ddd2;
+    --home-border-strong: #cfc0b1;
+    --home-accent: #b7410e;
+    --home-accent-strong: #8f300a;
+    --home-stitch: #9ebc9f;
+    --home-plum: #66225c;
     --home-display: "Fraunces", "Iowan Old Style", Georgia, serif;
     --home-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --home-mono: "JetBrains Mono", SFMono-Regular, Consolas, Menlo, monospace;
 
+    /* docmd reads these; point them at the home palette so the guide,
+       the design pages, and the UI chrome sit on the same paper and ink. */
+    --font-family-sans: var(--home-body);
+    --font-family-mono: var(--home-mono);
     --bg-color: var(--home-paper);
     --header-bg: rgba(250, 250, 249, 0.85);
+    --header-border: var(--home-border);
     --text-color: var(--home-ink);
     --text-heading: var(--home-ink);
     --text-muted: var(--home-muted);
     --border-color: var(--home-border);
+    --border-color-hover: var(--home-border-strong);
+    --border-color-codeblock: color-mix(in srgb, var(--home-ink) 12%, transparent);
     --link-color: var(--home-accent);
     --link-color-hover: var(--home-accent-strong);
-    --code-bg: rgba(20, 20, 20, 0.05);
+    --code-bg: color-mix(in srgb, var(--home-ink) 5%, transparent);
     --code-text: var(--home-ink);
-
-    /* The menubar resolves its colors at :root, so redeclare them here
-       for the subtree it actually inherits from. */
+    --sidebar-bg: var(--home-paper);
+    --sidebar-text: var(--home-muted);
+    --sidebar-link-active-bg: color-mix(in srgb, var(--home-accent) 8%, transparent);
+    --sidebar-link-active-text: var(--home-ink);
+    --sidebar-group-bg: color-mix(in srgb, var(--home-ink) 3%, transparent);
+    --scrollbar-thumb: var(--home-border);
+    --scrollbar-thumb-hover: var(--home-border-strong);
+    --glow-color: color-mix(in srgb, var(--home-accent) 7%, transparent);
+    --glow-color-strong: color-mix(in srgb, var(--home-accent) 14%, transparent);
+    --halo-soft: 0 0 0 4px color-mix(in srgb, var(--home-accent) 10%, transparent);
     --menubar-bg: var(--home-paper);
     --menubar-text: var(--home-ink);
 }
 
-html[data-theme="dark"] body.no-sidebar {
-    --home-paper: #171717;
-    --home-surface: #202020;
-    --home-ink: #ececea;
-    --home-muted: #a0a09c;
-    --home-border: #333330;
-    --home-border-strong: #47464a;
-    --home-accent: #ff7a54;
-    --home-accent-strong: #ff9a7c;
-    --home-wash: #2a211e;
-    --home-stitch: #47464a;
+/* docmd sets its dark values at :root[data-theme=dark]; matching the
+   selector keeps these overrides ahead of them in the cascade. */
+:root[data-theme="dark"] {
+    --home-paper: #1a1516;
+    --home-surface: #241c1d;
+    --home-ink: #ece5dc;
+    --home-muted: #a89b93;
+    --home-border: #372e2b;
+    --home-border-strong: #4e423d;
+    --home-accent: #e5794e;
+    --home-accent-strong: #f2946e;
+    --home-stitch: #6f8a70;
+    --home-plum: #c993b8;
     --bg-color: var(--home-paper);
-    --header-bg: rgba(23, 23, 23, 0.85);
+    --header-bg: rgba(26, 21, 22, 0.85);
+    --header-border: var(--home-border);
     --text-color: var(--home-ink);
     --text-heading: var(--home-ink);
     --text-muted: var(--home-muted);
     --border-color: var(--home-border);
+    --border-color-hover: var(--home-border-strong);
+    --border-color-codeblock: color-mix(in srgb, var(--home-ink) 12%, transparent);
     --link-color: var(--home-accent);
     --link-color-hover: var(--home-accent-strong);
-    --code-bg: rgba(236, 236, 234, 0.08);
+    --code-bg: color-mix(in srgb, var(--home-ink) 8%, transparent);
     --code-text: var(--home-ink);
+    --sidebar-bg: var(--home-paper);
+    --sidebar-text: var(--home-muted);
+    --sidebar-link-active-bg: color-mix(in srgb, var(--home-accent) 12%, transparent);
+    --sidebar-link-active-text: var(--home-ink);
+    --sidebar-group-bg: color-mix(in srgb, var(--home-ink) 4%, transparent);
+    --scrollbar-thumb: var(--home-border);
+    --scrollbar-thumb-hover: var(--home-border-strong);
+    --glow-color: color-mix(in srgb, var(--home-accent) 8%, transparent);
+    --glow-color-strong: color-mix(in srgb, var(--home-accent) 16%, transparent);
+    --halo-soft: 0 0 0 4px color-mix(in srgb, var(--home-accent) 14%, transparent);
+    --menubar-bg: var(--home-paper);
+    --menubar-text: var(--home-ink);
 }
 
-/* The canvas. The menubar reads the same tokens, so it sits on the paper. */
-body.no-sidebar {
-    background-color: var(--home-paper);
-    font-family: var(--home-body);
+/* Fraunces carries headings across the site; the body stays in Inter. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--home-display);
+    font-weight: 600;
+    letter-spacing: -0.01em;
 }
+
+/* The canvas sits on the paper through the tokens above. */
 
 body.no-sidebar .content-area {
     max-width: 70rem;
@@ -78,8 +118,8 @@ body.no-sidebar .content-area {
 }
 
 /* docmd paints a blue radial wash on the content area in dark mode;
-   the home page has its own palette. */
-body.no-sidebar .content-area::before {
+   the site has its own palette. */
+.content-area::before {
     display: none;
 }
 
@@ -295,38 +335,6 @@ html[data-theme="dark"] .home-button-primary,
 html[data-theme="dark"] .home-button-primary:hover {
     color: #171717;
 }
-
-/* Alternate palette: ink & leaf. Swap the two token blocks above for these
-   to try it; every other rule in this file reads the same tokens.
-
-body.no-sidebar {
-    --home-paper: #f2f4ef;
-    --home-surface: #fbfcf9;
-    --home-ink: #1d241e;
-    --home-muted: #5c675c;
-    --home-border: #d7dccf;
-    --home-border-strong: #bfc8b5;
-    --home-accent: #2f6b4a;
-    --home-accent-strong: #235239;
-    --home-wash: #e4ecdf;
-    --home-stitch: #a9b5a0;
-    --code-bg: rgba(29, 36, 30, 0.06);
-}
-
-html[data-theme="dark"] body.no-sidebar {
-    --home-paper: #141814;
-    --home-surface: #1c221b;
-    --home-ink: #e4ebe2;
-    --home-muted: #98a697;
-    --home-border: #2d352c;
-    --home-border-strong: #3f4a3d;
-    --home-accent: #8fc7a6;
-    --home-accent-strong: #abd9bd;
-    --home-wash: #222b21;
-    --home-stitch: #3f4a3d;
-    --code-bg: rgba(228, 235, 226, 0.08);
-}
-*/
 
 .home-install {
     display: inline-flex;
@@ -596,14 +604,15 @@ html[data-theme="dark"] body.no-sidebar {
     position: relative;
 }
 
-/* The thread the stages hang on. */
+/* The thread the stages hang on. The operator's thread runs in the accent,
+   like the steps the operator owns. */
 .home-loop::before {
     content: "";
     position: absolute;
     top: 1.15rem;
     left: 1.2rem;
     right: 1.2rem;
-    border-top: 2.5px dashed var(--home-stitch);
+    border-top: 2.5px dashed var(--home-accent);
 }
 
 .home-loop-step {
@@ -671,8 +680,8 @@ html[data-theme="dark"] body.no-sidebar {
     margin-top: 0.7rem;
     font-size: 0.78rem;
     color: var(--home-ink);
-    background: var(--home-wash);
-    border: 1px dashed var(--home-border-strong);
+    background: var(--home-surface);
+    border: 1px dashed color-mix(in srgb, var(--home-accent) 40%, transparent);
     border-radius: 7px;
     padding: 0.45rem 0.6rem;
 }
@@ -798,6 +807,27 @@ html[data-theme="dark"] body.no-sidebar {
 }
 
 /* ---------------------------------------------------------------------------
+   Callouts. docmd paints them from --callout-color: a hairline border and
+   an 8% tint of the color behind ink text. The site palette supplies the
+   colors, so a callout never arrives in out-of-town blue, green, or red.
+   No page uses callouts yet; these rules wait for the first one.
+   --------------------------------------------------------------------------- */
+
+.callout-info {
+    --callout-color: var(--home-plum);
+}
+
+.callout-tip,
+.callout-success {
+    --callout-color: var(--home-stitch);
+}
+
+.callout-warning,
+.callout-danger {
+    --callout-color: var(--home-accent);
+}
+
+/* ---------------------------------------------------------------------------
    Narrow screens
    --------------------------------------------------------------------------- */
 
@@ -818,7 +848,7 @@ html[data-theme="dark"] body.no-sidebar {
         left: 1.2rem;
         right: auto;
         border-top: none;
-        border-left: 2.5px dashed var(--home-stitch);
+        border-left: 2.5px dashed var(--home-accent);
     }
 
     .home-loop-step {
