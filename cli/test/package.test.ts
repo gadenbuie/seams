@@ -342,7 +342,8 @@ describe("the packed tarball", () => {
 
     // Only the package's own files: the package.json always ships, and the
     // remaining entries must sit inside a directory the files field names.
-    const roots = ["dist/", "schemas/", "skills/", "templates/"];
+    // The proposal and plan templates ship inside the bundled skills copy.
+    const roots = ["dist/", "schemas/", "skills/"];
     const files = ["package.json", "README.md", "LICENSE", "LICENSE.md"];
     for (const entry of entries) {
       const known = roots.some((root) => entry.startsWith(root)) || files.includes(entry);

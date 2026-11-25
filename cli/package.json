@@ -13,8 +13,7 @@
   "files": [
     "dist",
     "schemas",
-    "skills",
-    "templates"
+    "skills"
   ],
   "scripts": {
     "build": "node scripts/bundle-skills.mjs && tsc",
