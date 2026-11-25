@@ -132,13 +132,14 @@ It isn't a program that runs on its own.
 
 You run these skills yourself:
 
-| Skill             | Use it to                                                                                 |
-| :---------------- | :---------------------------------------------------------------------------------------- |
-| `seams-adopt`     | Set up seams and its documentation homes, or move an existing project to it.              |
-| `seams-propose`   | Write a proposal, identify affected documentation, and move accepted rules into canon.    |
-| `seams-plan`      | Turn a proposal into tracked units, including the documentation each unit affects.        |
-| `seams-route`     | Send units to agents, review their implementation and documentation, and land them.       |
-| `seams-reconcile` | Find drift in canon, documentation, memory, and code, and turn decisions into principles. |
+| Skill             | Use it to                                                                                                    |
+| :---------------- | :----------------------------------------------------------------------------------------------------------- |
+| `seams-adopt`     | Set up seams and its documentation homes, or move an existing project to it.                                 |
+| `seams-propose`   | Write a proposal, identify affected documentation, and move accepted rules into canon.                       |
+| `seams-plan`      | Turn a proposal into tracked units, including the documentation each unit affects.                           |
+| `seams-route`     | Send units to agents, review their implementation and documentation, and land them.                          |
+| `seams-reconcile` | Find drift in canon, documentation, memory, and code, and turn decisions into principles.                    |
+| `seams-overview`  | Create or refresh a design overview: agree on the scope, then the agent researches, writes, and verifies it. |
 
 Agents load these skills on their own when a situation calls for them:
 
@@ -242,6 +243,7 @@ It gives a maintainer exact references to the supporting code and tests.
 It doesn't contain task status, execution checklists, or a narrative of the latest change.
 Most concepts and flows belong inside their owning subsystem overview.
 A standalone cross-cutting document can use a `concept_` or `flow_` filename prefix in the same flat `overviews/` folder.
+When you want a design overview created or refreshed outside a unit of work, run `/seams-overview`.
 
 ### Stage 5: Review
 

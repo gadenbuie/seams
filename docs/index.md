@@ -259,7 +259,7 @@ source:  a planning conversation between the operator and Claude</code></pre>
 <p>On 2026-11-23, the operator selected all of the queued changes by direct request and asked for the docs and skills to be rewritten to implement this proposal. The implementation differs from the text above in these ways, and the canon in <code>docs/design/</code> is the current statement of each:</p>
 <ul>
 <li><strong>Terms.</strong> &ldquo;Shaping plan&rdquo; became &ldquo;proposal&rdquo;. Stage 3 is called &ldquo;plan&rdquo;, and stage 4 is called &ldquo;do&rdquo;. The constitution and the framework guide were replaced by <code>docs/design/</code> and <code>docs/guide.md</code>.</li>
-<li><strong>Skills.</strong> The skills are named <code>seams-adopt</code>, <code>seams-propose</code>, <code>seams-plan</code>, <code>seams-route</code>, <code>seams-reconcile</code>, <code>seams-work</code>, <code>seams-shape</code>, <code>seams-orient</code>, and <code>seams-track</code>. kata-plan became the tracker-neutral <code>seams-plan</code>, and the kata details moved to <code>seams-track</code>.</li>
+<li><strong>Skills.</strong> The skills are named <code>seams-adopt</code>, <code>seams-propose</code>, <code>seams-plan</code>, <code>seams-route</code>, <code>seams-reconcile</code>, <code>seams-work</code>, <code>seams-shape</code>, <code>seams-orient</code>, <code>seams-overview</code>, and <code>seams-track</code>. kata-plan became the tracker-neutral <code>seams-plan</code>, and the kata details moved to <code>seams-track</code>.</li>
 <li><strong>Homes.</strong> Canon holds vision, principles, and invariants. Accepted proposals record selections, and work records live in the tracker, not in <code>.agents/</code>.</li>
 </ul>
 </div>

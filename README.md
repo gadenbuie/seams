@@ -72,6 +72,7 @@ You start by discussing an idea with an agent.
 For work that needs discussion, you run `/seams-propose` and decide what the proposal means.
 You then run `/seams-plan` to turn the accepted proposal into tracked units of work, and `/seams-route` to send those units to agents.
 Small, clear changes can go straight to an agent without a proposal or a detailed plan.
+When you want a written explanation of how a system works now, run `/seams-overview`.
 
 ```mermaid
 flowchart LR
@@ -99,6 +100,7 @@ Corrections or a new direction start the loop again.
 Each stage leaves information for the next stage.
 A proposal carries your decisions into planning, and work items carry the plan into implementation.
 Agents update design overviews and user documentation as the system changes.
+You can ask for a design overview directly with `/seams-overview`.
 Only you can accept changes to canon.
 
 Especially in greenfield work, information flows from **proposals to plans to design overviews**.
