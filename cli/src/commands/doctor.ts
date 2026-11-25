@@ -299,7 +299,7 @@ export async function skillsArea(cwd: string, sourceDir?: string): Promise<Docto
       lines.push({
         status: "error",
         message: `the ${scope} scope could not be checked: ${error instanceof Error ? error.message : String(error)}`,
-        hint: "fix or remove that metadata file, then run `seams skills install` to reinstall from it",
+        hint: "fix or remove that metadata file, then run `seams skills install` to reinstall the skills",
       });
     }
   }
