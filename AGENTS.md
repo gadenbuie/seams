@@ -23,6 +23,10 @@ For example, [`docs/design/overviews/index.md`](docs/design/overviews/index.md) 
   Its TypeScript sources are in `cli/src/` and its tests are in `cli/test/`.
 - **Memory:** `.agents/proposals/` holds proposals.
   A proposal authorizes nothing until its status is accepted.
+- **Working notes:** `_dev/notes/` holds local working notes: experiments, research, and background kept for a limited time.
+  Notes are the lowest-weight memory, they authorize nothing, and Git ignores the directory, so notes stay uncommitted by default.
+  When work depends on a note, record the needed content in the shared artifact that owns it.
+- **Manifest:** [.agents/seams.json](.agents/seams.json) records where each document type lives, including the notes home.
 - **Work:** tracked in kata when a plan moves to implementation.
   Planning, proposing, and discussing do not need kata.
   Run `kata quickstart --format contract` before changing the repository, and follow [`skills/seams-track/references/kata.md`](skills/seams-track/references/kata.md).
