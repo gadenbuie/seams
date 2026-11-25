@@ -50,7 +50,8 @@ AGENTS.md            where things live, which tracker to use, how to run checks
     concept_<topic-slug>.md  optional standalone cross-cutting concept
     flow_<flow-slug>.md      optional standalone cross-subsystem flow
 .agents/proposals/   proposals (seams-propose)
-.agents/plans/       plans and notes
+.agents/plans/       plans
+_dev/notes/          local working notes, uncommitted by default
 <tracker>            work items: kata, GitHub issues, Markdown, or another tracker
 ```
 
@@ -71,6 +72,29 @@ The types and their limits matter, and the file names do not.
 After the operator chooses the documentation homes, write `.agents/seams.json` as the machine-readable record of where each type lives, and record it in `AGENTS.md`.
 Follow `<skills>/seams-adopt/references/manifest.md` for the manifest shape and validation, and for migrating frontmatter in an existing project.
 
+## The notes home
+
+Working notes hold short-lived experiments, research, and background.
+They are local, uncommitted by default, and they authorize nothing.
+A project does not need them, so adoption never chooses a notes home on its own.
+
+Before suggesting a home, search the project's existing conventions:
+
+- `AGENTS.md` and `.agents/seams.json` for a declared notes home;
+- `_dev/notes/`, `docs/notes/`, and `.agents/notes/` for an existing folder.
+
+Present the candidates you find to the operator.
+When nothing exists, suggest `_dev/notes/`.
+The operator confirms the home before you create it or record it.
+
+Once the operator confirms the home:
+
+1. Record it as the manifest's `paths.notes` entry, and name it in `AGENTS.md` as the lowest-weight project memory, which authorizes nothing.
+1. Offer an ignore rule for the confirmed notes directory, so notes stay uncommitted.
+   Ignore that directory only; never ignore unrelated files or the whole folder that contains it.
+1. Create the directory only when the operator wants a home now.
+   The CLI reads an existing notes folder and never creates one.
+
 ## AGENTS.md
 
 `AGENTS.md` is read in every session, so every line should change how an agent behaves.
@@ -81,6 +105,7 @@ Include:
 - where canon lives, and the rule that only the operator changes it;
 - where design overviews and user documentation live;
 - where proposals and plans live, and that they authorize nothing until accepted;
+- the local notes home, and that notes are uncommitted by default and authorize nothing;
 - the manifest `.agents/seams.json` as the machine-readable record of the documentation homes;
 - the tracker, and the `seams-track` reference to use;
 - setup and check commands;
@@ -102,6 +127,7 @@ Leave out feature lists, architecture essays, and anything already in canon.
 1. Write `AGENTS.md`.
 1. Write `.agents/seams.json` as `<skills>/seams-adopt/references/manifest.md` says.
 1. Create `.agents/proposals/` and `.agents/plans/`.
+1. Choose the notes home with the operator following the rules above, and record it in the manifest, `AGENTS.md`, and the ignore rules.
 1. Pick the first piece of work with the operator.
    Use `seams-propose` if it needs discussion, or `seams-work` if it is a clear change.
 
@@ -118,15 +144,16 @@ Do not rewrite product commitments to fit seams.
 Sort statements, not files.
 One document often mixes several types.
 
-| What the statement is                                          | Where it goes                                                                                                                            |
-| :------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
-| Purpose, direction, users, non-goals                           | `vision.md`                                                                                                                              |
-| A reusable way of choosing between options                     | `principles.md`                                                                                                                          |
-| A rule a reviewer would reject a change for breaking           | `invariants.md` (mark it **Planned** if the code doesn't follow it yet)                                                                  |
-| A plan, idea, option, or investigation that was never accepted | `.agents/plans/` or a proposal, as memory                                                                                                |
-| The reasoning behind a past decision                           | The proposal or record it came from; turn it into a principle if it applies widely                                                       |
-| Selected scope, status, sequence, hand-offs                    | The tracker                                                                                                                              |
-| A description of current behavior or system structure          | Check it against the code and tests, then keep it in its owning user document or design overview. Fix or remove prose that misstates it. |
+| What the statement is                                 | Where it goes                                                                                                                            |
+| :---------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
+| Purpose, direction, users, non-goals                  | `vision.md`                                                                                                                              |
+| A reusable way of choosing between options            | `principles.md`                                                                                                                          |
+| A rule a reviewer would reject a change for breaking  | `invariants.md` (mark it **Planned** if the code doesn't follow it yet)                                                                  |
+| A plan, idea, or option that was never accepted       | `.agents/plans/` or a proposal, as memory                                                                                                |
+| Short-lived research, experiments, and background     | The notes home, once the operator confirms it                                                                                            |
+| The reasoning behind a past decision                  | The proposal or record it came from; turn it into a principle if it applies widely                                                       |
+| Selected scope, status, sequence, hand-offs           | The tracker                                                                                                                              |
+| A description of current behavior or system structure | Check it against the code and tests, then keep it in its owning user document or design overview. Fix or remove prose that misstates it. |
 
 Present the sorted list to the operator before moving anything.
 When two documents contradict each other, ask the operator which holds.

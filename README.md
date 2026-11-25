@@ -40,7 +40,7 @@ The conventions also keep your decisions separate from the agent's working notes
 | :---------------------------------------------- | :---------------------------------------------- | :---------------------------------------------------------------------------------------- |
 | Vision, principles, and invariants you accepted | Named files in `docs/design/`                   | Follow them. Only you can accept a change.                                                |
 | Design overviews and user documentation         | `docs/design/overviews/` and your documentation | Use them to understand the system, and verify their claims against code and tests.        |
-| Proposals, plans, notes, and work items         | `.agents/` and your tracker                     | Use them for the work they describe. A proposal authorizes work only after you accept it. |
+| Proposals, plans, and work items                | `.agents/` and your tracker                     | Use them for the work they describe. A proposal authorizes work only after you accept it. |
 | Code, tests, and the running system             | Your repository and running services            | Use them as evidence of what exists.                                                      |
 
 The names **canon**, **memory**, and **reality** refer to these three kinds of information.

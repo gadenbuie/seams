@@ -33,7 +33,7 @@ Noninteractive calls never open a prompt: `init` runs its interactive setup only
 ## Authority labels, and why retrieval is not verification
 
 Every result from `list`, `find`, and `read` carries an authority label computed by `authorityOf` in `cli/src/docs/discover.ts`.
-The labels are `canon`, `memory (verify against code)`, `<status> proposal (not authorization)`, and `<status> plan`.
+The labels are `canon`, `memory (verify against code)`, `<status> proposal (not authorization)`, `<status> plan`, and `note (not authorization)`.
 The label reports what a document is, never whether it is true.
 Only the operator accepts a proposal, and the CLI does not know that: it reports the `status` the document's frontmatter records.
 Retrieval is not verification.
@@ -42,15 +42,18 @@ The overview label says that requirement on the face of every result.
 
 ## Data comes from frontmatter, not indexes
 
-Catalogs never read hand-maintained index entries. `discoverDocuments` in `cli/src/docs/discover.ts` walks the four documentation homes and reads each document's YAML frontmatter with `parseFrontmatter` in `cli/src/docs/frontmatter.ts`: the title, the description, and for proposals and plans the status and creation date.
+Catalogs never read hand-maintained index entries. `discoverDocuments` in `cli/src/docs/discover.ts` walks the five documentation homes and reads each document's YAML frontmatter with `parseFrontmatter` in `cli/src/docs/frontmatter.ts`: the title, the description, and for proposals and plans the status and creation date.
 A missing or empty title falls back to the first H1 and then to the file name, and the gap is reported as a problem so it stays visible.
+Notes are the exception: they need no metadata, a note's title falls back to the first H1 and then the file name without reporting a problem, and the notes home itself is optional, contributing no documents and no warning when it is absent.
 The navigation `index.md` files are excluded from the catalog, so a stale index cannot put wrong titles or descriptions in front of an agent.
 Indexes remain reading guides for people and agents, and commands do not consult them. `cli/test/discover.test.ts` covers discovery and its fallbacks.
 
 ## The project manifest and the conventional fallback
 
 `findRoot` in `cli/src/config.ts` walks up from the working directory to the nearest directory holding `.agents/seams.json`, then to the nearest `.git` directory, then gives up and uses the current directory. `loadProject` then resolves the documentation homes.
-Without a manifest, the conventional layout applies: `docs/design`, `docs/design/overviews`, `.agents/proposals`, and `.agents/plans`, with `.agents/design` when `docs/design` is absent.
+Without a manifest, the conventional layout applies: `docs/design`, `docs/design/overviews`, `.agents/proposals`, and `.agents/plans`, with `.agents/design` when `docs/design` is absent, and `_dev/notes` as the notes candidate.
+The notes home is the one optional home: a manifest `paths.notes` overrides the candidate with the same validation as the other keys, and when the manifest omits `notes`, the CLI uses `_dev/notes` only when that directory already exists.
+No command creates the directory, and a missing notes home produces no warning or finding, whether the home comes from the manifest or from existing-folder detection.
 A manifest is validated against the schema bundled at `cli/schemas/v1/seams.schema.json` with `Ajv2020`, plus the path rules in `pathProblem`: paths are relative, use forward slashes, contain no `..` segment, and resolve inside the project root.
 A bad manifest throws `ManifestError`, which lists every problem instead of a partial guess.
 Manifest paths override the conventional defaults per key, so a project can move one home at a time.
@@ -81,11 +84,12 @@ It never deletes a file. `cli/test/skills-install.test.ts` and `cli/test/skills-
 ## What each command refuses to do
 
 - `read` refuses a document that resolves outside the repository root, including through a symlink (`resolveDocuments` in `cli/src/commands/read.ts`).
+- General `list` and `find` omit notes, so an ordinary documentation read never surfaces them; only `--type notes` selects notes, and notes never appear in `impact` or `reconcile` reference reports.
 - `find` bounds its output with `--limit` and `--max-bytes`, says when results were left out, and hides draft, rejected, deferred, and withdrawn proposals and draft and abandoned plans unless asked.
 - `new` never overwrites an existing file, never creates or edits canon, stops at a slug that resembles an open proposal unless `--force` is given, and touches the overviews index only with `--update-index`.
 - `impact` reports candidate documents, never a verdict; the reader judges whether a document is stale.
 - `reconcile` never edits a document and never advances `lastReconciledRevision`; it writes only the file `--manifest-out` names.
-- `check` runs only the mechanical checks in `cli/src/check/index.ts` (frontmatter, numbering, status, manifest, links, index coverage, skill references); formatting and project-specific checks stay with the project's own tooling.
+- `check` runs only the mechanical checks in `cli/src/check/index.ts` (frontmatter, numbering, status, manifest, links, index coverage, skill references); the frontmatter and manifest checks leave the optional notes home alone, requiring no note metadata and warning about no missing notes directory; formatting and project-specific checks stay with the project's own tooling.
 - `doctor` reports and never writes, and never claims that a harness loaded a skill or that documentation agrees with code.
 - `init` in agent mode never prompts, never scaffolds canon, and never writes the manifest; adoption is the `seams-adopt` skill's work.
 - `skills install` and `skills update` always pass an explicit agent selection, from `--agent` or from detection, and never overwrite a modified, untracked, or divergent copy.
