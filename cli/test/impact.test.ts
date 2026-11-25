@@ -68,6 +68,9 @@ function gitFixture(): string {
     assert.equal(result.status, 0, `git ${args.join(" ")} failed: ${result.stderr}`);
   };
   git(["init"]);
+  // The fixture repo must not inherit the machine's commit signing: tests
+  // would hang on the operator's keychain instead of failing fast.
+  git(["config", "commit.gpgsign", "false"]);
   git(["add", "-A"]);
   git(["commit", "-m", "base"]);
   // Modified (tracked), staged addition, untracked file.
@@ -217,6 +220,7 @@ describe("seams impact", () => {
       assert.equal(result.status, 0, `git ${args.join(" ")} failed: ${result.stderr}`);
     };
     git(["init"]);
+    git(["config", "commit.gpgsign", "false"]);
     git(["add", "Makefile"]);
     const { status, json } = impactJson(["--git-diff"], cwd);
     assert.equal(status, 0);
@@ -246,6 +250,7 @@ describe("seams impact", () => {
       assert.equal(result.status, 0, `git ${args.join(" ")} failed: ${result.stderr}`);
     };
     git(["init"], parent);
+    git(["config", "commit.gpgsign", "false"], parent);
     git(["add", "-A"], parent);
     git(["commit", "-qm", "base"], parent);
     spawnSync("sh", ["-c", 'printf "export const marker = \\"b2\\";\\n" > src/a/b.ts'], { cwd: project });
